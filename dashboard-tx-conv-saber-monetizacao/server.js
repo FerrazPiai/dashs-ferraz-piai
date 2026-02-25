@@ -118,12 +118,16 @@ app.get('/api/data', async (req, res) => {
             throw new Error(`Erro HTTP: ${response.status} - ${response.statusText}`);
         }
 
-        const data = await response.json();
+        const rawData = await response.json();
         console.log('📦 Dados recebidos da API externa');
-        console.log('📊 Total de registros:', data.data?.length || 0);
+
+        // Normalizar: API retorna array com um objeto, extrair o primeiro elemento
+        const data = Array.isArray(rawData) ? rawData[0] : rawData;
+
+        console.log('📊 Total de registros (consolidado):', data.data?.consolidado?.length || 0);
 
         // Validar estrutura
-        if (!data || !data.data || !Array.isArray(data.data)) {
+        if (!data || !data.data || !data.data.consolidado) {
             throw new Error('API retornou dados em formato inesperado');
         }
 

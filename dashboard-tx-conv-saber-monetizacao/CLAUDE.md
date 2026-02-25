@@ -4,31 +4,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Dashboard de Conversão de Safra — a single-page dashboard that displays agricultural crop conversion metrics (leads, monetized leads, conversion rates) fetched from an external N8N webhook API, with server-side file-based caching.
+Dashboard de Conversão de Safra — displays agricultural crop conversion metrics (leads, monetized leads, conversion rates by safra/crop period) fetched from an N8N webhook API.
 
 ## Tech Stack
 
-- **Backend:** Node.js + Express + node-fetch (ESM import)
-- **Frontend:** Vanilla HTML/CSS/JavaScript (no frameworks)
-- **Cache:** File-based JSON (`cache.json`) with 30-minute TTL
-- **UI Language:** Portuguese (pt-BR)
-
-## Commands
-
-```bash
-npm start        # Start production server (node server.js)
-npm run dev      # Start dev server with auto-reload (nodemon)
-```
-
-Server runs on `http://localhost:3000` (configurable via PORT env var).
+- **Backend:** Node.js + Express + node-fetch (ESM)
+- **Frontend:** Vanilla HTML/CSS/JS, Chart.js (line+area chart), Lucide Icons, Montserrat font
+- **Cache:** File-based `cache.json` with 30-min TTL
 
 ## Environment
 
 Requires `.env` with:
-- `API_ENDPOINT` (required) — N8N webhook URL for fetching conversion data
+- `API_ENDPOINT` (required) — N8N webhook URL
 - `PORT` (optional, default: 3000)
-
-See `.env.example` for template.
 
 ## Architecture
 
@@ -36,31 +24,31 @@ See `.env.example` for template.
 Browser (index.html + script.js)
   → GET /api/data?_t=timestamp[&refresh=true]
     → server.js reads cache.json
-      → If cache valid (<30min) and no refresh=true → return cached data
-      → If cache expired, missing, or refresh=true → fetch from API_ENDPOINT, save to cache.json, return fresh data
+      → cache valid (<30min) and no refresh → return cached
+      → else → fetch API_ENDPOINT, save cache.json, return fresh
 ```
 
-**server.js** — Express server with two endpoints:
-- `GET /api/data` — Main data endpoint with caching logic. Query param `refresh=true` bypasses cache.
-- `GET /api/cache/status` — Returns cache metadata (age, validity, expiry).
+**Endpoints:**
+- `GET /api/data` — Main data endpoint. `?refresh=true` bypasses cache.
+- `GET /api/cache/status` — Cache metadata (age, validity, expiry).
 
-**script.js** — Client-side rendering:
-- `getData(forceRefresh)` — Fetches from `/api/data`, adds `&refresh=true` when force-refreshing
-- `renderScorecards()` / `renderChart()` / `renderTable()` — Render dashboard components
-- `forceRefresh()` — Called by the "Atualizar" button, triggers `getData(true)`
-- `init()` is called on `DOMContentLoaded` via arrow function wrapper (important: must NOT pass the Event object as argument)
+**Frontend components:**
+- `renderScorecards()` — KPI cards (total leads, monetized, avg conversion)
+- `renderChart()` — Chart.js line+area chart with red gradient fill. Manages `safraChartInstance` lifecycle (destroy before recreate).
+- `renderTable()` — Detailed breakdown table by safra period
+- `forceRefresh()` — Button handler, shows loading state with Lucide loader icon
 
-**cache.json** — Runtime cache (git-ignored). Structure: `{ data: {ApiResponse}, timestamp: unixMs }`
+## API Response Shape
 
-## Design System
+```json
+{
+  "data": [
+    { "safra": "01/2026", "count_leads": 11, "count_leads_monetizados": 4, "convertion_rate": 0.3636 }
+  ],
+  "time": "2026-02-24T18:07:26.865-03:00"
+}
+```
 
-See `design-system.md` for color palette, typography, and component specs. Key colors:
-- Primary: Laranja V4 `#E14D2A`
-- Accent Red: `#E62E2E`
+## Design
 
-## Gotchas
-
-- `node-fetch` v3 is ESM-only, so it's imported via dynamic `await import('node-fetch')` inside the route handler
-- Browser caching is disabled on `/api/data` via `Cache-Control: no-store` headers and `fetch(url, { cache: 'no-store' })` on the client
-- `express.static(__dirname)` serves all files in the project root — `cache.json` and `.env` are in `.gitignore` but still accessible via HTTP if they exist
-- The `index.html` references `script.js?v=N` for cache-busting — bump the version when changing `script.js`
+Follows `../design-system.md` (v2). Primary `#ff0000`, dark theme, 6px radius cards, section titles with red `::before` bar.

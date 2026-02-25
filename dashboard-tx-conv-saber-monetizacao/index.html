@@ -6,6 +6,7 @@
     <title>V4 Company | Taxa de Conversão de Safra</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -31,12 +32,12 @@
         <section class="scorecards">
             <div class="scorecard">
                 <div class="scorecard-icon"><i data-lucide="users" style="width:20px;height:20px;"></i></div>
-                <div class="scorecard-label">Total de Leads</div>
+                <div class="scorecard-label">Total de Clientes Saber</div>
                 <div class="scorecard-value" id="totalLeads">-</div>
             </div>
             <div class="scorecard">
                 <div class="scorecard-icon"><i data-lucide="trending-up" style="width:20px;height:20px;"></i></div>
-                <div class="scorecard-label">Leads Monetizados</div>
+                <div class="scorecard-label">Clientes Saber Monetizados</div>
                 <div class="scorecard-value" id="totalMonetizados">-</div>
             </div>
             <div class="scorecard">
@@ -54,16 +55,36 @@
             </div>
         </section>
 
+        <!-- Conversão por Tier -->
+        <section class="chart-section">
+            <div class="section-header">
+                <h2>Conversão por Tier</h2>
+                <div class="toggle-group" id="tierToggle">
+                    <button class="toggle-btn active" data-view="consolidated" onclick="switchTierView('consolidated')">Consolidado</button>
+                    <button class="toggle-btn" data-view="by-safra" onclick="switchTierView('by-safra')">Por Safra</button>
+                </div>
+            </div>
+            <div class="chart-container" id="tierChartWrapper">
+                <canvas id="tierChart"></canvas>
+            </div>
+        </section>
+
         <!-- Tabela de Dados -->
         <section class="table-section">
-            <h2>Detalhamento por Safra</h2>
+            <div class="section-header">
+                <h2>Detalhamento por Safra</h2>
+                <div class="toggle-group" id="tableToggle">
+                    <button class="toggle-btn active" data-view="consolidated" onclick="switchTableView('consolidated')">Consolidado</button>
+                    <button class="toggle-btn" data-view="by-tier" onclick="switchTableView('by-tier')">Por Tier</button>
+                </div>
+            </div>
             <div class="table-wrapper">
                 <table id="safraTable">
-                    <thead>
+                    <thead id="tableHead">
                         <tr>
                             <th>Safra</th>
-                            <th>Total de Leads</th>
-                            <th>Leads Monetizados</th>
+                            <th>Total de Clientes Saber</th>
+                            <th>Clientes Saber Monetizados</th>
                             <th>Taxa de Conversão</th>
                         </tr>
                     </thead>
@@ -77,7 +98,7 @@
         </section>
     </div>
 
-    <script src="script.js?v=6"></script>
+    <script src="script.js?v=8"></script>
     <script>lucide.createIcons();</script>
 </body>
 </html>
