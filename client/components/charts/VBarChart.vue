@@ -34,6 +34,10 @@ const props = defineProps({
   options: {
     type: Object,
     default: () => ({})
+  },
+  customPlugins: {
+    type: Array,
+    default: () => ([])
   }
 })
 
@@ -170,7 +174,7 @@ const createChart = () => {
   }))
 
   // Register datalabels plugin if available
-  const plugins = []
+  const plugins = [...props.customPlugins]
   if (props.datalabels && window.ChartDataLabels) {
     plugins.push(window.ChartDataLabels)
   }

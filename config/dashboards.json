@@ -1,7 +1,7 @@
 [
   {
     "id": "tx-conv-saber-monetizacao",
-    "title": "Taxa de Conversão de Safra",
+    "title": "Conversão Saber → Ter/Executar",
     "icon": "trending-up",
     "componentPath": "TxConvSaberMonetizacao",
     "apiEndpoint": "API_ENDPOINT_CONV_SABER_MONETIZACAO",

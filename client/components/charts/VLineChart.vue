@@ -29,6 +29,10 @@ const props = defineProps({
   options: {
     type: Object,
     default: () => ({})
+  },
+  datalabels: {
+    type: Boolean,
+    default: false
   }
 })
 
@@ -110,6 +114,23 @@ const createChart = () => {
     }
   }
 
+  // Add datalabels plugin if enabled
+  if (props.datalabels && window.ChartDataLabels) {
+    defaultOptions.plugins.datalabels = {
+      color: '#ffffff',
+      font: {
+        size: 12,
+        weight: 'bold'
+      },
+      anchor: 'end',
+      align: 'top',
+      offset: 6,
+      formatter: (value) => {
+        return value ? `${parseFloat(value).toFixed(1)}%` : ''
+      }
+    }
+  }
+
   // Merge with custom options
   const mergedOptions = {
     ...defaultOptions,
@@ -122,6 +143,17 @@ const createChart = () => {
       ...defaultOptions.scales,
       ...props.options.scales
     }
+  }
+
+  // Add extra space on Y axis if datalabels are enabled
+  if (props.datalabels) {
+    mergedOptions.scales.y.grace = '10%'
+  }
+
+  // Register plugins
+  const plugins = []
+  if (props.datalabels && window.ChartDataLabels) {
+    plugins.push(window.ChartDataLabels)
   }
 
   chartInstance = new window.Chart(ctx, {
@@ -145,7 +177,8 @@ const createChart = () => {
         }
       ]
     },
-    options: mergedOptions
+    options: mergedOptions,
+    plugins
   })
 }
 

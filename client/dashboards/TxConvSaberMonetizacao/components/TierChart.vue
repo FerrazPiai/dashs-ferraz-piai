@@ -6,6 +6,7 @@
     :datalabels="true"
     :options="chartOptions"
     :horizontal="props.view === 'consolidated'"
+    :customPlugins="[safrasSeparatorPlugin]"
   />
 </template>
 
@@ -25,6 +26,16 @@ const props = defineProps({
   }
 })
 
+// Mapa de cores fixo por tier (consistente em todos os gráficos)
+const tierColorMap = {
+  'Enterprise - 480 Mi (Ano)': '#22c55e',      // Verde
+  'Large - 50 a 480 Mi (Ano)': '#f59e0b',      // Laranja
+  'Medium - 2.4 a 50 Mi (Ano)': '#fbbf24',     // Amarelo
+  'Small - 1.2 a 2.4 Mi': '#ef4444',           // Vermelho
+  'Tiny - Ate 1.2 Mi': '#a855f7',              // Roxo
+  'Sem Tier': '#6b7280'                        // Cinza
+}
+
 // Get unique tiers and safras
 const tiers = computed(() => {
   const tierSet = new Set(props.data.map(item => item.tier))
@@ -35,7 +46,13 @@ const tiers = computed(() => {
 
 const safras = computed(() => {
   const safraSet = new Set(props.data.map(item => item.safra))
-  return Array.from(safraSet).sort()
+  // Ordenação cronológica crescente (MM/YYYY)
+  return Array.from(safraSet).sort((a, b) => {
+    const [monthA, yearA] = a.split('/').map(Number)
+    const [monthB, yearB] = b.split('/').map(Number)
+    if (yearA !== yearB) return yearA - yearB
+    return monthA - monthB
+  })
 })
 
 // Chart labels
@@ -50,18 +67,6 @@ const chartLabels = computed(() => {
 
 // Chart datasets
 const chartDatasets = computed(() => {
-  // Paleta padrão do design system (sem azul)
-  const standardColors = [
-    '#22c55e', // Verde
-    '#f59e0b', // Laranja
-    '#fbbf24', // Amarelo
-    '#ef4444', // Vermelho
-    '#a855f7', // Roxo
-    '#84cc16', // Verde-limão
-    '#f43f5e', // Rosa
-    '#6b7280'  // Cinza (Sem Tier)
-  ]
-
   if (props.view === 'consolidated') {
     // Consolidado: um dataset com todos os tiers, agregando todas as safras
     const consolidated = {}
@@ -86,9 +91,7 @@ const chartDatasets = computed(() => {
 
     const sortedLabels = tierData.map(item => item.tier)
     const sortedValues = tierData.map(item => item.rate.toFixed(2))
-    const sortedColors = tierData.map((item, index) =>
-      item.tier === 'Sem Tier' ? '#6b7280' : standardColors[index % standardColors.length]
-    )
+    const sortedColors = tierData.map(item => tierColorMap[item.tier] || '#6b7280')
 
     return [
       {
@@ -101,15 +104,15 @@ const chartDatasets = computed(() => {
   }
 
   // By-safra: múltiplos datasets, um por tier
-  return tiers.value.map((tier, index) => {
+  return tiers.value.map(tier => {
     const values = safras.value.map(safra => {
       const item = props.data.find(d => d.safra === safra && d.tier === tier)
       if (!item || item.total === 0) return 0
       return ((item.monet / item.total) * 100).toFixed(2)
     })
 
-    // Usar cor padrão ou cinza para "Sem Tier"
-    const color = tier === 'Sem Tier' ? '#6b7280' : standardColors[index % standardColors.length]
+    // Usar cor do mapa de cores
+    const color = tierColorMap[tier] || '#6b7280'
 
     return {
       label: tier,
@@ -118,6 +121,58 @@ const chartDatasets = computed(() => {
     }
   })
 })
+
+// Plugin para adicionar separadores entre safras
+const safrasSeparatorPlugin = {
+  id: 'safrasSeparator',
+  beforeDraw: (chart) => {
+    if (props.view !== 'by-safra') return
+
+    const ctx = chart.ctx
+    const chartArea = chart.chartArea
+    const labels = chart.data.labels
+
+    ctx.save()
+
+    // Desenhar linhas separadoras entre TODAS as safras
+    for (let i = 1; i < labels.length; i++) {
+      const prevLabel = labels[i - 1]
+      const currentLabel = labels[i]
+
+      // Verificar se mudou o ano (linha mais forte)
+      const prevYear = prevLabel.split('/')[1]
+      const currentYear = currentLabel.split('/')[1]
+      const isYearChange = prevYear !== currentYear
+
+      // Calcular posição X entre as duas categorias
+      const xScale = chart.scales.x
+      const prevX = xScale.getPixelForValue(i - 1)
+      const currentX = xScale.getPixelForValue(i)
+      const separatorX = (prevX + currentX) / 2
+
+      // Estilo da linha
+      if (isYearChange) {
+        // Linha sólida branca para mudança de ano
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)'
+        ctx.lineWidth = 2
+        ctx.setLineDash([])
+      } else {
+        // Linha tracejada cinza clara para separar meses
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)'
+        ctx.lineWidth = 1
+        ctx.setLineDash([5, 5])
+      }
+
+      // Desenhar linha vertical
+      ctx.beginPath()
+      ctx.moveTo(separatorX, chartArea.top)
+      ctx.lineTo(separatorX, chartArea.bottom)
+      ctx.stroke()
+    }
+
+    ctx.restore()
+  }
+}
 
 const chartOptions = computed(() => {
   const baseOptions = {
@@ -142,8 +197,13 @@ const chartOptions = computed(() => {
         },
         formatter: (value) => {
           return value > 0 ? `${value}%` : ''
-        }
-      }
+        },
+        // Números acima das barras (apenas na visão "Por Safra")
+        anchor: props.view === 'by-safra' ? 'end' : 'center',
+        align: props.view === 'by-safra' ? 'top' : 'center',
+        offset: props.view === 'by-safra' ? 4 : 0
+      },
+      safrasSeparator: true // Habilitar plugin customizado
     }
   }
 
@@ -158,8 +218,18 @@ const chartOptions = computed(() => {
     }
   } else {
     // Barras verticais: Y é o valor (%)
+    // Barras mais próximas e centralizadas
+    baseOptions.barPercentage = 0.95
+    baseOptions.categoryPercentage = 0.7
+
     baseOptions.scales = {
+      x: {
+        grid: {
+          display: false
+        }
+      },
       y: {
+        grace: '15%', // Adiciona 15% de espaço extra no topo para os labels
         ticks: {
           callback: (value) => value + '%'
         }
