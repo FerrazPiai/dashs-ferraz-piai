@@ -145,10 +145,12 @@ router.get('/dashboards', async (req, res, next) => {
     const dashboards = await loadDashboardRegistry()
 
     res.json({
-      dashboards: dashboards.map(d => ({
+      dashboards: dashboards.filter(d => !d.hidden).map(d => ({
         id: d.id,
         title: d.title,
-        icon: d.icon
+        icon: d.icon,
+        status: d.status,
+        statusMessage: d.statusMessage
       })),
       timestamp: new Date().toISOString()
     })

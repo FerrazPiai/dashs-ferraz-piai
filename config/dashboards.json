@@ -5,6 +5,36 @@
     "icon": "trending-up",
     "componentPath": "TxConvSaberMonetizacao",
     "apiEndpoint": "API_ENDPOINT_CONV_SABER_MONETIZACAO",
-    "cacheTTL": 1800000
+    "cacheTTL": 1800000,
+    "status": "maintenance",
+    "statusMessage": "Este dashboard está temporariamente em manutenção. Os dados podem estar desatualizados ou indisponíveis."
+  },
+  {
+    "id": "gtm-motion",
+    "title": "GTM Motion",
+    "icon": "activity",
+    "componentPath": "GtmMotion",
+    "apiEndpoint": "API_ENDPOINT_GTM_MOTION",
+    "cacheTTL": 300000,
+    "status": "development",
+    "statusMessage": "Este dashboard está em desenvolvimento. Algumas funcionalidades podem estar incompletas ou instáveis."
+  },
+  {
+    "id": "marketing-vendas",
+    "title": "Marketing & Vendas",
+    "icon": "bar-chart-2",
+    "componentPath": "MarketingVendas",
+    "apiEndpoint": "API_ENDPOINT_MARKETING_VENDAS",
+    "cacheTTL": 300000,
+    "hidden": true
+  },
+  {
+    "id": "raio-x-financeiro",
+    "title": "Raio-X Financeiro",
+    "icon": "git-merge",
+    "componentPath": "DreFluxoCaixa",
+    "apiEndpoint": "API_ENDPOINT_DIAGRAMA_SANKEY",
+    "cacheTTL": 300000,
+    "status": "available"
   }
 ]

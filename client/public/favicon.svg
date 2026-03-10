@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Left funnel (triangle pointing right) -->
+  <polygon points="2,6 2,26 15,16"
+           fill="#E30613"
+           stroke="none"/>
+
+  <!-- Right funnel (triangle pointing left) -->
+  <polygon points="30,6 30,26 17,16"
+           fill="#E30613"
+           stroke="none"/>
+</svg>

@@ -6,7 +6,7 @@
 [![Vite](https://img.shields.io/badge/Vite-5.1-646CFF?logo=vite)](https://vitejs.dev/)
 [![Express](https://img.shields.io/badge/Express-4.18-000000?logo=express)](https://expressjs.com/)
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Instalar dependências
@@ -23,154 +23,129 @@ npm run dev
 open http://localhost:5173
 ```
 
-## 📋 Sobre o Projeto
+## Sobre o Projeto
 
 Aplicação SPA centralizada que consolida todos os dashboards da V4 Company em uma única plataforma. Construída com arquitetura moderna, hot reload instantâneo e componentes reutilizáveis.
 
-### ✨ Features
+### Features
 
-- ⚡ **Hot Reload < 100ms** - Vite proporciona feedback instantâneo
-- 🎨 **Design System Consistente** - Fonte Ubuntu, paleta padronizada
-- 📦 **Componentes Reutilizáveis** - VScorecard, VDataTable, VBarChart, etc.
-- 🔄 **Cache Inteligente** - File-based com TTL de 5 minutos
-- 🚦 **Router Automático** - Rotas geradas do registry de dashboards
-- 📊 **Chart.js Integrado** - Gráficos com design system aplicado
-- 🌐 **API Proxy** - Express proxia N8N webhooks (evita CORS)
+- **Hot Reload < 100ms** via Vite
+- **Design System Consistente** — fonte Ubuntu, paleta padronizada sem azul
+- **Componentes Reutilizáveis** — VScorecard, VDataTable, VBarChart, VStatusModal, etc.
+- **Cache Inteligente** — file-based com TTL configurável por dashboard
+- **Router Automático** — rotas geradas do registry `dashboards.json`
+- **Status de Dashboard** — indicadores visuais (bolinha) + modal de aviso por status
+- **API Proxy** — Express proxia N8N webhooks (evita CORS)
 
-### 🏗️ Stack Técnica
+### Stack
 
-**Frontend:**
-- Vue 3 (Composition API)
-- Vue Router 4 (rotas automáticas)
-- Pinia 2 (state management)
-- Vite 5 (build tool)
+**Frontend:** Vue 3 (Composition API) · Vue Router 4 · Pinia 2 · Vite 5
 
-**Backend:**
-- Express.js 4
-- Node-Fetch 3 (HTTP client)
-- File-based cache (JSON)
+**Backend:** Express.js 4 · Node-Fetch 3 · File-based cache (JSON)
 
-**UI/UX:**
-- Chart.js 4 + Datalabels plugin
-- Lucide Icons
-- Design System V4 (Ubuntu font)
+**UI/UX:** Chart.js 4 · chartjs-plugin-datalabels · Lucide Icons · Design System V4
 
-## 📁 Estrutura do Projeto
+## Estrutura
 
 ```
 dashboards-v4/
 ├── client/                    # Frontend Vue 3
-│   ├── components/            # Componentes reutilizáveis
-│   │   ├── layout/            # VLayout, VSidebar
-│   │   ├── ui/                # VScorecard, VDataTable, VToggleGroup
-│   │   └── charts/            # VBarChart, VLineChart, VChartCard
-│   ├── composables/           # Lógica reutilizável
-│   ├── dashboards/            # Dashboards específicos
-│   ├── router/                # Vue Router config
+│   ├── index.html
+│   ├── main.js
+│   ├── App.vue
+│   ├── router/                # Vue Router (rotas auto-geradas)
 │   ├── stores/                # Pinia stores
-│   └── styles/                # CSS do design system
-├── server/                    # Backend Express
-│   ├── lib/                   # Utilitários (cache, API client)
-│   └── routes/                # API routes
+│   ├── composables/           # useDashboardData, useFormatters, useChartDefaults
+│   ├── styles/                # CSS do design system
+│   ├── components/
+│   │   ├── layout/            # VLayout, VSidebar
+│   │   ├── ui/                # VScorecard, VDataTable, VToggleGroup, VRefreshButton, VStatusModal
+│   │   └── charts/            # VBarChart, VLineChart, VChartCard
+│   └── dashboards/            # Um diretório por dashboard
+│       └── NomeDashboard/
+│           ├── index.vue      # Componente principal
+│           ├── config.js      # Metadata do dashboard
+│           └── components/    # Componentes internos
+├── server/
+│   ├── index.js               # Servidor Express
+│   ├── lib/
+│   │   ├── api-client.js      # HTTP client (timeout 5min)
+│   │   └── cache-manager.js   # File-based cache
+│   └── routes/
+│       └── api.js             # /api/dashboards, /api/data/:id, /api/cache/status/:id
 ├── config/
 │   └── dashboards.json        # Registry de dashboards
-├── dashboards-data/           # Cache por dashboard
-├── design-system.md           # Especificação do design system
-└── package.json
+├── dashboards-data/           # Cache gerado em runtime (gitignored)
+├── design-system.md           # Especificação visual completa
+├── package.json
+└── vite.config.js
 ```
 
-## 🎯 Dashboards Disponíveis
+## Dashboards
 
-| Dashboard | Rota | Descrição |
-|-----------|------|-----------|
-| Taxa de Conversão Safra | `/tx-conv-saber-monetizacao` | Análise de conversão Saber → Monetização |
+| Dashboard | Rota | Status |
+|-----------|------|--------|
+| Conversão Saber → Ter/Executar | `/tx-conv-saber-monetizacao` | Manutenção |
+| GTM Motion | `/gtm-motion` | Desenvolvimento |
+| Diagrama de Sankey | `/diagrama-de-sankey` | Disponível |
 
-## 🛠️ Comandos Disponíveis
+### Status dos Dashboards
+
+Cada dashboard pode ter um `status` configurado em `dashboards.json`:
+
+| Status | Cor | Comportamento |
+|--------|-----|---------------|
+| `available` | Verde | Só exibe bolinha, sem modal |
+| `development` | Amarelo | Exibe bolinha + modal de aviso ao abrir |
+| `maintenance` | Vermelho | Exibe bolinha + modal de aviso ao abrir |
+
+## Comandos
 
 ```bash
-# Desenvolvimento (Vite + Express em paralelo)
-npm run dev
-
-# Build de produção
-npm run build
-
-# Preview do build
-npm run preview
-
-# Servidor de produção
-npm start
-
-# Servidor backend apenas
-npm run server:dev
-
-# Vite dev server apenas
-npm run client:dev
+npm run dev          # Vite (5173) + Express (3001) em paralelo
+npm run build        # Build de produção → dist/
+npm run preview      # Preview do build
+npm start            # Servidor de produção
+npm run server:dev   # Só o backend
+npm run client:dev   # Só o frontend
 ```
 
-## 📊 Criar Novo Dashboard
+## Criar Novo Dashboard
 
-**Tempo: ~5-10 minutos**
-
-### 1. Criar estrutura de arquivos
+### 1. Criar estrutura
 
 ```bash
 mkdir -p client/dashboards/MeuDashboard/components
 ```
 
-### 2. Criar `config.js`
+### 2. `config.js`
 
 ```javascript
-// client/dashboards/MeuDashboard/config.js
 export default {
   id: 'meu-dashboard',
   title: 'Meu Dashboard',
-  icon: 'bar-chart', // Lucide icon
-  description: 'Descrição do dashboard'
+  icon: 'bar-chart',
+  description: 'Descrição'
 }
 ```
 
-### 3. Criar `index.vue`
+### 3. `index.vue`
 
 ```vue
-<template>
-  <div class="dashboard-container">
-    <!-- Scorecards -->
-    <div class="scorecards">
-      <VScorecard
-        label="Total"
-        :value="total"
-        :formatter="formatNumber"
-        icon="users"
-      />
-    </div>
-
-    <!-- Gráfico -->
-    <VChartCard title="Evolução">
-      <VLineChart :data="chartData" :labels="chartLabels" />
-    </VChartCard>
-  </div>
-</template>
-
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useDashboardData } from '@/composables/useDashboardData'
-import { formatNumber } from '@/composables/useFormatters'
 import VScorecard from '@/components/ui/VScorecard.vue'
-import VChartCard from '@/components/charts/VChartCard.vue'
-import VLineChart from '@/components/charts/VLineChart.vue'
 import config from './config'
 
 const { data, loading, fetchData } = useDashboardData(config.id)
-
 const total = computed(() => data.value?.total || 0)
-const chartData = computed(() => data.value?.series || [])
-const chartLabels = computed(() => data.value?.labels || [])
 
 onMounted(() => fetchData())
 </script>
 ```
 
-### 4. Registrar no `config/dashboards.json`
+### 4. Registrar em `config/dashboards.json`
 
 ```json
 {
@@ -179,140 +154,98 @@ onMounted(() => fetchData())
   "icon": "bar-chart",
   "componentPath": "MeuDashboard",
   "apiEndpoint": "API_ENDPOINT_MEU_DASHBOARD",
-  "cacheTTL": 300000
+  "cacheTTL": 300000,
+  "status": "development",
+  "statusMessage": "Este dashboard está em desenvolvimento."
 }
 ```
 
-### 5. Adicionar endpoint no `.env`
+> `status` e `statusMessage` são opcionais. Se omitidos, nenhuma bolinha ou modal é exibido.
+
+### 5. Adicionar no `.env`
 
 ```bash
 API_ENDPOINT_MEU_DASHBOARD=https://sua-api.com/endpoint
 ```
 
-### 6. Acessar
+A rota `/meu-dashboard` é criada automaticamente pelo router.
 
-```
-http://localhost:5173/meu-dashboard
-```
-
-A rota é criada automaticamente pelo router! ✨
-
-## 🎨 Design System
-
-O projeto segue o **Design System V4** com as seguintes diretrizes:
-
-### Cores
-
-- **Primária:** `#ff0000` (Vermelho V4)
-- **Backgrounds:** `#0d0d0d` → `#141414` → `#1a1a1a`
-- **Texto:** `#ffffff` → `#cccccc` → `#999999` → `#888888` → `#666666`
-
-### Paleta de Gráficos (sem azul)
-
-1. `#22c55e` - Verde
-2. `#f59e0b` - Laranja
-3. `#fbbf24` - Amarelo
-4. `#ef4444` - Vermelho
-5. `#a855f7` - Roxo
-6. `#84cc16` - Verde-limão
-7. `#f43f5e` - Rosa
-8. `#6b7280` - Cinza (Neutro)
-
-### Fonte
-
-**Ubuntu** (Google Fonts), fallback para Segoe UI
-
-Ver [`design-system.md`](./design-system.md) para especificação completa.
-
-## 🔧 Configuração
+## Configuração
 
 ### Variáveis de Ambiente
 
 ```bash
-# .env
-PORT=3001                      # Porta do Express
-NODE_ENV=development           # development | production
+PORT=3001
+NODE_ENV=development
 
-# API Endpoints (adicionar conforme dashboards)
 API_ENDPOINT_CONV_SABER_MONETIZACAO=https://...
-API_ENDPOINT_MEU_DASHBOARD=https://...
+API_ENDPOINT_GTM_MOTION=https://...
+API_ENDPOINT_DIAGRAMA_SANKEY=https://...
 ```
 
 ### Cache
 
-- **Localização:** `dashboards-data/{dashboardId}/cache.json`
-- **TTL padrão:** 5 minutos (300.000ms)
+- **Localização:** `dashboards-data/{dashboardId}/cache.json` (gitignored)
+- **TTL padrão:** 5 minutos (300.000ms), configurável por dashboard
 - **Bypass:** `?refresh=true` na URL
 
 ### API Timeout
 
-- **Padrão:** 5 minutos (APIs podem demorar)
-- **Configurável em:** `server/lib/api-client.js`
+- **Padrão:** 5 minutos — configurável em `server/lib/api-client.js`
 
-## 📚 Componentes Disponíveis
+## Componentes
 
 ### Layout
-- `VLayout` - Container principal com sidebar
-- `VSidebar` - Menu lateral com navegação
+- `VLayout` — container principal com sidebar
+- `VSidebar` — menu lateral com bolinhas de status
 
 ### UI
-- `VScorecard` - Card de KPI com ícone
-- `VDataTable` - Tabela responsiva com formatters
-- `VToggleGroup` - Botões de toggle (consolidado/por tier)
-- `VRefreshButton` - Botão de refresh com loading
+- `VScorecard` — card de KPI com ícone
+- `VDataTable` — tabela responsiva com formatters
+- `VToggleGroup` — botões de alternância
+- `VRefreshButton` — botão de refresh com loading
+- `VStatusModal` — modal de aviso de status do dashboard
 
 ### Charts
-- `VChartCard` - Container de gráfico com título
-- `VBarChart` - Gráfico de barras (vertical/horizontal)
-- `VLineChart` - Gráfico de linha com área
+- `VChartCard` — container de gráfico com título
+- `VBarChart` — barras verticais ou horizontais
+- `VLineChart` — linha com área
 
 ### Composables
-- `useDashboardData(id)` - Fetch e cache de dados
-- `useFormatters` - Formatadores (número, porcentagem, moeda)
-- `useChartDefaults` - Configurações padrão do Chart.js
+- `useDashboardData(id)` — fetch, cache e estado de loading
+- `useFormatters` — número, porcentagem, moeda
+- `useChartDefaults` — configurações padrão do Chart.js
 
-## 🚀 Deploy
+## Design System
 
-### Build de Produção
+- **Fonte:** Ubuntu (Google Fonts)
+- **Primária:** `#ff0000` (Vermelho V4)
+- **Backgrounds:** `#0d0d0d` → `#141414` → `#1a1a1a`
+- **Texto:** `#fff` → `#ccc` → `#999` → `#888` → `#666`
+- **Gráficos (sem azul):** Verde · Laranja · Amarelo · Vermelho · Roxo · Verde-limão · Rosa · Cinza
+
+Ver [`design-system.md`](./design-system.md) para especificação completa.
+
+## Deploy
 
 ```bash
 npm run build
-```
-
-Build gerado em `dist/client/`
-
-### Rodar em Produção
-
-```bash
 NODE_ENV=production npm start
 ```
 
-O Express serve os arquivos estáticos de `dist/client/` e as rotas de API.
+O Express serve `dist/client/` e as rotas de API no mesmo processo.
 
-## 📝 Git Conventions
+## Git
 
-Usar **Conventional Commits** em português:
+Conventional Commits em português, single-line (~50 chars):
 
-```bash
-feat: adicionar novo dashboard de vendas
+```
+feat: adicionar dashboard de vendas
 fix: corrigir cache sempre forçando refresh
-chore: atualizar dependências do vue
-style: aplicar design system v2
+chore: atualizar dependências
 refactor: simplificar lógica do tier chart
 ```
 
-## 🤝 Contribuindo
-
-1. Criar branch: `git checkout -b feat/novo-dashboard`
-2. Fazer mudanças seguindo o design system
-3. Commitar: `git commit -m "feat: adicionar dashboard x"`
-4. Push: `git push origin feat/novo-dashboard`
-5. Abrir PR
-
-## 📄 Licença
-
-Propriedade da **V4 Company** - Uso interno apenas.
-
 ---
 
-**Desenvolvido com ❤️ usando Vue 3 + Vite**
+Propriedade da **V4 Company** — uso interno.

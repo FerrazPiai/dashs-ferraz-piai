@@ -12,7 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Frontend: Vue 3 + Vite + Vue Router + Pinia
 - Backend: Express.js + Node-Fetch
 - Build: Vite (HMR < 100ms)
-- Cache: File-based (5 minutos)
+- Cache: File-based (5 minutos, configurável por dashboard)
 
 ## Estrutura
 
@@ -28,29 +28,31 @@ dashboards-v4/
 │   ├── stores/                # Pinia stores
 │   ├── components/            # Componentes reutilizáveis
 │   │   ├── layout/            # VLayout, VSidebar
-│   │   ├── ui/                # VScorecard, VDataTable, VToggleGroup, VRefreshButton
+│   │   ├── ui/                # VScorecard, VDataTable, VToggleGroup, VRefreshButton, VStatusModal
 │   │   └── charts/            # VBarChart, VLineChart, VChartCard
 │   ├── composables/           # useDashboardData, useFormatters, useChartDefaults
 │   ├── styles/                # CSS do design system
 │   ├── views/                 # NotFound
 │   └── dashboards/            # Dashboards específicos
-│       └── TxConvSaberMonetizacao/
-│           ├── index.vue      # Componente principal
-│           ├── config.js      # Metadata do dashboard
-│           └── components/    # Componentes internos (SafraChart, TierChart)
+│       ├── TxConvSaberMonetizacao/
+│       ├── GtmMotion/
+│       ├── MarketingVendas/
+│       └── DreFluxoCaixa/     # Diagrama de Sankey
 ├── server/                    # Backend Express
 │   ├── index.js               # Server principal
 │   ├── lib/                   # Utilitários
 │   │   ├── api-client.js      # HTTP client (timeout 5min)
 │   │   └── cache-manager.js   # File-based cache
 │   └── routes/
-│       └── api.js             # API routes (/api/dashboards, /api/data/:id)
+│       └── api.js             # /api/dashboards, /api/data/:id, /api/cache/status/:id
 ├── config/
 │   └── dashboards.json        # Registry de dashboards
 ├── dashboards-data/           # Cache por dashboard (gitignored)
 │   └── {dashboardId}/
 │       └── cache.json
-├── package.json               # Dependencies root
+├── mock/                      # Dados mock para desenvolvimento (gitignored)
+├── specs/                     # Specs de features (gitignored)
+├── package.json
 └── vite.config.js             # Vite config (proxy, build)
 ```
 
@@ -68,7 +70,6 @@ npm start            # Servidor de produção
 **URLs:**
 - Frontend (dev): `http://localhost:5173`
 - Backend API: `http://localhost:3001`
-- Dashboard: `http://localhost:5173/tx-conv-saber-monetizacao`
 
 ## Design System
 
@@ -81,12 +82,33 @@ Ver **`design-system.md`** para especificação completa. Principais diretrizes:
 - **Paleta de gráficos (SEM azul):** Verde, Laranja, Amarelo, Vermelho, Roxo, Verde-limão, Rosa, Cinza
 - **Border-radius:** 4-6px (conservador)
 - **Charts:** Chart.js com grid escuro (`rgba(255,255,255,0.03)`)
-- **Referência visual:** https://tremborage.v4ferrazpiai.com.br/
+
+## Sistema de Status de Dashboards
+
+Cada dashboard em `config/dashboards.json` pode ter:
+
+```json
+{
+  "status": "available" | "development" | "maintenance",
+  "statusMessage": "Mensagem exibida no modal ao abrir o dashboard"
+}
+```
+
+**Comportamento:**
+- `available` → bolinha verde na sidebar, sem modal
+- `development` → bolinha amarela na sidebar + modal de aviso ao navegar
+- `maintenance` → bolinha vermelha na sidebar + modal de aviso ao navegar
+- Omitir `status` → sem bolinha, sem modal
+
+**Componentes envolvidos:**
+- `VSidebar.vue` — renderiza as bolinhas (`.status-dot--{status}`)
+- `VStatusModal.vue` — modal com título, label e mensagem
+- `VLayout.vue` — observa rota e `dashboards` prop para disparar o modal
 
 ## Padrões Comuns
 
 **Cache:**
-- File-based, TTL 5 minutos (300.000ms)
+- File-based, TTL configurável por dashboard (padrão 5min / 300.000ms)
 - Armazenado em `dashboards-data/{dashboardId}/cache.json`
 - `?refresh=true` bypassa cache
 - Gerenciado por `server/lib/cache-manager.js`
@@ -140,7 +162,9 @@ Ver **`design-system.md`** para especificação completa. Principais diretrizes:
      "icon": "bar-chart",
      "componentPath": "NomeDashboard",
      "apiEndpoint": "API_ENDPOINT_NOME",
-     "cacheTTL": 300000
+     "cacheTTL": 300000,
+     "status": "development",
+     "statusMessage": "Este dashboard está em desenvolvimento."
    }
    ```
 
@@ -151,7 +175,7 @@ Ver **`design-system.md`** para especificação completa. Principais diretrizes:
 
 6. **Testar:**
    - O router auto-gera a rota: `/nome-dashboard`
-   - Sidebar auto-adiciona o menu
+   - Sidebar auto-adiciona o menu com bolinha de status
    - Cache auto-criado em `dashboards-data/nome-dashboard/`
 
 ## Git Conventions
@@ -163,9 +187,11 @@ Ver **`design-system.md`** para especificação completa. Principais diretrizes:
 
 ## Gotchas
 
-- **Vite HMR:** Funciona para Vue/CSS, mas mudanças em `dashboards.json` requerem restart
+- **Vite HMR:** Funciona para Vue/CSS, mas mudanças em `dashboards.json` requerem restart do servidor Express
 - **Chart.js instances:** Sempre destroy em `onBeforeUnmount` para evitar memory leaks
 - **node-fetch v3:** ESM-only, usar dynamic import: `await import('node-fetch')`
 - **Computed deps:** Vue não tracka `array.length`, usar spread `[...array]` se necessário
 - **Cache TTL:** 5min padrão, ajustar por dashboard se necessário
 - **API timeout:** 5min padrão (APIs podem demorar), ajustar em `api-client.js` se necessário
+- **Status modal:** Disparado tanto na troca de rota quanto no carregamento inicial dos dashboards (watch duplo em VLayout)
+- **API /api/dashboards:** Retorna `status` e `statusMessage` — ao adicionar novos campos ao registry, verificar se precisam ser expostos nessa rota

@@ -21,6 +21,12 @@
           >
             <i :data-lucide="dashboard.icon" class="sidebar-nav-icon"></i>
             <span>{{ dashboard.title }}</span>
+            <span
+              v-if="dashboard.status"
+              class="status-dot"
+              :class="`status-dot--${dashboard.status}`"
+              :title="statusLabel(dashboard.status)"
+            ></span>
           </router-link>
         </li>
       </ul>
@@ -47,7 +53,15 @@ defineEmits(['toggle'])
 
 const route = useRoute()
 
-// Re-initialize Lucide icons quando a rota mudar
+const statusLabel = (status) => {
+  const labels = {
+    available: 'Disponível',
+    development: 'Em desenvolvimento',
+    maintenance: 'Em manutenção'
+  }
+  return labels[status] || ''
+}
+
 watch(
   () => route.path,
   () => {
@@ -59,3 +73,29 @@ watch(
   }
 )
 </script>
+
+<style scoped>
+.status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.status-dot--available {
+  background-color: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+}
+
+.status-dot--development {
+  background-color: #f59e0b;
+  box-shadow: 0 0 6px rgba(245, 158, 11, 0.6);
+}
+
+.status-dot--maintenance {
+  background-color: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
+}
+</style>

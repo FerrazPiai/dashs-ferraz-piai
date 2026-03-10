@@ -11,11 +11,10 @@ yarn-error.log*
 # Environment
 .env
 .env.local
+.env.*.local
 
 # Cache
-cache.json
-**/cache.json
-dashboards-data/*/cache.json
+dashboards-data/
 
 # Build output
 dist/
@@ -26,6 +25,14 @@ dist/
 *.swp
 *.swo
 *~
+
+# Logs
+logs/
+*.log
+
+# Mocks e specs (dados locais de desenvolvimento)
+mock/
+specs/
 
 # Deployment (pode conter informações sensíveis)
 DEPLOY.md
