@@ -31,10 +31,10 @@ const router = createRouter({
       component: LoginView
     },
 
-    // Redirect root to first dashboard
+    // Redirect root to raio-x financeiro
     {
       path: '/',
-      redirect: dashboardsConfig.length > 0 ? `/${dashboardsConfig[0].id}` : '/404'
+      redirect: '/raio-x-financeiro'
     },
 
     // Dashboard routes (auto-generated)
