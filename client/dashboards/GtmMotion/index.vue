@@ -11,31 +11,42 @@
         <span v-if="lastUpdateTime" class="last-update">
           Última atualização: {{ lastUpdateTime }}
         </span>
-        <VToggleGroup
-          v-model="currentChannel"
-          :options="channelOptions"
-        />
+        <div class="period-range">
+          <select class="month-select" v-model="mesInicial">
+            <option v-for="m in MESES" :key="m.value" :value="m.value">{{ m.label }}</option>
+          </select>
+          <span class="period-sep">até</span>
+          <select class="month-select" v-model="mesFinal">
+            <option v-for="m in mesesFinalDisponiveis" :key="m.value" :value="m.value">{{ m.label }}</option>
+          </select>
+        </div>
         <VRefreshButton :loading="loading" @click="handleRefresh" />
       </div>
     </div>
 
-    <!-- Error State (only show when no fallback data is available) -->
+    <!-- Error State -->
     <div v-if="error && !resolvedData" class="error-message">
       <i data-lucide="alert-circle"></i>
       <span>{{ error }}</span>
     </div>
 
-    <!-- Motion Tabs -->
-    <div class="motion-tabs">
+    <!-- Channel Tabs -->
+    <div class="channel-tabs">
       <button
-        v-for="motion in motions"
-        :key="motion.id"
-        class="motion-tab"
-        :class="{ active: currentMotionId === motion.id }"
-        @click="currentMotionId = motion.id"
+        class="channel-tab"
+        :class="{ active: isConsolidado }"
+        @click="handleChannelClick('consolidado')"
       >
-        <span class="motion-dot" :class="`dot-${motion.color}`"></span>
-        {{ motion.label }}
+        Consolidado
+      </button>
+      <button
+        v-for="canal in CANAIS"
+        :key="canal.id"
+        class="channel-tab"
+        :class="{ active: isChannelActive(canal.id) }"
+        @click="handleChannelClick(canal.id)"
+      >
+        {{ canal.label }}
       </button>
     </div>
 
@@ -89,7 +100,7 @@
       <GtmScorecard
         label="Avg Ticket"
         :value="kpis.avgTicket?.value ?? null"
-        :formatter="formatCurrency"
+        :formatter="formatCurrencyAbbrev"
         :provisionado="kpis.avgTicket?.provisionado ?? null"
         :meta="kpis.avgTicket?.meta ?? null"
         :delta="kpis.avgTicket?.delta ?? null"
@@ -98,7 +109,7 @@
       <GtmScorecard
         label="Booking"
         :value="kpis.booking?.value ?? null"
-        :formatter="formatCurrency"
+        :formatter="formatCurrencyAbbrev"
         :provisionado="kpis.booking?.provisionado ?? null"
         :meta="kpis.booking?.meta ?? null"
         :delta="kpis.booking?.delta ?? null"
@@ -109,10 +120,7 @@
     <!-- Funnel Table -->
     <div class="table-section">
       <div class="table-header">
-        <span class="table-motion-dot" :class="`dot-${currentMotion?.color}`"></span>
-        <h3 class="table-title">
-          {{ currentMotion?.label }} {{ currentChannelLabel }}
-        </h3>
+        <h3 class="table-title">{{ tableTitle }}</h3>
       </div>
       <GtmFunnelTable :tiers="currentTiers" :loading="loading" />
     </div>
@@ -120,52 +128,188 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useDashboardData } from '../../composables/useDashboardData.js'
-import { formatNumber, formatCurrency, formatDateTime } from '../../composables/useFormatters.js'
+import { formatNumber, formatCurrencyAbbrev, formatDateTime } from '../../composables/useFormatters.js'
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
-import VToggleGroup from '../../components/ui/VToggleGroup.vue'
 import GtmScorecard from './components/GtmScorecard.vue'
 import GtmFunnelTable from './components/GtmFunnelTable.vue'
-import { MOCK_DATA } from './mock-data.js'
+import { MOCK_DATA, CANAIS, MESES } from './mock-data.js'
 
-const { data, loading, error, fetchData, fromCache } = useDashboardData('gtm-motion')
+const { data, loading, error, fetchData } = useDashboardData('gtm-motion')
 
-const currentChannel = ref('inbound')
-const currentMotionId = ref(null)
+// ── Month range ───────────────────────────────────────────────────────────────
+function getCurrentQuarterRange() {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
+  const qStart = Math.floor((month - 1) / 3) * 3 + 1
+  const qEnd = qStart + 2
+  const pad = (n) => String(n).padStart(2, '0')
+  const start = `${year}-${pad(qStart)}`
+  const end = `${year}-${pad(qEnd)}`
+  const vals = MESES.map((m) => m.value)
+  return {
+    start: vals.includes(start) ? start : (vals.find((v) => v >= start) ?? vals[0]),
+    end:   vals.includes(end)   ? end   : ([...vals].reverse().find((v) => v <= end) ?? vals[vals.length - 1]),
+  }
+}
 
-const channelOptions = [
-  { value: 'inbound',  label: 'Inbound' },
-  { value: 'outbound', label: 'Outbound' }
-]
+const { start: defaultStart, end: defaultEnd } = getCurrentQuarterRange()
+const mesInicial = ref(defaultStart)
+const mesFinal   = ref(defaultEnd)
 
-const currentChannelLabel = computed(() =>
-  channelOptions.find(o => o.value === currentChannel.value)?.label ?? ''
+const mesesFinalDisponiveis = computed(() =>
+  MESES.filter((m) => m.value >= mesInicial.value)
 )
 
-// Use API data or fall back to mock in dev
+watch(mesInicial, (val) => {
+  if (mesFinal.value < val) mesFinal.value = val
+})
+
+// ── Channel selection ─────────────────────────────────────────────────────────
+const selectedChannels = ref(['consolidado'])
+const ALL_CHANNEL_IDS  = CANAIS.map((c) => c.id)
+
+const isConsolidado = computed(() => selectedChannels.value.includes('consolidado'))
+
+function isChannelActive(id) {
+  return !isConsolidado.value && selectedChannels.value.includes(id)
+}
+
+function handleChannelClick(channelId) {
+  if (channelId === 'consolidado') {
+    selectedChannels.value = ['consolidado']
+    return
+  }
+  const current = selectedChannels.value
+  if (current.includes('consolidado')) {
+    // From consolidado → exclusive
+    selectedChannels.value = [channelId]
+    return
+  }
+  const idx = current.indexOf(channelId)
+  if (idx >= 0) {
+    // Deselect (unless it's the last)
+    if (current.length > 1) selectedChannels.value = current.filter((id) => id !== channelId)
+  } else {
+    // Add to selection (multi-select)
+    selectedChannels.value = [...current, channelId]
+  }
+}
+
+// ── Data ──────────────────────────────────────────────────────────────────────
 const resolvedData = computed(() => {
   if (data.value) return data.value
   if (import.meta.env.DEV) return MOCK_DATA
   return null
 })
 
-const motions = computed(() => resolvedData.value?.motions ?? [])
-
-// Auto-select first motion when data loads
-const currentMotion = computed(() =>
-  motions.value.find(m => m.id === currentMotionId.value) ?? motions.value[0] ?? null
+const activeChannelIds = computed(() =>
+  isConsolidado.value ? ALL_CHANNEL_IDS : selectedChannels.value
 )
 
-const currentChannelData = computed(() =>
-  currentMotion.value?.channels?.[currentChannel.value] ?? null
-)
+function crColor(val, green, yellow) {
+  return val >= green ? 'green' : val >= yellow ? 'yellow' : 'red'
+}
 
-const kpis = computed(() => currentChannelData.value?.kpis ?? {})
+// Aggregate KPIs from active channels
+const kpis = computed(() => {
+  const source = resolvedData.value
+  if (!source) return {}
+  const sum = {}
+  for (const channelId of activeChannelIds.value) {
+    const chKpis = source.channels?.[channelId]?.kpis ?? {}
+    for (const [key, kpi] of Object.entries(chKpis)) {
+      if (key === 'avgTicket') continue // derived from booking/commit
+      if (!sum[key]) sum[key] = { value: 0, provisionado: null, meta: null, delta: null }
+      sum[key].value += kpi.value ?? 0
+      if (kpi.provisionado != null) sum[key].provisionado = (sum[key].provisionado ?? 0) + kpi.provisionado
+      if (kpi.meta       != null) sum[key].meta          = (sum[key].meta       ?? 0) + kpi.meta
+    }
+  }
+  // avgTicket = booking / commit (weighted average)
+  const commitVal  = sum.commit?.value ?? 0
+  const commitMeta = sum.commit?.meta  ?? 0
+  const bookingVal = sum.booking?.value ?? 0
+  const bookingMeta = sum.booking?.meta ?? 0
+  sum.avgTicket = {
+    value:       commitVal  > 0 ? Math.round(bookingVal  / commitVal)  : null,
+    provisionado: null,
+    meta:        commitMeta > 0 ? Math.round(bookingMeta / commitMeta) : null,
+    delta: null,
+  }
+  return sum
+})
 
-const currentTiers = computed(() => currentChannelData.value?.tiers ?? [])
+// Aggregate tiers from active channels
+const currentTiers = computed(() => {
+  const source = resolvedData.value
+  if (!source) return []
+  const tierMap   = {}
+  const tierOrder = []
+  for (const channelId of activeChannelIds.value) {
+    const tiers = source.channels?.[channelId]?.tiers ?? []
+    for (const row of tiers) {
+      if (!tierMap[row.tier]) {
+        tierMap[row.tier] = { ...row }
+        tierOrder.push(row.tier)
+      } else {
+        const ex = tierMap[row.tier]
+        if (row.isEmptyRow) {
+          ex.leads = (ex.leads ?? 0) + (row.leads ?? 0)
+          continue
+        }
+        ex.leads   = (ex.leads   ?? 0) + (row.leads   ?? 0)
+        ex.mql     = (ex.mql     ?? 0) + (row.mql     ?? 0)
+        ex.sql     = (ex.sql     ?? 0) + (row.sql     ?? 0)
+        ex.sal     = (ex.sal     ?? 0) + (row.sal     ?? 0)
+        ex.commit  = (ex.commit  ?? 0) + (row.commit  ?? 0)
+        ex.booking = (ex.booking ?? 0) + (row.booking ?? 0)
+        ex.avgTicket = ex.commit > 0 ? Math.round(ex.booking / ex.commit) : 0
+        const cr1v = ex.leads  > 0 ? (ex.mql    / ex.leads)  * 100 : 0
+        const cr2v = ex.mql    > 0 ? (ex.sql    / ex.mql)    * 100 : 0
+        const cr3v = ex.sql    > 0 ? (ex.sal    / ex.sql)    * 100 : 0
+        const cr4v = ex.sal    > 0 ? (ex.commit / ex.sal)    * 100 : 0
+        const mwv  = ex.mql    > 0 ? (ex.commit / ex.mql)    * 100 : 0
+        ex.cr1    = { val: cr1v, color: crColor(cr1v, 70, 50) }
+        ex.cr2    = { val: cr2v, color: crColor(cr2v, 25, 15) }
+        ex.cr3    = { val: cr3v, color: crColor(cr3v, 80, 65) }
+        ex.cr4    = { val: cr4v, color: crColor(cr4v, 20, 12) }
+        ex.mqlWon = { val: mwv,  color: crColor(mwv,   5,  3) }
+        // Merge subCategories by name
+        if (row.subCategories?.length > 0) {
+          if (!ex.subCategories?.length) {
+            ex.subCategories = row.subCategories.map(s => ({ ...s }))
+          } else {
+            for (const sub of row.subCategories) {
+              const exSub = ex.subCategories.find(s => s.name === sub.name)
+              if (exSub) {
+                exSub.leads   = (exSub.leads   ?? 0) + (sub.leads   ?? 0)
+                exSub.mql     = (exSub.mql     ?? 0) + (sub.mql     ?? 0)
+                exSub.sql     = (exSub.sql     ?? 0) + (sub.sql     ?? 0)
+                exSub.sal     = (exSub.sal     ?? 0) + (sub.sal     ?? 0)
+                exSub.commit  = (exSub.commit  ?? 0) + (sub.commit  ?? 0)
+                exSub.booking = (exSub.booking ?? 0) + (sub.booking ?? 0)
+              } else {
+                ex.subCategories.push({ ...sub })
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  return tierOrder.map((name) => tierMap[name])
+})
 
-// Timestamp of last successful load
+const tableTitle = computed(() => {
+  if (isConsolidado.value) return 'Consolidado — Todos os Canais'
+  return selectedChannels.value
+    .map((id) => CANAIS.find((c) => c.id === id)?.label ?? id)
+    .join(' + ')
+})
+
 const lastUpdateTime = ref(null)
 
 async function handleRefresh() {
@@ -210,18 +354,51 @@ onMounted(async () => {
   margin: 0;
 }
 
-/* Motion Tabs */
-.motion-tabs {
+/* Period range (identical to DreFluxoCaixa) */
+.period-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a1a1a;
+  border-radius: 6px;
+  padding: 4px 10px;
+}
+
+.period-sep {
+  font-size: 12px;
+  color: #555;
+}
+
+.month-select {
+  background: transparent;
+  border: none;
+  color: #ccc;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  padding: 4px 0;
+  appearance: none;
+  -webkit-appearance: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.month-select option {
+  background: #1a1a1a;
+  color: #ccc;
+}
+
+/* Channel Tabs */
+.channel-tabs {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 16px;
 }
 
-.motion-tab {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.channel-tab {
   padding: 6px 16px;
   background: #141414;
   border: 1px solid #222;
@@ -233,28 +410,16 @@ onMounted(async () => {
   transition: all 0.15s;
 }
 
-.motion-tab:hover {
+.channel-tab:hover {
   color: #ccc;
   border-color: #333;
 }
 
-.motion-tab.active {
+.channel-tab.active {
   color: #fff;
   border-color: #444;
   background: #1a1a1a;
 }
-
-.motion-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.dot-green  { background: #22c55e; }
-.dot-yellow { background: #eab308; }
-.dot-orange { background: #f97316; }
-.dot-red    { background: #ef4444; }
 
 /* KPI Grid */
 .kpi-grid {
@@ -265,15 +430,11 @@ onMounted(async () => {
 }
 
 @media (max-width: 1200px) {
-  .kpi-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+  .kpi-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 @media (max-width: 768px) {
-  .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* Table section */
@@ -290,13 +451,6 @@ onMounted(async () => {
   gap: 10px;
   padding: 14px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.table-motion-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
 }
 
 .table-title {

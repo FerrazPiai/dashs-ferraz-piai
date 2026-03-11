@@ -142,6 +142,23 @@ export function formatRelativeTime(date) {
   return formatDateTime(date, false)
 }
 
+/**
+ * Format currency in abbreviated BRL (e.g., R$ 25,1k / R$ 13,1M)
+ * @param {number} value - Value to format
+ * @returns {string} Abbreviated currency string
+ */
+export function formatCurrencyAbbrev(value) {
+  if (value === null || value === undefined || isNaN(value)) return '-'
+  const abs = Math.abs(value)
+  const prefix = value < 0 ? '-' : ''
+  function abbrev(n) {
+    return n % 1 === 0 ? n.toFixed(0) : n.toFixed(1).replace('.', ',')
+  }
+  if (abs >= 1_000_000) return `${prefix}R$ ${abbrev(abs / 1_000_000)}M`
+  if (abs >= 1_000)     return `${prefix}R$ ${abbrev(abs / 1_000)}k`
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+}
+
 // Export all formatters as default
 export default {
   formatPercentage,
@@ -150,5 +167,6 @@ export default {
   formatCurrency,
   truncate,
   formatBytes,
-  formatRelativeTime
+  formatRelativeTime,
+  formatCurrencyAbbrev
 }

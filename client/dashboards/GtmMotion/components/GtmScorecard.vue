@@ -75,15 +75,24 @@ const formattedMeta = computed(() =>
   props.meta != null ? props.formatter(props.meta) : '--'
 )
 
+// Auto-compute delta from value/meta if not provided
+const effectiveDelta = computed(() => {
+  if (props.delta != null) return props.delta
+  if (props.value != null && props.meta != null && props.meta !== 0) {
+    return (props.value / props.meta) * 100
+  }
+  return null
+})
+
 const formattedDelta = computed(() => {
-  if (props.delta == null) return '--'
-  return props.delta.toFixed(2).replace('.', ',') + '%'
+  if (effectiveDelta.value == null) return '--'
+  return effectiveDelta.value.toFixed(2).replace('.', ',') + '%'
 })
 
 const deltaClass = computed(() => {
-  if (props.delta == null) return 'delta-neutral'
-  if (props.delta >= 100) return 'delta-green'
-  if (props.delta >= 80) return 'delta-yellow'
+  if (effectiveDelta.value == null) return 'delta-neutral'
+  if (effectiveDelta.value >= 100) return 'delta-green'
+  if (effectiveDelta.value >= 80)  return 'delta-yellow'
   return 'delta-red'
 })
 </script>
