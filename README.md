@@ -91,7 +91,8 @@ dashboards-v4/
 |-----------|------|--------|
 | Conversão Saber → Ter/Executar | `/tx-conv-saber-monetizacao` | Manutenção |
 | GTM Motion | `/gtm-motion` | Desenvolvimento |
-| Diagrama de Sankey | `/diagrama-de-sankey` | Disponível |
+| Marketing & Vendas | `/marketing-vendas` | Oculto |
+| Raio-X Financeiro | `/raio-x-financeiro` | Disponível |
 
 ### Status dos Dashboards
 
@@ -189,6 +190,7 @@ SESSION_SECRET=troque_por_uma_string_aleatoria_longa
 
 API_ENDPOINT_CONV_SABER_MONETIZACAO=https://...
 API_ENDPOINT_GTM_MOTION=https://...
+API_ENDPOINT_MARKETING_VENDAS=https://...
 API_ENDPOINT_DIAGRAMA_SANKEY=https://...
 ```
 
