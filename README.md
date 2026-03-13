@@ -90,7 +90,7 @@ dashboards-v4/
 | Dashboard | Rota | Status |
 |-----------|------|--------|
 | Conversão Saber → Ter/Executar | `/tx-conv-saber-monetizacao` | Manutenção |
-| GTM Motion | `/gtm-motion` | Desenvolvimento |
+| GTM Motion | `/gtm-motion` | Desenvolvimento (`?mock-data` para dados mock) |
 | Marketing & Vendas | `/marketing-vendas` | Oculto |
 | Raio-X Financeiro | `/raio-x-financeiro` | Disponível |
 

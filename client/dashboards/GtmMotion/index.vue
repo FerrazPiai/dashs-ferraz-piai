@@ -30,24 +30,24 @@
       <span>{{ error }}</span>
     </div>
 
-    <!-- Channel Tabs -->
-    <div class="channel-tabs">
-      <button
-        class="channel-tab"
-        :class="{ active: isConsolidado }"
-        @click="handleChannelClick('consolidado')"
-      >
-        Consolidado
-      </button>
-      <button
-        v-for="canal in CANAIS"
-        :key="canal.id"
-        class="channel-tab"
-        :class="{ active: isChannelActive(canal.id) }"
-        @click="handleChannelClick(canal.id)"
-      >
-        {{ canal.label }}
-      </button>
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label class="filter-label">Canal</label>
+        <select class="filter-select" v-model="selectedChannel">
+          <option value="consolidado">Consolidado</option>
+          <option v-for="canal in channelOptions" :key="canal.id" :value="canal.id">
+            {{ canal.label }}
+          </option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Closer</label>
+        <select class="filter-select" v-model="selectedCloser">
+          <option value="todos">Todos</option>
+          <option v-for="c in closerOptions" :key="c" :value="c">{{ c }}</option>
+        </select>
+      </div>
     </div>
 
     <!-- KPI Grid -->
@@ -167,58 +167,42 @@ watch(mesInicial, (val) => {
   if (mesFinal.value < val) mesFinal.value = val
 })
 
-const fetchWithPeriod = (forceRefresh = false) =>
-  fetchData(forceRefresh, { mesInicial: mesInicial.value, mesFinal: mesFinal.value })
+const fetchAllData = (forceRefresh = false) => fetchData(forceRefresh)
 
-watch([mesInicial, mesFinal], () => fetchWithPeriod())
+// ── Filters ──────────────────────────────────────────────────────────────────
+const selectedChannel = ref('consolidado')
+const selectedCloser  = ref('todos')
+const ALL_CHANNEL_IDS = CANAIS.map((c) => c.id)
 
-// ── Channel selection ─────────────────────────────────────────────────────────
-const selectedChannels = ref(['consolidado'])
-const ALL_CHANNEL_IDS  = CANAIS.map((c) => c.id)
-
-const isConsolidado = computed(() => selectedChannels.value.includes('consolidado'))
-
-function isChannelActive(id) {
-  return !isConsolidado.value && selectedChannels.value.includes(id)
-}
-
-function handleChannelClick(channelId) {
-  if (channelId === 'consolidado') {
-    selectedChannels.value = ['consolidado']
-    return
-  }
-  const current = selectedChannels.value
-  if (current.includes('consolidado')) {
-    // From consolidado → exclusive
-    selectedChannels.value = [channelId]
-    return
-  }
-  const idx = current.indexOf(channelId)
-  if (idx >= 0) {
-    // Deselect (unless it's the last)
-    if (current.length > 1) selectedChannels.value = current.filter((id) => id !== channelId)
-  } else {
-    // Add to selection (multi-select)
-    selectedChannels.value = [...current, channelId]
-  }
-}
+const isConsolidado = computed(() => selectedChannel.value === 'consolidado')
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const toNum = (v) => (v === '' || v == null) ? null : Number(v)
 
-function transformApiData(rawData, mesIni, mesFim) {
+function transformApiData(rawData, mesIni, mesFim, closer) {
   // API retorna { data: { kpis, funil } } ou [{ data: { kpis, funil } }]
   const source = Array.isArray(rawData) ? rawData[0]?.data : rawData?.data
   if (!source) return null
 
-  const rawKpis = (source.kpis ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
-  const rawFunil = (source.funil ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
+  let rawKpis = (source.kpis ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
+  let rawFunil = (source.funil ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
+
+  // Filter by closer if selected (case-insensitive)
+  if (closer && closer !== 'todos') {
+    const cl = closer.toLowerCase()
+    rawKpis = rawKpis.filter((r) => r.closer?.toLowerCase() === cl)
+    rawFunil = rawFunil.filter((r) => r.closer?.toLowerCase() === cl)
+  }
   const CANAL_LABEL = Object.fromEntries(CANAIS.map((c) => [c.id, c.label]))
+  const CANAL_LABEL_TO_ID = Object.fromEntries(
+    CANAIS.map(c => [c.label.toLowerCase(), c.id])
+  )
+  const normalizeCanal = (name) => CANAL_LABEL_TO_ID[name.toLowerCase()] ?? name
 
   // Group KPIs by canal, summing across months
   const kpisByCanal = {}
   for (const row of rawKpis) {
-    const canal = row.canal
+    const canal = normalizeCanal(row.canal)
     if (!kpisByCanal[canal]) {
       kpisByCanal[canal] = {
         leads_value: 0, leads_provisionado: null, leads_meta: 0,
@@ -248,23 +232,75 @@ function transformApiData(rawData, mesIni, mesFim) {
     acc.booking_meta  += toNum(row.booking_meta)  ?? 0
   }
 
-  // Group Funil by canal, summing across months
+  // Check if funil has tier-level data (field "tier" present in rows)
+  const hasTierData = rawFunil.some((r) => r.tier != null)
+
+  const TIER_ORDER = ['Enterprise', 'Large', 'Medium', 'Small', 'Tiny', 'Non-ICP', 'Sem mapeamento', 'Total']
+
+  // Group Funil by canal + tier (when tier data is available), or by canal only
   const funilByCanal = {}
   for (const row of rawFunil) {
-    const canal = row.canal
-    if (!funilByCanal[canal]) {
-      funilByCanal[canal] = {
-        leads_value: 0, mql_value: 0, sql_value: 0,
-        sal_value: 0, commit_value: 0, booking_value: 0,
+    const canal = normalizeCanal(row.canal)
+    if (!funilByCanal[canal]) funilByCanal[canal] = {}
+
+    if (hasTierData) {
+      // Funil sheet uses: tier, subcategoria, leads, mql, sql, sal, commit, booking, is_empty_row, is_total
+      const tier      = row.tier ?? 'Sem mapeamento'
+      const sub       = row.subcategoria ?? null
+      const isEmpty   = !!(row.is_empty_row || row.isEmptyRow)
+      const isTotalRow = !!(row.is_total || row.isTotal)
+      if (!funilByCanal[canal][tier]) {
+        funilByCanal[canal][tier] = {
+          leads_value: 0, mql_value: 0, sql_value: 0,
+          sal_value: 0, commit_value: 0, booking_value: 0,
+          isEmptyRow: isEmpty,
+          isTotal: isTotalRow,
+          subCategories: {},
+        }
       }
+      const acc = funilByCanal[canal][tier]
+      // Field names from Funil sheet: leads, mql, sql, sal, commit, booking
+      const fLeads   = toNum(row.leads   ?? row.leads_value)   ?? 0
+      const fMql     = toNum(row.mql     ?? row.mql_value)     ?? 0
+      const fSql     = toNum(row.sql     ?? row.sql_value)     ?? 0
+      const fSal     = toNum(row.sal     ?? row.sal_value)     ?? 0
+      const fCommit  = toNum(row.commit  ?? row.commit_value)  ?? 0
+      const fBooking = toNum(row.booking ?? row.booking_value) ?? 0
+      if (!sub) {
+        acc.leads_value   += fLeads
+        acc.mql_value     += fMql
+        acc.sql_value     += fSql
+        acc.sal_value     += fSal
+        acc.commit_value  += fCommit
+        acc.booking_value += fBooking
+      } else {
+        if (!acc.subCategories[sub]) {
+          acc.subCategories[sub] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+        }
+        const sa = acc.subCategories[sub]
+        sa.leads   += fLeads
+        sa.mql     += fMql
+        sa.sql     += fSql
+        sa.sal     += fSal
+        sa.commit  += fCommit
+        sa.booking += fBooking
+      }
+    } else {
+      // No tier data: aggregate canal totals
+      if (!funilByCanal[canal].__total) {
+        funilByCanal[canal].__total = {
+          leads_value: 0, mql_value: 0, sql_value: 0,
+          sal_value: 0, commit_value: 0, booking_value: 0,
+        }
+      }
+      const acc = funilByCanal[canal].__total
+      acc.leads_value   += toNum(row.leads_value)   ?? 0
+      acc.mql_value     += toNum(row.mql_value)     ?? 0
+      acc.sql_value     += toNum(row.sql_value)     ?? 0
+      acc.sal_value     += toNum(row.sal_value)     ?? 0
+      acc.commit_value  += toNum(row.commit_value)  ?? 0
+      acc.booking_value += toNum(row.booking_value) ?? 0
     }
-    const acc = funilByCanal[canal]
-    acc.leads_value   += toNum(row.leads_value)   ?? 0
-    acc.mql_value     += toNum(row.mql_value)     ?? 0
-    acc.sql_value     += toNum(row.sql_value)     ?? 0
-    acc.sal_value     += toNum(row.sal_value)     ?? 0
-    acc.commit_value  += toNum(row.commit_value)  ?? 0
-    acc.booking_value += toNum(row.booking_value) ?? 0
   }
 
   // Build channels map
@@ -273,7 +309,6 @@ function transformApiData(rawData, mesIni, mesFim) {
 
   for (const canal of allCanals) {
     const k = kpisByCanal[canal] ?? {}
-    const f = funilByCanal[canal] ?? {}
 
     const commitVal   = k.commit_value  ?? 0
     const commitMeta  = k.commit_meta   ?? 0
@@ -295,30 +330,105 @@ function transformApiData(rawData, mesIni, mesFim) {
       booking: { value: bookingVal, provisionado: null, meta: bookingMeta, delta: null },
     }
 
-    const fl  = f.leads_value   ?? 0
-    const fm  = f.mql_value     ?? 0
-    const fs  = f.sql_value     ?? 0
-    const fsal = f.sal_value    ?? 0
-    const fc  = f.commit_value  ?? 0
-    const fb  = f.booking_value ?? 0
+    let tiers
+    const canalFunil = funilByCanal[canal] ?? {}
 
-    const cr1v = fl   > 0 ? (fm  / fl)   * 100 : 0
-    const cr2v = fm   > 0 ? (fs  / fm)   * 100 : 0
-    const cr3v = fs   > 0 ? (fsal / fs)  * 100 : 0
-    const cr4v = fsal > 0 ? (fc  / fsal) * 100 : 0
-    const mwv  = fm   > 0 ? (fc  / fm)   * 100 : 0
+    if (hasTierData) {
+      // Build tier rows in order, skipping Total (recalculated)
+      tiers = []
+      let totLeads = 0, totMql = 0, totSql = 0, totSal = 0, totCommit = 0, totBooking = 0
 
-    const tiers = [{
-      tier:      CANAL_LABEL[canal] ?? canal,
-      leads: fl, mql: fm, sql: fs, sal: fsal, commit: fc, booking: fb,
-      avgTicket: fc > 0 ? Math.round(fb / fc) : 0,
-      cr1:    { val: cr1v, color: crColor(cr1v, 70, 50) },
-      cr2:    { val: cr2v, color: crColor(cr2v, 25, 15) },
-      cr3:    { val: cr3v, color: crColor(cr3v, 80, 65) },
-      cr4:    { val: cr4v, color: crColor(cr4v, 20, 12) },
-      mqlWon: { val: mwv,  color: crColor(mwv,  5,  3)  },
-      isTotal: true,
-    }]
+      for (const tierName of TIER_ORDER) {
+        if (tierName === 'Total') continue
+        const t = canalFunil[tierName]
+        if (!t) continue
+
+        if (t.isEmptyRow) {
+          tiers.push({ tier: tierName, leads: t.leads_value, isEmptyRow: true })
+          totLeads += t.leads_value
+          continue
+        }
+
+        const fl  = t.leads_value
+        const fm  = t.mql_value
+        const fs  = t.sql_value
+        const fsal = t.sal_value
+        const fc  = t.commit_value
+        const fb  = t.booking_value
+
+        const cr1v = fl   > 0 ? (fm  / fl)   * 100 : 0
+        const cr2v = fm   > 0 ? (fs  / fm)   * 100 : 0
+        const cr3v = fs   > 0 ? (fsal / fs)  * 100 : 0
+        const cr4v = fsal > 0 ? (fc  / fsal) * 100 : 0
+        const mwv  = fm   > 0 ? (fc  / fm)   * 100 : 0
+
+        const subCategories = Object.entries(t.subCategories).map(([name, s]) => ({
+          name, leads: s.leads, mql: s.mql, sql: s.sql,
+          sal: s.sal, commit: s.commit, booking: s.booking,
+        }))
+
+        tiers.push({
+          tier: tierName,
+          leads: fl, mql: fm, sql: fs, sal: fsal, commit: fc, booking: fb,
+          avgTicket: fc > 0 ? Math.round(fb / fc) : 0,
+          cr1:    { val: cr1v, color: crColor(cr1v, 70, 50) },
+          cr2:    { val: cr2v, color: crColor(cr2v, 25, 15) },
+          cr3:    { val: cr3v, color: crColor(cr3v, 80, 65) },
+          cr4:    { val: cr4v, color: crColor(cr4v, 20, 12) },
+          mqlWon: { val: mwv,  color: crColor(mwv,  5,  3)  },
+          subCategories,
+        })
+
+        totLeads   += fl;   totMql    += fm;   totSql  += fs
+        totSal     += fsal; totCommit += fc;   totBooking += fb
+      }
+
+      // Add Total row
+      const tcr1 = totLeads   > 0 ? (totMql    / totLeads)   * 100 : 0
+      const tcr2 = totMql     > 0 ? (totSql    / totMql)     * 100 : 0
+      const tcr3 = totSql     > 0 ? (totSal    / totSql)     * 100 : 0
+      const tcr4 = totSal     > 0 ? (totCommit / totSal)     * 100 : 0
+      const tmw  = totMql     > 0 ? (totCommit / totMql)     * 100 : 0
+      tiers.push({
+        tier: 'Total',
+        leads: totLeads, mql: totMql, sql: totSql, sal: totSal,
+        commit: totCommit, booking: totBooking,
+        avgTicket: totCommit > 0 ? Math.round(totBooking / totCommit) : 0,
+        cr1:    { val: tcr1, color: crColor(tcr1, 70, 50) },
+        cr2:    { val: tcr2, color: crColor(tcr2, 25, 15) },
+        cr3:    { val: tcr3, color: crColor(tcr3, 80, 65) },
+        cr4:    { val: tcr4, color: crColor(tcr4, 20, 12) },
+        mqlWon: { val: tmw,  color: crColor(tmw,  5,  3)  },
+        isTotal: true,
+      })
+    } else {
+      // No tier data: one aggregated row per canal (canal label as tier name)
+      const f = canalFunil.__total ?? {}
+      const fl  = f.leads_value   ?? 0
+      const fm  = f.mql_value     ?? 0
+      const fs  = f.sql_value     ?? 0
+      const fsal = f.sal_value    ?? 0
+      const fc  = f.commit_value  ?? 0
+      const fb  = f.booking_value ?? 0
+
+      const cr1v = fl   > 0 ? (fm  / fl)   * 100 : 0
+      const cr2v = fm   > 0 ? (fs  / fm)   * 100 : 0
+      const cr3v = fs   > 0 ? (fsal / fs)  * 100 : 0
+      const cr4v = fsal > 0 ? (fc  / fsal) * 100 : 0
+      const mwv  = fm   > 0 ? (fc  / fm)   * 100 : 0
+
+      tiers = [{
+        tier:      CANAL_LABEL[canal] ?? canal,
+        leads: fl, mql: fm, sql: fs, sal: fsal, commit: fc, booking: fb,
+        avgTicket: fc > 0 ? Math.round(fb / fc) : 0,
+        cr1:    { val: cr1v, color: crColor(cr1v, 70, 50) },
+        cr2:    { val: cr2v, color: crColor(cr2v, 25, 15) },
+        cr3:    { val: cr3v, color: crColor(cr3v, 80, 65) },
+        cr4:    { val: cr4v, color: crColor(cr4v, 20, 12) },
+        mqlWon: { val: mwv,  color: crColor(mwv,  5,  3)  },
+        isTotal: true,
+      }]
+    }
 
     channels[canal] = { kpis, tiers }
   }
@@ -326,15 +436,55 @@ function transformApiData(rawData, mesIni, mesFim) {
   return { channels }
 }
 
+const useMockData = computed(() => {
+  const params = new URLSearchParams(window.location.search)
+  return params.has('mock-data')
+})
+
+// Extract unique closer values from raw API data (case-insensitive dedup)
+const closerOptions = computed(() => {
+  const raw = data.value
+  if (!raw) return []
+  const source = Array.isArray(raw) ? raw[0]?.data : raw?.data
+  if (!source) return []
+  const closers = new Map()
+  for (const row of (source.kpis ?? [])) {
+    if (row.closer) {
+      const key = row.closer.trim().toLowerCase()
+      if (!closers.has(key)) closers.set(key, row.closer.trim())
+    }
+  }
+  for (const row of (source.funil ?? [])) {
+    if (row.closer) {
+      const key = row.closer.trim().toLowerCase()
+      if (!closers.has(key)) closers.set(key, row.closer.trim())
+    }
+  }
+  return [...closers.values()].sort()
+})
+
 const resolvedData = computed(() => {
-  if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value)
-  if (import.meta.env.DEV) return MOCK_DATA
+  if (useMockData.value) return MOCK_DATA
+  if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value, selectedCloser.value)
   return null
 })
 
-const activeChannelIds = computed(() =>
-  isConsolidado.value ? ALL_CHANNEL_IDS : selectedChannels.value
-)
+// Build channel dropdown options dynamically (includes API channels not in CANAIS)
+const channelOptions = computed(() => {
+  const source = resolvedData.value
+  if (!source?.channels) return CANAIS
+  const known = new Set(CANAIS.map(c => c.id))
+  const extras = Object.keys(source.channels)
+    .filter(id => !known.has(id))
+    .map(id => ({ id, label: id }))
+  return [...CANAIS, ...extras]
+})
+
+const activeChannelIds = computed(() => {
+  if (!isConsolidado.value) return [selectedChannel.value]
+  const source = resolvedData.value
+  return source?.channels ? Object.keys(source.channels) : ALL_CHANNEL_IDS
+})
 
 function crColor(val, green, yellow) {
   return val >= green ? 'green' : val >= yellow ? 'yellow' : 'red'
@@ -432,22 +582,20 @@ const currentTiers = computed(() => {
 
 const tableTitle = computed(() => {
   if (isConsolidado.value) return 'Consolidado — Todos os Canais'
-  return selectedChannels.value
-    .map((id) => CANAIS.find((c) => c.id === id)?.label ?? id)
-    .join(' + ')
+  return CANAIS.find((c) => c.id === selectedChannel.value)?.label ?? selectedChannel.value
 })
 
 const lastUpdateTime = ref(null)
 
 async function handleRefresh() {
-  await fetchWithPeriod(true)
+  await fetchAllData(true)
   lastUpdateTime.value = formatDateTime(new Date().toISOString())
   await nextTick()
   if (window.lucide) window.lucide.createIcons()
 }
 
 onMounted(async () => {
-  await fetchWithPeriod()
+  await fetchAllData()
   lastUpdateTime.value = formatDateTime(new Date().toISOString())
   await nextTick()
   if (window.lucide) window.lucide.createIcons()
@@ -517,35 +665,50 @@ onMounted(async () => {
   color: #ccc;
 }
 
-/* Channel Tabs */
-.channel-tabs {
+/* Filters Bar */
+.filters-bar {
   display: flex;
-  gap: 8px;
+  gap: 16px;
   flex-wrap: wrap;
   margin-bottom: 16px;
 }
 
-.channel-tab {
-  padding: 6px 16px;
-  background: #141414;
+.filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a1a1a;
   border: 1px solid #222;
-  border-radius: 20px;
+  border-radius: 6px;
+  padding: 4px 12px;
+}
+
+.filter-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.filter-select {
+  background: transparent;
+  border: none;
+  color: #ccc;
   font-size: 13px;
   font-weight: 500;
-  color: #888;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.15s;
+  outline: none;
+  padding: 4px 0;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
-.channel-tab:hover {
-  color: #ccc;
-  border-color: #333;
-}
-
-.channel-tab.active {
-  color: #fff;
-  border-color: #444;
+.filter-select option {
   background: #1a1a1a;
+  color: #ccc;
 }
 
 /* KPI Grid */

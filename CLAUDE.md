@@ -200,6 +200,21 @@ Cada dashboard em `config/dashboards.json` pode ter:
 - **`App.vue` carrega `/api/dashboards`** via `watch(route.name)` — só após sair do `/login` (evita fetch sem sessão)
 - **`LoginView.vue`** é standalone — sem `VLayout`, sem sidebar
 
+## GTM Motion — Estrutura de Dados
+
+O dashboard GTM Motion usa duas fontes de dados da planilha Google Sheets (via N8N):
+
+- **Aba KPIs:** `canal, mes, leads_value, mql_value, ...` — KPIs agregados por canal/mês
+- **Aba Funil:** `canal, mes, tier, subcategoria, leads, mql, ...` — Breakdown por tier (Enterprise, Large, Medium, Small, Tiny, Non-ICP) com subcategorias (Saber, Ter, Executar, Potencializar)
+
+O `transformApiData` detecta automaticamente se o campo `tier` está presente nos dados de funil:
+- **Com `tier`:** Monta tabela por tier com subcategorias expansíveis
+- **Sem `tier`:** Fallback para uma linha por canal
+
+**Mock data:** Acessar com `?mock-data` na URL (ex: `/gtm-motion?mock-data`) força o uso de dados mock com tiers completos, independente da API.
+
+**Seleção de canais:** Single-select — Consolidado (todos) ou um canal específico por vez.
+
 ## Gotchas
 
 - **Vite HMR:** Funciona para Vue/CSS, mas mudanças em `dashboards.json` requerem restart do servidor Express
@@ -211,3 +226,4 @@ Cada dashboard em `config/dashboards.json` pode ter:
 - **Status modal:** Disparado tanto na troca de rota quanto no carregamento inicial dos dashboards (watch duplo em VLayout)
 - **API /api/dashboards:** Retorna `status` e `statusMessage` — ao adicionar novos campos ao registry, verificar se precisam ser expostos nessa rota
 - **Sessão in-memory:** Reiniciar o servidor derruba todas as sessões ativas
+- **GTM Motion mock-data:** Parâmetro `?mock-data` na URL força dados mock — útil para testar tiers quando a API não retorna breakdown por tier
