@@ -183,17 +183,7 @@ const selectedSdr     = ref('todos')
 const ALL_CHANNEL_IDS = CANAIS.map((c) => c.id) 
 
 // ── Channel selection ─────────────────────────────────────────────────────────
-const selectedChannels = ref(['consolidado'])
-// Linha duplicada removida
-const isConsolidado = computed(() => selectedChannels.value.includes('consolidado'))
-
-function isChannelActive(id) {
-  return !isConsolidado.value && selectedChannels.value.includes(id)
-}
-
-function handleChannelClick(channelId) {
-  selectedChannels.value = [channelId]
-}
+const isConsolidado = computed(() => selectedChannel.value === 'consolidado')
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const TIER_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Enterprise', 'Sem mapeamento', 'Total']
@@ -468,7 +458,7 @@ const useMockData = computed(() => {
 
 const resolvedData = computed(() => {
   if (useMockData.value) return MOCK_DATA
-  if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value)
+  if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value, selectedCloser.value, selectedSdr.value)
   if (import.meta.env.DEV) return MOCK_DATA
   return null
 })
@@ -482,6 +472,22 @@ const channelOptions = computed(() => {
     .filter(id => !known.has(id))
     .map(id => ({ id, label: id }))
   return [...CANAIS, ...extras]
+})
+
+const closerOptions = computed(() => {
+  const raw = Array.isArray(data.value) ? data.value[0]?.data : data.value?.data
+  if (!raw?.kpis) return []
+  const set = new Set()
+  raw.kpis.forEach(r => { if (r.closer) set.add(r.closer) })
+  return [...set].sort()
+})
+
+const sdrOptions = computed(() => {
+  const raw = Array.isArray(data.value) ? data.value[0]?.data : data.value?.data
+  if (!raw?.kpis) return []
+  const set = new Set()
+  raw.kpis.forEach(r => { if (r.sdr) set.add(r.sdr) })
+  return [...set].sort()
 })
 
 const activeChannelIds = computed(() => {
