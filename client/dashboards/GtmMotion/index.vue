@@ -255,7 +255,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
   // Group Funil by canal + tier (when tier data is available), or by canal only
   const funilByCanal = {}
   for (const row of rawFunil) {
-    const canal = row.canal
+    const canal = normalizeCanal(row.canal)
     if (!funilByCanal[canal]) funilByCanal[canal] = {}
 
     if (hasTierData) {
@@ -593,18 +593,20 @@ const tableTitle = computed(() => {
   return CANAIS.find((c) => c.id === selectedChannel.value)?.label ?? selectedChannel.value
 })
 
-const lastUpdateTime = ref(null)
+const lastUpdateTime = computed(() => {
+  const raw = Array.isArray(data.value) ? data.value[0]?.data : data.value?.data
+  if (raw?.last_updated) return formatDateTime(raw.last_updated)
+  return null
+})
 
 async function handleRefresh() {
   await fetchAllData(true)
-  lastUpdateTime.value = formatDateTime(new Date().toISOString())
   await nextTick()
   if (window.lucide) window.lucide.createIcons()
 }
 
 onMounted(async () => {
   await fetchAllData()
-  lastUpdateTime.value = formatDateTime(new Date().toISOString())
   await nextTick()
   if (window.lucide) window.lucide.createIcons()
 })
