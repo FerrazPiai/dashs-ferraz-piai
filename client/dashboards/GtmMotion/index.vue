@@ -459,7 +459,6 @@ const useMockData = computed(() => {
 const resolvedData = computed(() => {
   if (useMockData.value) return MOCK_DATA
   if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value, selectedCloser.value, selectedSdr.value)
-  if (import.meta.env.DEV) return MOCK_DATA
   return null
 })
 
