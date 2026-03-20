@@ -180,12 +180,11 @@ const fetchAllData = (forceRefresh = false) => fetchData(forceRefresh)
 const selectedChannel = ref('consolidado')
 const selectedCloser  = ref('todos')
 const selectedSdr     = ref('todos')
-const ALL_CHANNEL_IDS = CANAIS.map((c) => c.id)
+const ALL_CHANNEL_IDS = CANAIS.map((c) => c.id) 
 
 // ── Channel selection ─────────────────────────────────────────────────────────
 const selectedChannels = ref(['consolidado'])
-const ALL_CHANNEL_IDS  = CANAIS.map((c) => c.id)
-
+// Linha duplicada removida
 const isConsolidado = computed(() => selectedChannels.value.includes('consolidado'))
 
 function isChannelActive(id) {
