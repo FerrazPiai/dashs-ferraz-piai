@@ -182,7 +182,19 @@ const selectedCloser  = ref('todos')
 const selectedSdr     = ref('todos')
 const ALL_CHANNEL_IDS = CANAIS.map((c) => c.id)
 
-const isConsolidado = computed(() => selectedChannel.value === 'consolidado')
+// ── Channel selection ─────────────────────────────────────────────────────────
+const selectedChannels = ref(['consolidado'])
+const ALL_CHANNEL_IDS  = CANAIS.map((c) => c.id)
+
+const isConsolidado = computed(() => selectedChannels.value.includes('consolidado'))
+
+function isChannelActive(id) {
+  return !isConsolidado.value && selectedChannels.value.includes(id)
+}
+
+function handleChannelClick(channelId) {
+  selectedChannels.value = [channelId]
+}
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const TIER_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Enterprise', 'Sem mapeamento', 'Total']
@@ -249,10 +261,12 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
   // Check if funil has tier-level data (field "tier" present in rows)
   const hasTierData = rawFunil.some((r) => r.tier != null)
 
+  const TIER_ORDER = ['Enterprise', 'Large', 'Medium', 'Small', 'Tiny', 'Non-ICP', 'Sem mapeamento', 'Total']
+
   // Group Funil by canal + tier (when tier data is available), or by canal only
   const funilByCanal = {}
   for (const row of rawFunil) {
-    const canal = normalizeCanal(row.canal)
+    const canal = row.canal
     if (!funilByCanal[canal]) funilByCanal[canal] = {}
 
     if (hasTierData) {
@@ -453,46 +467,10 @@ const useMockData = computed(() => {
   return params.has('mock-data')
 })
 
-// Extract unique closer values from raw API data (case-insensitive dedup)
-const closerOptions = computed(() => {
-  const raw = data.value
-  if (!raw) return []
-  const source = Array.isArray(raw) ? raw[0]?.data : raw?.data
-  if (!source) return []
-  const closers = new Map()
-  for (const row of (source.kpis ?? [])) {
-    if (row.closer) {
-      const key = row.closer.trim().toLowerCase()
-      if (!closers.has(key)) closers.set(key, row.closer.trim())
-    }
-  }
-  for (const row of (source.funil ?? [])) {
-    if (row.closer) {
-      const key = row.closer.trim().toLowerCase()
-      if (!closers.has(key)) closers.set(key, row.closer.trim())
-    }
-  }
-  return [...closers.values()].sort()
-})
-
-const sdrOptions = computed(() => {
-  const raw = data.value
-  if (!raw) return []
-  const source = Array.isArray(raw) ? raw[0]?.data : raw?.data
-  if (!source) return []
-  const sdrs = new Map()
-  for (const row of [...(source.kpis ?? []), ...(source.funil ?? [])]) {
-    if (row.sdr) {
-      const key = row.sdr.trim().toLowerCase()
-      if (!sdrs.has(key)) sdrs.set(key, row.sdr.trim())
-    }
-  }
-  return [...sdrs.values()].sort()
-})
-
 const resolvedData = computed(() => {
   if (useMockData.value) return MOCK_DATA
-  if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value, selectedCloser.value, selectedSdr.value)
+  if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value)
+  if (import.meta.env.DEV) return MOCK_DATA
   return null
 })
 
