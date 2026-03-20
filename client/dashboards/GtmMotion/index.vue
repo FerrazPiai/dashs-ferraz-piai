@@ -48,6 +48,13 @@
           <option v-for="c in closerOptions" :key="c" :value="c">{{ c }}</option>
         </select>
       </div>
+      <div class="filter-group">
+        <label class="filter-label">SDR</label>
+        <select class="filter-select" v-model="selectedSdr">
+          <option value="todos">Todos</option>
+          <option v-for="s in sdrOptions" :key="s" :value="s">{{ s }}</option>
+        </select>
+      </div>
     </div>
 
     <!-- KPI Grid -->
@@ -172,14 +179,16 @@ const fetchAllData = (forceRefresh = false) => fetchData(forceRefresh)
 // ── Filters ──────────────────────────────────────────────────────────────────
 const selectedChannel = ref('consolidado')
 const selectedCloser  = ref('todos')
+const selectedSdr     = ref('todos')
 const ALL_CHANNEL_IDS = CANAIS.map((c) => c.id)
 
 const isConsolidado = computed(() => selectedChannel.value === 'consolidado')
 
 // ── Data ──────────────────────────────────────────────────────────────────────
+const TIER_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Enterprise', 'Sem mapeamento', 'Total']
 const toNum = (v) => (v === '' || v == null) ? null : Number(v)
 
-function transformApiData(rawData, mesIni, mesFim, closer) {
+function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
   // API retorna { data: { kpis, funil } } ou [{ data: { kpis, funil } }]
   const source = Array.isArray(rawData) ? rawData[0]?.data : rawData?.data
   if (!source) return null
@@ -192,6 +201,11 @@ function transformApiData(rawData, mesIni, mesFim, closer) {
     const cl = closer.toLowerCase()
     rawKpis = rawKpis.filter((r) => r.closer?.toLowerCase() === cl)
     rawFunil = rawFunil.filter((r) => r.closer?.toLowerCase() === cl)
+  }
+  if (sdr && sdr !== 'todos') {
+    const sd = sdr.toLowerCase()
+    rawKpis = rawKpis.filter((r) => r.sdr?.toLowerCase() === sd)
+    rawFunil = rawFunil.filter((r) => r.sdr?.toLowerCase() === sd)
   }
   const CANAL_LABEL = Object.fromEntries(CANAIS.map((c) => [c.id, c.label]))
   const CANAL_LABEL_TO_ID = Object.fromEntries(
@@ -234,8 +248,6 @@ function transformApiData(rawData, mesIni, mesFim, closer) {
 
   // Check if funil has tier-level data (field "tier" present in rows)
   const hasTierData = rawFunil.some((r) => r.tier != null)
-
-  const TIER_ORDER = ['Enterprise', 'Large', 'Medium', 'Small', 'Tiny', 'Non-ICP', 'Sem mapeamento', 'Total']
 
   // Group Funil by canal + tier (when tier data is available), or by canal only
   const funilByCanal = {}
@@ -463,9 +475,24 @@ const closerOptions = computed(() => {
   return [...closers.values()].sort()
 })
 
+const sdrOptions = computed(() => {
+  const raw = data.value
+  if (!raw) return []
+  const source = Array.isArray(raw) ? raw[0]?.data : raw?.data
+  if (!source) return []
+  const sdrs = new Map()
+  for (const row of [...(source.kpis ?? []), ...(source.funil ?? [])]) {
+    if (row.sdr) {
+      const key = row.sdr.trim().toLowerCase()
+      if (!sdrs.has(key)) sdrs.set(key, row.sdr.trim())
+    }
+  }
+  return [...sdrs.values()].sort()
+})
+
 const resolvedData = computed(() => {
   if (useMockData.value) return MOCK_DATA
-  if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value, selectedCloser.value)
+  if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value, selectedCloser.value, selectedSdr.value)
   return null
 })
 
@@ -524,13 +551,11 @@ const currentTiers = computed(() => {
   const source = resolvedData.value
   if (!source) return []
   const tierMap   = {}
-  const tierOrder = []
   for (const channelId of activeChannelIds.value) {
     const tiers = source.channels?.[channelId]?.tiers ?? []
     for (const row of tiers) {
       if (!tierMap[row.tier]) {
         tierMap[row.tier] = { ...row }
-        tierOrder.push(row.tier)
       } else {
         const ex = tierMap[row.tier]
         if (row.isEmptyRow) {
@@ -577,7 +602,7 @@ const currentTiers = computed(() => {
       }
     }
   }
-  return tierOrder.map((name) => tierMap[name])
+  return TIER_ORDER.filter(name => tierMap[name]).map(name => tierMap[name])
 })
 
 const tableTitle = computed(() => {
@@ -629,14 +654,15 @@ onMounted(async () => {
   margin: 0;
 }
 
-/* Period range (identical to DreFluxoCaixa) */
+/* Period range */
 .period-range {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   background: #1a1a1a;
+  border: 1px solid #222;
   border-radius: 6px;
-  padding: 4px 10px;
+  padding: 8px 14px;
 }
 
 .period-sep {
@@ -653,16 +679,14 @@ onMounted(async () => {
   font-family: inherit;
   cursor: pointer;
   outline: none;
-  padding: 4px 0;
+  padding: 6px 18px 6px 4px;
   appearance: none;
   -webkit-appearance: none;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-}
-
-.month-select option {
-  background: #1a1a1a;
-  color: #ccc;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 2px center;
 }
 
 /* Filters Bar */
@@ -674,13 +698,14 @@ onMounted(async () => {
 }
 
 .filter-group {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
   background: #1a1a1a;
   border: 1px solid #222;
   border-radius: 6px;
-  padding: 4px 12px;
+  padding: 8px 14px;
+  min-width: 160px;
 }
 
 .filter-label {
@@ -693,6 +718,8 @@ onMounted(async () => {
 }
 
 .filter-select {
+  flex: 1;
+  min-width: 0;
   background: transparent;
   border: none;
   color: #ccc;
@@ -701,14 +728,22 @@ onMounted(async () => {
   font-family: inherit;
   cursor: pointer;
   outline: none;
-  padding: 4px 0;
+  padding: 6px 18px 6px 4px;
   appearance: none;
   -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 2px center;
 }
 
-.filter-select option {
+.filter-select option,
+.month-select option {
   background: #1a1a1a;
   color: #ccc;
+  font-family: 'Ubuntu', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  padding: 8px 12px;
 }
 
 /* KPI Grid */
