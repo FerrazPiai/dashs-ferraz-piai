@@ -151,6 +151,37 @@ router.get('/cache/status/:dashboardId', async (req, res, next) => {
 })
 
 /**
+ * GET /api/marketing-vendas/trigger-update
+ * Trigger N8N data extraction webhook before refreshing Marketing & Vendas data.
+ */
+router.get('/marketing-vendas/trigger-update', async (req, res, next) => {
+  const webhookUrl = 'https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/82892823-713e-4652-a4d2-137402cfe280'
+
+  try {
+    console.log(`[${new Date().toISOString()}] Triggering Marketing & Vendas update webhook`)
+
+    const response = await globalThis.fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+      signal: AbortSignal.timeout(300000)
+    })
+
+    if (!response.ok) {
+      throw new Error(`Webhook retornou HTTP ${response.status}`)
+    }
+
+    console.log(`[${new Date().toISOString()}] Marketing & Vendas webhook executado com sucesso`)
+    res.json({ ok: true, timestamp: new Date().toISOString() })
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] Marketing & Vendas webhook error:`, error.message)
+    res.status(502).json({
+      error: { message: 'Falha ao executar webhook de atualização', status: 502 }
+    })
+  }
+})
+
+/**
  * GET /api/gtm-motion/trigger-update
  * Trigger N8N data extraction webhook before refreshing dashboard data.
  * The webhook returns an empty body with status 200 on success.

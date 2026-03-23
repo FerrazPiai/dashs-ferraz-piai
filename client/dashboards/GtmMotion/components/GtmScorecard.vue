@@ -11,10 +11,6 @@
 
     <div v-if="!loading" class="scorecard-sub">
       <div class="sub-row">
-        <span class="sub-key">Prov.</span>
-        <span class="sub-val">{{ formattedProvisionado }}</span>
-      </div>
-      <div class="sub-row">
         <span class="sub-key">Meta</span>
         <span class="sub-val">{{ formattedMeta }}</span>
       </div>
@@ -24,7 +20,6 @@
       </div>
     </div>
     <div v-else class="scorecard-sub skeleton-sub">
-      <div class="skeleton-line"></div>
       <div class="skeleton-line"></div>
       <div class="skeleton-line"></div>
     </div>

@@ -201,8 +201,24 @@ export const canalData = [
   }
 ]
 
+export const listagemData = [
+  { nome: 'Empresa Alpha Ltda',   data_criacao: '2025-03-01T09:15:00', tier: 'Enterprise', categoria_step: 'Saber',         canal_origem: 'Lead Broker', etapa: 'MQL',    link_kommo: 'https://app.kommo.com/lead/101' },
+  { nome: 'Beta Soluções SA',     data_criacao: '2025-03-02T14:20:00', tier: 'Large',      categoria_step: 'Ter',           canal_origem: 'Black Box',   etapa: 'SQL',    link_kommo: 'https://app.kommo.com/lead/102' },
+  { nome: 'Gamma Consultoria',    data_criacao: '2025-03-03T11:00:00', tier: 'Medium',     categoria_step: 'Executar',      canal_origem: 'Eventos',     etapa: 'SAL',    link_kommo: 'https://app.kommo.com/lead/103' },
+  { nome: 'Delta Tech',           data_criacao: '2025-03-04T16:45:00', tier: 'Small',      categoria_step: 'Potencializar', canal_origem: 'Lead Broker', etapa: 'Commit', link_kommo: 'https://app.kommo.com/lead/104' },
+  { nome: 'Epsilon Digital',      data_criacao: '2025-03-05T10:30:00', tier: 'Tiny',       categoria_step: 'Saber',         canal_origem: 'Black Box',   etapa: 'Leads',  link_kommo: '' },
+  { nome: 'Zeta Sistemas',        data_criacao: '2025-03-06T08:00:00', tier: 'Enterprise', categoria_step: 'Ter',           canal_origem: 'Eventos',     etapa: 'MQL',    link_kommo: 'https://app.kommo.com/lead/106' },
+  { nome: 'Eta Serviços',         data_criacao: '2025-03-07T13:15:00', tier: 'Large',      categoria_step: 'Executar',      canal_origem: 'Lead Broker', etapa: 'SQL',    link_kommo: 'https://app.kommo.com/lead/107' },
+  { nome: 'Theta Engenharia',     data_criacao: '2025-03-08T15:30:00', tier: 'Medium',     categoria_step: 'Saber',         canal_origem: 'Black Box',   etapa: 'Leads',  link_kommo: 'https://app.kommo.com/lead/108' },
+  { nome: 'Iota Finanças',        data_criacao: '2025-03-10T09:00:00', tier: 'Enterprise', categoria_step: 'Potencializar', canal_origem: 'Eventos',     etapa: 'SAL',    link_kommo: 'https://app.kommo.com/lead/109' },
+  { nome: 'Kappa Automação',      data_criacao: '2025-03-11T11:45:00', tier: 'Small',      categoria_step: 'Ter',           canal_origem: 'Lead Broker', etapa: 'Commit', link_kommo: 'https://app.kommo.com/lead/110' },
+  { nome: 'Lambda Inovações',     data_criacao: '2025-03-12T14:00:00', tier: 'Large',      categoria_step: 'Saber',         canal_origem: 'Black Box',   etapa: 'Leads',  link_kommo: '' },
+  { nome: 'Mu Tecnologia',        data_criacao: '2025-03-13T10:15:00', tier: 'Tiny',       categoria_step: 'Executar',      canal_origem: 'Eventos',     etapa: 'MQL',    link_kommo: 'https://app.kommo.com/lead/112' },
+]
+
 export const MOCK_DATA = {
   tiers: tierData,
   analistas: analistaData,
-  canais: canalData
+  canais: canalData,
+  listagem: listagemData
 }

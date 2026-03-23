@@ -131,6 +131,36 @@
       </div>
       <GtmFunnelTable :tiers="currentTiers" :loading="loading" />
     </div>
+
+    <!-- Marketing & Vendas Toggle -->
+    <div class="mv-toggle-wrapper">
+      <VToggleGroup v-model="mvView" :options="mvViewOptions" />
+    </div>
+
+    <!-- Agrupada: Analista + Canal -->
+    <div v-if="mvView === 'agrupada'" class="mv-sections">
+      <MvSectionTable
+        title="Visão por Analista"
+        icon="users"
+        type="analyst"
+        :rows="mvAnalistaData"
+        :loading="loading"
+      />
+      <MvSectionTable
+        title="Visão por Canal"
+        icon="radio-tower"
+        type="canal"
+        :rows="mvCanalData"
+        :loading="loading"
+      />
+    </div>
+
+    <!-- Lista: Listagem de Leads -->
+    <MvListagemTable
+      v-if="mvView === 'lista'"
+      :rows="mvListagemData"
+      :loading="loading"
+    />
   </div>
 </template>
 
@@ -141,9 +171,19 @@ import { formatNumber, formatCurrencyAbbrev, formatDateTime } from '../../compos
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
 import GtmScorecard from './components/GtmScorecard.vue'
 import GtmFunnelTable from './components/GtmFunnelTable.vue'
+import VToggleGroup from '../../components/ui/VToggleGroup.vue'
+import MvSectionTable from '../MarketingVendas/components/MvSectionTable.vue'
+import MvListagemTable from '../MarketingVendas/components/MvListagemTable.vue'
 import { MOCK_DATA, CANAIS, MESES } from './mock-data.js'
 
 const { data, loading, error, fetchData } = useDashboardData('gtm-motion')
+
+// ── MV Toggle ─────────────────────────────────────────────────────────────────
+const mvView = ref('agrupada')
+const mvViewOptions = [
+  { value: 'agrupada', label: 'Agrupada' },
+  { value: 'lista', label: 'Lista' }
+]
 
 // ── Month range ───────────────────────────────────────────────────────────────
 function getCurrentQuarterRange() {
@@ -193,6 +233,27 @@ function handleChannelClick(channelId) {
   selectedChannels.value = [channelId]
 }
 
+// ── Closer / SDR options (from raw API data) ─────────────────────────────────
+const closerOptions = computed(() => {
+  const source = Array.isArray(data.value) ? data.value[0]?.data : data.value?.data
+  if (!source) return []
+  const set = new Set()
+  for (const r of (source.funil ?? [])) {
+    if (r.closer) set.add(r.closer)
+  }
+  return [...set].sort()
+})
+
+const sdrOptions = computed(() => {
+  const source = Array.isArray(data.value) ? data.value[0]?.data : data.value?.data
+  if (!source) return []
+  const set = new Set()
+  for (const r of (source.funil ?? [])) {
+    if (r.sdr) set.add(r.sdr)
+  }
+  return [...set].sort()
+})
+
 // ── Data ──────────────────────────────────────────────────────────────────────
 const TIER_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Enterprise', 'Sem mapeamento', 'Total']
 const toNum = (v) => (v === '' || v == null) ? null : Number(v)
@@ -202,6 +263,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
   const source = Array.isArray(rawData) ? rawData[0]?.data : rawData?.data
   if (!source) return null
 
+  const rawListagem = source.listagem ?? []
   let rawKpis = (source.kpis ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
   let rawFunil = (source.funil ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
 
@@ -457,7 +519,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
     channels[canal] = { kpis, tiers }
   }
 
-  return { channels }
+  return { channels, listagem: rawListagem, rawKpis, rawFunil: rawFunil.filter(r => !r.is_empty_row && !r.is_total) }
 }
 
 const useMockData = computed(() => {
@@ -467,7 +529,7 @@ const useMockData = computed(() => {
 
 const resolvedData = computed(() => {
   if (useMockData.value) return MOCK_DATA
-  if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value)
+  if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value, selectedCloser.value, selectedSdr.value)
   if (import.meta.env.DEV) return MOCK_DATA
   return null
 })
@@ -587,10 +649,74 @@ const tableTitle = computed(() => {
   return CANAIS.find((c) => c.id === selectedChannel.value)?.label ?? selectedChannel.value
 })
 
+// ── Marketing & Vendas data (from GTM Motion webhook) ────────────────────────
+const MV_CANAL_META = {
+  'Lead Broker': { icon: 'users', color: '#14b8a6' },
+  'Black Box':   { icon: 'box',   color: '#888'    },
+  'Eventos':     { icon: 'calendar', color: '#a855f7' },
+  'Outros':      { icon: 'more-horizontal', color: '#666' },
+}
+
+function mvAvgTicketColor(v) {
+  if (v >= 30000) return 'green'
+  if (v >= 15000) return 'yellow'
+  if (v >= 5000)  return 'orange'
+  return 'red'
+}
+
+const mvAnalistaData = computed(() => {
+  const source = resolvedData.value
+  if (!source?.rawFunil) return []
+  const map = new Map()
+  for (const r of source.rawFunil) {
+    if (!r.closer) continue
+    const name = r.closer
+    if (!map.has(name)) {
+      map.set(name, { name, avatar: name.slice(0, 2).toUpperCase(), investimento: 0, trend: null, trendDir: null, prospects: 0, leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
+    }
+    const a = map.get(name)
+    a.leads     += Number(r.leads)   || 0
+    a.agendadas += Number(r.mql)     || 0
+    a.realizadas += Number(r.sql)    || 0
+    a.contratos += Number(r.sal)     || 0
+    a.booking   += Number(r.booking) || 0
+  }
+  return [...map.values()].map(a => {
+    const avg = a.contratos > 0 ? Math.round(a.booking / a.contratos) : 0
+    return { ...a, avgTicket: avg, avgTicketColor: mvAvgTicketColor(avg) }
+  })
+})
+
+const mvCanalData = computed(() => {
+  const source = resolvedData.value
+  if (!source?.rawKpis) return []
+  const map = new Map()
+  for (const r of source.rawKpis) {
+    const canal = r.canal
+    if (!canal || /^\d{4}-\d{2}$/.test(canal)) continue
+    if (!map.has(canal)) {
+      const meta = MV_CANAL_META[canal] ?? { icon: 'radio-tower', color: '#888' }
+      map.set(canal, { name: canal, icon: meta.icon, iconColor: meta.color, investimento: 0, trend: null, trendDir: null, prospects: 0, leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
+    }
+    const c = map.get(canal)
+    c.leads     += Number(r.leads_value)   || 0
+    c.agendadas += Number(r.mql_value)     || 0
+    c.realizadas += Number(r.sql_value)    || 0
+    c.contratos += Number(r.commit_value)  || 0
+    c.booking   += Number(r.booking_value) || 0
+  }
+  return [...map.values()].map(c => {
+    const avg = c.contratos > 0 ? Math.round(c.booking / c.contratos) : 0
+    return { ...c, avgTicket: avg, avgTicketColor: mvAvgTicketColor(avg) }
+  })
+})
+
+const mvListagemData = computed(() => resolvedData.value?.listagem ?? [])
+
 const lastUpdateTime = ref(null)
 
 async function handleRefresh() {
-  // Dispara webhook de atualização de dados antes de buscar
+  // Step 1: POST trigger webhook para N8N regenerar os dados
   try {
     const res = await fetch('/api/gtm-motion/trigger-update')
     if (!res.ok) console.warn('[GTM Motion] Webhook de atualização retornou', res.status)
@@ -598,6 +724,7 @@ async function handleRefresh() {
     console.warn('[GTM Motion] Falha ao chamar webhook de atualização:', err.message)
   }
 
+  // Step 2: GET dados atualizados (bypassa cache)
   await fetchAllData(true)
   lastUpdateTime.value = formatDateTime(new Date().toISOString())
   await nextTick()
@@ -605,6 +732,7 @@ async function handleRefresh() {
 }
 
 onMounted(async () => {
+  // Auto-load: apenas GET dos dados (sem POST trigger)
   await fetchAllData()
   lastUpdateTime.value = formatDateTime(new Date().toISOString())
   await nextTick()
@@ -768,5 +896,19 @@ onMounted(async () => {
   font-weight: 600;
   color: #fff;
   margin: 0;
+}
+
+/* Marketing & Vendas section */
+.mv-toggle-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+  margin-bottom: 20px;
+}
+
+.mv-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 </style>
