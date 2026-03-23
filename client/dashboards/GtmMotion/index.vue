@@ -181,10 +181,7 @@ const selectedChannel = ref('consolidado')
 const selectedCloser  = ref('todos')
 const selectedSdr     = ref('todos')
 const ALL_CHANNEL_IDS = CANAIS.map((c) => c.id)
-
-// ── Channel selection ─────────────────────────────────────────────────────────
 const selectedChannels = ref(['consolidado'])
-const ALL_CHANNEL_IDS  = CANAIS.map((c) => c.id)
 
 const isConsolidado = computed(() => selectedChannels.value.includes('consolidado'))
 
@@ -593,6 +590,14 @@ const tableTitle = computed(() => {
 const lastUpdateTime = ref(null)
 
 async function handleRefresh() {
+  // Dispara webhook de atualização de dados antes de buscar
+  try {
+    const res = await fetch('/api/gtm-motion/trigger-update')
+    if (!res.ok) console.warn('[GTM Motion] Webhook de atualização retornou', res.status)
+  } catch (err) {
+    console.warn('[GTM Motion] Falha ao chamar webhook de atualização:', err.message)
+  }
+
   await fetchAllData(true)
   lastUpdateTime.value = formatDateTime(new Date().toISOString())
   await nextTick()
