@@ -259,9 +259,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
     if (!funilByCanal[canal]) funilByCanal[canal] = {}
 
     if (hasTierData) {
-      // Funil sheet uses: tier, subcategoria, leads, mql, sql, sal, commit, booking, is_empty_row, is_total
+      // Funil sheet uses: tier, subcategoria (step), leads, mql, sql, sal, commit, booking, is_empty_row, is_total
       const tier      = row.tier ?? 'Sem mapeamento'
-      const sub       = row.subcategoria ?? null
+      const step      = row.subcategoria ?? null
       const isEmpty   = !!(row.is_empty_row || row.isEmptyRow)
       const isTotalRow = !!(row.is_total || row.isTotal)
       if (!funilByCanal[canal][tier]) {
@@ -270,7 +270,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
           sal_value: 0, commit_value: 0, booking_value: 0,
           isEmptyRow: isEmpty,
           isTotal: isTotalRow,
-          subCategories: {},
+          steps: {},
         }
       }
       const acc = funilByCanal[canal][tier]
@@ -281,7 +281,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
       const fSal     = toNum(row.sal     ?? row.sal_value)     ?? 0
       const fCommit  = toNum(row.commit  ?? row.commit_value)  ?? 0
       const fBooking = toNum(row.booking ?? row.booking_value) ?? 0
-      if (!sub) {
+      if (!step) {
         acc.leads_value   += fLeads
         acc.mql_value     += fMql
         acc.sql_value     += fSql
@@ -289,10 +289,10 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
         acc.commit_value  += fCommit
         acc.booking_value += fBooking
       } else {
-        if (!acc.subCategories[sub]) {
-          acc.subCategories[sub] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+        if (!acc.steps[step]) {
+          acc.steps[step] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
         }
-        const sa = acc.subCategories[sub]
+        const sa = acc.steps[step]
         sa.leads   += fLeads
         sa.mql     += fMql
         sa.sql     += fSql
@@ -359,8 +359,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
         if (!t) continue
 
         if (t.isEmptyRow) {
-          tiers.push({ tier: tierName, leads: t.leads_value, isEmptyRow: true })
+          tiers.push({ tier: tierName, leads: t.leads_value, mql: t.mql_value, isEmptyRow: true })
           totLeads += t.leads_value
+          totMql   += t.mql_value
           continue
         }
 
@@ -377,7 +378,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
         const cr4v = fsal > 0 ? (fc  / fsal) * 100 : 0
         const mwv  = fm   > 0 ? (fc  / fm)   * 100 : 0
 
-        const subCategories = Object.entries(t.subCategories).map(([name, s]) => ({
+        const steps = Object.entries(t.steps).map(([name, s]) => ({
           name, leads: s.leads, mql: s.mql, sql: s.sql,
           sal: s.sal, commit: s.commit, booking: s.booking,
         }))
@@ -391,7 +392,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
           cr3:    { val: cr3v, color: crColor(cr3v, 80, 65) },
           cr4:    { val: cr4v, color: crColor(cr4v, 20, 12) },
           mqlWon: { val: mwv,  color: crColor(mwv,  5,  3)  },
-          subCategories,
+          steps,
         })
 
         totLeads   += fl;   totMql    += fm;   totSql  += fs
@@ -543,6 +544,7 @@ const currentTiers = computed(() => {
         const ex = tierMap[row.tier]
         if (row.isEmptyRow) {
           ex.leads = (ex.leads ?? 0) + (row.leads ?? 0)
+          ex.mql   = (ex.mql   ?? 0) + (row.mql   ?? 0)
           continue
         }
         ex.leads   = (ex.leads   ?? 0) + (row.leads   ?? 0)
@@ -562,22 +564,22 @@ const currentTiers = computed(() => {
         ex.cr3    = { val: cr3v, color: crColor(cr3v, 80, 65) }
         ex.cr4    = { val: cr4v, color: crColor(cr4v, 20, 12) }
         ex.mqlWon = { val: mwv,  color: crColor(mwv,   5,  3) }
-        // Merge subCategories by name
-        if (row.subCategories?.length > 0) {
-          if (!ex.subCategories?.length) {
-            ex.subCategories = row.subCategories.map(s => ({ ...s }))
+        // Merge steps by name
+        if (row.steps?.length > 0) {
+          if (!ex.steps?.length) {
+            ex.steps = row.steps.map(s => ({ ...s }))
           } else {
-            for (const sub of row.subCategories) {
-              const exSub = ex.subCategories.find(s => s.name === sub.name)
-              if (exSub) {
-                exSub.leads   = (exSub.leads   ?? 0) + (sub.leads   ?? 0)
-                exSub.mql     = (exSub.mql     ?? 0) + (sub.mql     ?? 0)
-                exSub.sql     = (exSub.sql     ?? 0) + (sub.sql     ?? 0)
-                exSub.sal     = (exSub.sal     ?? 0) + (sub.sal     ?? 0)
-                exSub.commit  = (exSub.commit  ?? 0) + (sub.commit  ?? 0)
-                exSub.booking = (exSub.booking ?? 0) + (sub.booking ?? 0)
+            for (const step of row.steps) {
+              const exStep = ex.steps.find(s => s.name === step.name)
+              if (exStep) {
+                exStep.leads   = (exStep.leads   ?? 0) + (step.leads   ?? 0)
+                exStep.mql     = (exStep.mql     ?? 0) + (step.mql     ?? 0)
+                exStep.sql     = (exStep.sql     ?? 0) + (step.sql     ?? 0)
+                exStep.sal     = (exStep.sal     ?? 0) + (step.sal     ?? 0)
+                exStep.commit  = (exStep.commit  ?? 0) + (step.commit  ?? 0)
+                exStep.booking = (exStep.booking ?? 0) + (step.booking ?? 0)
               } else {
-                ex.subCategories.push({ ...sub })
+                ex.steps.push({ ...step })
               }
             }
           }
