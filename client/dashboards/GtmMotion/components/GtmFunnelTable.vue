@@ -114,12 +114,12 @@
                   <span class="sub-indent">↳</span>
                   {{ sub.name }}
                 </td>
-                <td class="col-num sub-val">{{ formatNumber(sub.leads) }}</td>
-                <td class="col-cr"><span :class="crClass(row.cr1?.color)">{{ fmtCalcCr(sub.mql, sub.leads) }}</span></td>
-                <td class="col-num sub-val">{{ formatNumber(sub.mql) }}</td>
-                <td class="col-cr"><span :class="crClass(row.cr2?.color)">{{ fmtCalcCr(sub.sql, sub.mql) }}</span></td>
-                <td class="col-num sub-val">{{ formatNumber(sub.sql) }}</td>
-                <td class="col-cr"><span :class="crClass(row.cr3?.color)">{{ fmtCalcCr(sub.sal, sub.sql) }}</span></td>
+                <td class="col-num sub-val"></td>
+                <td class="col-cr"></td>
+                <td class="col-num sub-val"></td>
+                <td class="col-cr"></td>
+                <td class="col-num sub-val"></td>
+                <td class="col-cr"></td>
                 <td class="col-num sub-val">{{ formatNumber(sub.sal) }}</td>
                 <td class="col-cr"><span :class="crClass(row.cr4?.color)">{{ fmtCalcCr(sub.commit, sub.sal) }}</span></td>
                 <td class="col-num sub-val">{{ formatNumber(sub.commit) }}</td>
