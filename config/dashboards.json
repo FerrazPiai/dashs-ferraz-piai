@@ -16,8 +16,7 @@
     "componentPath": "GtmMotion",
     "apiEndpoint": "API_ENDPOINT_GTM_MOTION",
     "cacheTTL": 300000,
-    "status": "development",
-    "statusMessage": "Este dashboard está em desenvolvimento. Algumas funcionalidades podem estar incompletas ou instáveis."
+    "status": "available"
   },
   {
     "id": "marketing-vendas",

@@ -31,11 +31,6 @@ export const MESES = [
 ]
 
 export const CANAIS = [
-  { id: 'lead-broker', label: 'Lead Broker' },
-  { id: 'v-black-box', label: 'Black Box' },
-  { id: 'evento',      label: 'Evento' },
-  { id: 'indicacao',   label: 'Indicação' },
-  { id: 'recuperacao', label: 'Recuperação' },
 ]
 
 function cr(val, green, yellow) {

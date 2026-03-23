@@ -30,24 +30,31 @@
       <span>{{ error }}</span>
     </div>
 
-    <!-- Channel Tabs -->
-    <div class="channel-tabs">
-      <button
-        class="channel-tab"
-        :class="{ active: isConsolidado }"
-        @click="handleChannelClick('consolidado')"
-      >
-        Consolidado
-      </button>
-      <button
-        v-for="canal in CANAIS"
-        :key="canal.id"
-        class="channel-tab"
-        :class="{ active: isChannelActive(canal.id) }"
-        @click="handleChannelClick(canal.id)"
-      >
-        {{ canal.label }}
-      </button>
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label class="filter-label">Canal</label>
+        <select class="filter-select" v-model="selectedChannel">
+          <option value="consolidado">Consolidado</option>
+          <option v-for="canal in channelOptions" :key="canal.id" :value="canal.id">
+            {{ canal.label }}
+          </option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">Closer</label>
+        <select class="filter-select" v-model="selectedCloser">
+          <option value="todos">Todos</option>
+          <option v-for="c in closerOptions" :key="c" :value="c">{{ c }}</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">SDR</label>
+        <select class="filter-select" v-model="selectedSdr">
+          <option value="todos">Todos</option>
+          <option v-for="s in sdrOptions" :key="s" :value="s">{{ s }}</option>
+        </select>
+      </div>
     </div>
 
     <!-- KPI Grid -->
@@ -167,41 +174,50 @@ watch(mesInicial, (val) => {
   if (mesFinal.value < val) mesFinal.value = val
 })
 
-const fetchWithPeriod = (forceRefresh = false) =>
-  fetchData(forceRefresh, { mesInicial: mesInicial.value, mesFinal: mesFinal.value })
+const fetchAllData = (forceRefresh = false) => fetchData(forceRefresh)
 
-watch([mesInicial, mesFinal], () => fetchWithPeriod())
+// ── Filters ──────────────────────────────────────────────────────────────────
+const selectedChannel = ref('consolidado')
+const selectedCloser  = ref('todos')
+const selectedSdr     = ref('todos')
+const ALL_CHANNEL_IDS = CANAIS.map((c) => c.id) 
 
 // ── Channel selection ─────────────────────────────────────────────────────────
-const selectedChannels = ref(['consolidado'])
-const ALL_CHANNEL_IDS  = CANAIS.map((c) => c.id)
-
-const isConsolidado = computed(() => selectedChannels.value.includes('consolidado'))
-
-function isChannelActive(id) {
-  return !isConsolidado.value && selectedChannels.value.includes(id)
-}
-
-function handleChannelClick(channelId) {
-  selectedChannels.value = [channelId]
-}
+const isConsolidado = computed(() => selectedChannel.value === 'consolidado')
 
 // ── Data ──────────────────────────────────────────────────────────────────────
+const TIER_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Enterprise', 'Sem mapeamento', 'Total']
 const toNum = (v) => (v === '' || v == null) ? null : Number(v)
 
-function transformApiData(rawData, mesIni, mesFim) {
+function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
   // API retorna { data: { kpis, funil } } ou [{ data: { kpis, funil } }]
   const source = Array.isArray(rawData) ? rawData[0]?.data : rawData?.data
   if (!source) return null
 
-  const rawKpis = (source.kpis ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
-  const rawFunil = (source.funil ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
+  let rawKpis = (source.kpis ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
+  let rawFunil = (source.funil ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
+
+  // Filter by closer if selected (case-insensitive)
+  if (closer && closer !== 'todos') {
+    const cl = closer.toLowerCase()
+    rawKpis = rawKpis.filter((r) => r.closer?.toLowerCase() === cl)
+    rawFunil = rawFunil.filter((r) => r.closer?.toLowerCase() === cl)
+  }
+  if (sdr && sdr !== 'todos') {
+    const sd = sdr.toLowerCase()
+    rawKpis = rawKpis.filter((r) => r.sdr?.toLowerCase() === sd)
+    rawFunil = rawFunil.filter((r) => r.sdr?.toLowerCase() === sd)
+  }
   const CANAL_LABEL = Object.fromEntries(CANAIS.map((c) => [c.id, c.label]))
+  const CANAL_LABEL_TO_ID = Object.fromEntries(
+    CANAIS.map(c => [c.label.toLowerCase(), c.id])
+  )
+  const normalizeCanal = (name) => CANAL_LABEL_TO_ID[name.toLowerCase()] ?? name
 
   // Group KPIs by canal, summing across months
   const kpisByCanal = {}
   for (const row of rawKpis) {
-    const canal = row.canal
+    const canal = normalizeCanal(row.canal)
     if (!kpisByCanal[canal]) {
       kpisByCanal[canal] = {
         leads_value: 0, leads_provisionado: null, leads_meta: 0,
@@ -243,9 +259,9 @@ function transformApiData(rawData, mesIni, mesFim) {
     if (!funilByCanal[canal]) funilByCanal[canal] = {}
 
     if (hasTierData) {
-      // Funil sheet uses: tier, subcategoria, leads, mql, sql, sal, commit, booking, is_empty_row, is_total
+      // Funil sheet uses: tier, subcategoria (step), leads, mql, sql, sal, commit, booking, is_empty_row, is_total
       const tier      = row.tier ?? 'Sem mapeamento'
-      const sub       = row.subcategoria ?? null
+      const step      = row.subcategoria ?? null
       const isEmpty   = !!(row.is_empty_row || row.isEmptyRow)
       const isTotalRow = !!(row.is_total || row.isTotal)
       if (!funilByCanal[canal][tier]) {
@@ -254,7 +270,7 @@ function transformApiData(rawData, mesIni, mesFim) {
           sal_value: 0, commit_value: 0, booking_value: 0,
           isEmptyRow: isEmpty,
           isTotal: isTotalRow,
-          subCategories: {},
+          steps: {},
         }
       }
       const acc = funilByCanal[canal][tier]
@@ -265,7 +281,7 @@ function transformApiData(rawData, mesIni, mesFim) {
       const fSal     = toNum(row.sal     ?? row.sal_value)     ?? 0
       const fCommit  = toNum(row.commit  ?? row.commit_value)  ?? 0
       const fBooking = toNum(row.booking ?? row.booking_value) ?? 0
-      if (!sub) {
+      if (!step) {
         acc.leads_value   += fLeads
         acc.mql_value     += fMql
         acc.sql_value     += fSql
@@ -273,10 +289,10 @@ function transformApiData(rawData, mesIni, mesFim) {
         acc.commit_value  += fCommit
         acc.booking_value += fBooking
       } else {
-        if (!acc.subCategories[sub]) {
-          acc.subCategories[sub] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+        if (!acc.steps[step]) {
+          acc.steps[step] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
         }
-        const sa = acc.subCategories[sub]
+        const sa = acc.steps[step]
         sa.leads   += fLeads
         sa.mql     += fMql
         sa.sql     += fSql
@@ -343,8 +359,9 @@ function transformApiData(rawData, mesIni, mesFim) {
         if (!t) continue
 
         if (t.isEmptyRow) {
-          tiers.push({ tier: tierName, leads: t.leads_value, isEmptyRow: true })
+          tiers.push({ tier: tierName, leads: t.leads_value, mql: t.mql_value, isEmptyRow: true })
           totLeads += t.leads_value
+          totMql   += t.mql_value
           continue
         }
 
@@ -361,7 +378,7 @@ function transformApiData(rawData, mesIni, mesFim) {
         const cr4v = fsal > 0 ? (fc  / fsal) * 100 : 0
         const mwv  = fm   > 0 ? (fc  / fm)   * 100 : 0
 
-        const subCategories = Object.entries(t.subCategories).map(([name, s]) => ({
+        const steps = Object.entries(t.steps).map(([name, s]) => ({
           name, leads: s.leads, mql: s.mql, sql: s.sql,
           sal: s.sal, commit: s.commit, booking: s.booking,
         }))
@@ -375,7 +392,7 @@ function transformApiData(rawData, mesIni, mesFim) {
           cr3:    { val: cr3v, color: crColor(cr3v, 80, 65) },
           cr4:    { val: cr4v, color: crColor(cr4v, 20, 12) },
           mqlWon: { val: mwv,  color: crColor(mwv,  5,  3)  },
-          subCategories,
+          steps,
         })
 
         totLeads   += fl;   totMql    += fm;   totSql  += fs
@@ -442,14 +459,43 @@ const useMockData = computed(() => {
 
 const resolvedData = computed(() => {
   if (useMockData.value) return MOCK_DATA
-  if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value)
+  if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value, selectedCloser.value, selectedSdr.value)
   if (import.meta.env.DEV) return MOCK_DATA
   return null
 })
 
-const activeChannelIds = computed(() =>
-  isConsolidado.value ? ALL_CHANNEL_IDS : selectedChannels.value
-)
+// Build channel dropdown options dynamically (includes API channels not in CANAIS)
+const channelOptions = computed(() => {
+  const source = resolvedData.value
+  if (!source?.channels) return CANAIS
+  const known = new Set(CANAIS.map(c => c.id))
+  const extras = Object.keys(source.channels)
+    .filter(id => !known.has(id))
+    .map(id => ({ id, label: id }))
+  return [...CANAIS, ...extras]
+})
+
+const closerOptions = computed(() => {
+  const raw = Array.isArray(data.value) ? data.value[0]?.data : data.value?.data
+  if (!raw?.kpis) return []
+  const set = new Set()
+  raw.kpis.forEach(r => { if (r.closer) set.add(r.closer) })
+  return [...set].sort()
+})
+
+const sdrOptions = computed(() => {
+  const raw = Array.isArray(data.value) ? data.value[0]?.data : data.value?.data
+  if (!raw?.kpis) return []
+  const set = new Set()
+  raw.kpis.forEach(r => { if (r.sdr) set.add(r.sdr) })
+  return [...set].sort()
+})
+
+const activeChannelIds = computed(() => {
+  if (!isConsolidado.value) return [selectedChannel.value]
+  const source = resolvedData.value
+  return source?.channels ? Object.keys(source.channels) : ALL_CHANNEL_IDS
+})
 
 function crColor(val, green, yellow) {
   return val >= green ? 'green' : val >= yellow ? 'yellow' : 'red'
@@ -489,17 +535,16 @@ const currentTiers = computed(() => {
   const source = resolvedData.value
   if (!source) return []
   const tierMap   = {}
-  const tierOrder = []
   for (const channelId of activeChannelIds.value) {
     const tiers = source.channels?.[channelId]?.tiers ?? []
     for (const row of tiers) {
       if (!tierMap[row.tier]) {
         tierMap[row.tier] = { ...row }
-        tierOrder.push(row.tier)
       } else {
         const ex = tierMap[row.tier]
         if (row.isEmptyRow) {
           ex.leads = (ex.leads ?? 0) + (row.leads ?? 0)
+          ex.mql   = (ex.mql   ?? 0) + (row.mql   ?? 0)
           continue
         }
         ex.leads   = (ex.leads   ?? 0) + (row.leads   ?? 0)
@@ -519,22 +564,22 @@ const currentTiers = computed(() => {
         ex.cr3    = { val: cr3v, color: crColor(cr3v, 80, 65) }
         ex.cr4    = { val: cr4v, color: crColor(cr4v, 20, 12) }
         ex.mqlWon = { val: mwv,  color: crColor(mwv,   5,  3) }
-        // Merge subCategories by name
-        if (row.subCategories?.length > 0) {
-          if (!ex.subCategories?.length) {
-            ex.subCategories = row.subCategories.map(s => ({ ...s }))
+        // Merge steps by name
+        if (row.steps?.length > 0) {
+          if (!ex.steps?.length) {
+            ex.steps = row.steps.map(s => ({ ...s }))
           } else {
-            for (const sub of row.subCategories) {
-              const exSub = ex.subCategories.find(s => s.name === sub.name)
-              if (exSub) {
-                exSub.leads   = (exSub.leads   ?? 0) + (sub.leads   ?? 0)
-                exSub.mql     = (exSub.mql     ?? 0) + (sub.mql     ?? 0)
-                exSub.sql     = (exSub.sql     ?? 0) + (sub.sql     ?? 0)
-                exSub.sal     = (exSub.sal     ?? 0) + (sub.sal     ?? 0)
-                exSub.commit  = (exSub.commit  ?? 0) + (sub.commit  ?? 0)
-                exSub.booking = (exSub.booking ?? 0) + (sub.booking ?? 0)
+            for (const step of row.steps) {
+              const exStep = ex.steps.find(s => s.name === step.name)
+              if (exStep) {
+                exStep.leads   = (exStep.leads   ?? 0) + (step.leads   ?? 0)
+                exStep.mql     = (exStep.mql     ?? 0) + (step.mql     ?? 0)
+                exStep.sql     = (exStep.sql     ?? 0) + (step.sql     ?? 0)
+                exStep.sal     = (exStep.sal     ?? 0) + (step.sal     ?? 0)
+                exStep.commit  = (exStep.commit  ?? 0) + (step.commit  ?? 0)
+                exStep.booking = (exStep.booking ?? 0) + (step.booking ?? 0)
               } else {
-                ex.subCategories.push({ ...sub })
+                ex.steps.push({ ...step })
               }
             }
           }
@@ -542,27 +587,25 @@ const currentTiers = computed(() => {
       }
     }
   }
-  return tierOrder.map((name) => tierMap[name])
+  return TIER_ORDER.filter(name => tierMap[name]).map(name => tierMap[name])
 })
 
 const tableTitle = computed(() => {
   if (isConsolidado.value) return 'Consolidado — Todos os Canais'
-  return selectedChannels.value
-    .map((id) => CANAIS.find((c) => c.id === id)?.label ?? id)
-    .join(' + ')
+  return CANAIS.find((c) => c.id === selectedChannel.value)?.label ?? selectedChannel.value
 })
 
 const lastUpdateTime = ref(null)
 
 async function handleRefresh() {
-  await fetchWithPeriod(true)
+  await fetchAllData(true)
   lastUpdateTime.value = formatDateTime(new Date().toISOString())
   await nextTick()
   if (window.lucide) window.lucide.createIcons()
 }
 
 onMounted(async () => {
-  await fetchWithPeriod()
+  await fetchAllData()
   lastUpdateTime.value = formatDateTime(new Date().toISOString())
   await nextTick()
   if (window.lucide) window.lucide.createIcons()
@@ -596,14 +639,15 @@ onMounted(async () => {
   margin: 0;
 }
 
-/* Period range (identical to DreFluxoCaixa) */
+/* Period range */
 .period-range {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   background: #1a1a1a;
+  border: 1px solid #222;
   border-radius: 6px;
-  padding: 4px 10px;
+  padding: 8px 14px;
 }
 
 .period-sep {
@@ -620,47 +664,71 @@ onMounted(async () => {
   font-family: inherit;
   cursor: pointer;
   outline: none;
-  padding: 4px 0;
+  padding: 6px 18px 6px 4px;
   appearance: none;
   -webkit-appearance: none;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 2px center;
 }
 
-.month-select option {
-  background: #1a1a1a;
-  color: #ccc;
-}
-
-/* Channel Tabs */
-.channel-tabs {
+/* Filters Bar */
+.filters-bar {
   display: flex;
-  gap: 8px;
+  gap: 16px;
   flex-wrap: wrap;
   margin-bottom: 16px;
 }
 
-.channel-tab {
-  padding: 6px 16px;
-  background: #141414;
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a1a1a;
   border: 1px solid #222;
-  border-radius: 20px;
+  border-radius: 6px;
+  padding: 8px 14px;
+  min-width: 160px;
+}
+
+.filter-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.filter-select {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  color: #ccc;
   font-size: 13px;
   font-weight: 500;
-  color: #888;
+  font-family: inherit;
   cursor: pointer;
-  transition: all 0.15s;
+  outline: none;
+  padding: 6px 18px 6px 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 2px center;
 }
 
-.channel-tab:hover {
-  color: #ccc;
-  border-color: #333;
-}
-
-.channel-tab.active {
-  color: #fff;
-  border-color: #444;
+.filter-select option,
+.month-select option {
   background: #1a1a1a;
+  color: #ccc;
+  font-family: 'Ubuntu', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  padding: 8px 12px;
 }
 
 /* KPI Grid */

@@ -34,7 +34,7 @@
               </td>
               <td class="col-num">{{ formatNumber(row.leads) }}</td>
               <td class="col-cr">—</td>
-              <td class="col-num">—</td>
+              <td class="col-num">{{ formatNumber(row.mql) }}</td>
               <td class="col-cr">—</td>
               <td class="col-num">—</td>
               <td class="col-cr">—</td>
@@ -67,10 +67,10 @@
             </tr>
 
             <!-- Normal tier row -->
-            <tr v-else class="tier-row" :class="{ 'has-sub': hasSubcategories(row) }">
+            <tr v-else class="tier-row" :class="{ 'has-steps': hasSteps(row) }">
               <td class="col-tier">
                 <button
-                  v-if="hasSubcategories(row)"
+                  v-if="hasSteps(row)"
                   class="expand-btn"
                   :class="{ expanded: expandedTiers.has(row.tier) }"
                   @click="toggleTier(row.tier)"
@@ -103,29 +103,29 @@
               <td class="col-money booking-val">{{ formatCurrency(row.booking) }}</td>
             </tr>
 
-            <!-- Sub-rows -->
-            <template v-if="hasSubcategories(row) && expandedTiers.has(row.tier)">
+            <!-- Step rows -->
+            <template v-if="hasSteps(row) && expandedTiers.has(row.tier)">
               <tr
-                v-for="sub in row.subCategories"
-                :key="sub.name"
-                class="sub-row"
+                v-for="step in row.steps"
+                :key="step.name"
+                class="step-row"
               >
-                <td class="col-tier sub-name">
-                  <span class="sub-indent">↳</span>
-                  {{ sub.name }}
+                <td class="col-tier step-name">
+                  <span class="step-indent">↳</span>
+                  {{ step.name }}
                 </td>
-                <td class="col-num sub-val"></td>
-                <td class="col-cr"></td>
-                <td class="col-num sub-val"></td>
-                <td class="col-cr"></td>
-                <td class="col-num sub-val"></td>
-                <td class="col-cr"></td>
-                <td class="col-num sub-val">{{ formatNumber(sub.sal) }}</td>
-                <td class="col-cr"><span :class="crClass(row.cr4?.color)">{{ fmtCalcCr(sub.commit, sub.sal) }}</span></td>
-                <td class="col-num sub-val">{{ formatNumber(sub.commit) }}</td>
-                <td class="col-cr"><span :class="crClass(row.mqlWon?.color)">{{ fmtCalcCr(sub.commit, sub.mql) }}</span></td>
-                <td class="col-money sub-val">{{ sub.commit > 0 ? formatCurrency(Math.round(sub.booking / sub.commit)) : '—' }}</td>
-                <td class="col-money sub-val">{{ sub.booking > 0 ? formatCurrency(sub.booking) : '—' }}</td>
+                <td class="col-num step-val">{{ formatNumber(step.leads) }}</td>
+                <td class="col-cr"><span :class="crClass(row.cr1?.color)">{{ fmtCalcCr(step.mql, step.leads) }}</span></td>
+                <td class="col-num step-val">{{ formatNumber(step.mql) }}</td>
+                <td class="col-cr"><span :class="crClass(row.cr2?.color)">{{ fmtCalcCr(step.sql, step.mql) }}</span></td>
+                <td class="col-num step-val">{{ formatNumber(step.sql) }}</td>
+                <td class="col-cr"><span :class="crClass(row.cr3?.color)">{{ fmtCalcCr(step.sal, step.sql) }}</span></td>
+                <td class="col-num step-val">{{ formatNumber(step.sal) }}</td>
+                <td class="col-cr"><span :class="crClass(row.cr4?.color)">{{ fmtCalcCr(step.commit, step.sal) }}</span></td>
+                <td class="col-num step-val">{{ formatNumber(step.commit) }}</td>
+                <td class="col-cr"><span :class="crClass(row.mqlWon?.color)">{{ fmtCalcCr(step.commit, step.mql) }}</span></td>
+                <td class="col-money step-val">{{ step.commit > 0 ? formatCurrency(Math.round(step.booking / step.commit)) : '—' }}</td>
+                <td class="col-money step-val">{{ step.booking > 0 ? formatCurrency(step.booking) : '—' }}</td>
               </tr>
             </template>
           </template>
@@ -152,8 +152,8 @@ const props = defineProps({
 
 const expandedTiers = ref(new Set())
 
-function hasSubcategories(row) {
-  return row.subCategories && row.subCategories.length > 0
+function hasSteps(row) {
+  return row.steps && row.steps.length > 0
 }
 
 function toggleTier(tierName) {
@@ -273,36 +273,36 @@ tbody td.col-tier {
   flex-shrink: 0;
 }
 
-/* Sub-rows */
-.sub-row {
+/* Step rows */
+.step-row {
   background: #111;
 }
 
-.sub-row:hover {
+.step-row:hover {
   background: #161616;
 }
 
-.sub-row td {
+.step-row td {
   padding: 7px 12px;
   font-size: 12px;
 }
 
-.sub-row td.col-tier {
+.step-row td.col-tier {
   display: flex;
   align-items: center;
 }
 
-.sub-name {
+.step-name {
   padding-left: 32px !important;
   color: #777 !important;
 }
 
-.sub-indent {
+.step-indent {
   color: #444;
   margin-right: 4px;
 }
 
-.sub-val {
+.step-val {
   color: #888;
 }
 
