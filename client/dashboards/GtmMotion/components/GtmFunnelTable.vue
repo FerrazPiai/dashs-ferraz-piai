@@ -114,12 +114,12 @@
                   <span class="step-indent">↳</span>
                   {{ step.name }}
                 </td>
-                <td class="col-num step-val">{{ formatNumber(step.leads) }}</td>
-                <td class="col-cr"><span :class="crClass(row.cr1?.color)">{{ fmtCalcCr(step.mql, step.leads) }}</span></td>
-                <td class="col-num step-val">{{ formatNumber(step.mql) }}</td>
-                <td class="col-cr"><span :class="crClass(row.cr2?.color)">{{ fmtCalcCr(step.sql, step.mql) }}</span></td>
-                <td class="col-num step-val">{{ formatNumber(step.sql) }}</td>
-                <td class="col-cr"><span :class="crClass(row.cr3?.color)">{{ fmtCalcCr(step.sal, step.sql) }}</span></td>
+                <td class="col-num step-val"></td>
+                <td class="col-cr"></td>
+                <td class="col-num step-val"></td>
+                <td class="col-cr"></td>
+                <td class="col-num step-val"></td>
+                <td class="col-cr"></td>
                 <td class="col-num step-val">{{ formatNumber(step.sal) }}</td>
                 <td class="col-cr"><span :class="crClass(row.cr4?.color)">{{ fmtCalcCr(step.commit, step.sal) }}</span></td>
                 <td class="col-num step-val">{{ formatNumber(step.commit) }}</td>
