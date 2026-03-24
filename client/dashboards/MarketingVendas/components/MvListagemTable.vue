@@ -161,10 +161,22 @@ function handleSort(key) {
   currentPage.value = 1
 }
 
+function parseDateBR(val) {
+  if (!val) return null
+  // DD/MM/YYYY format from raw data
+  const match = String(val).match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (match) return new Date(Number(match[3]), Number(match[2]) - 1, Number(match[1]))
+  // ISO or other parseable format
+  const d = new Date(val)
+  return isNaN(d.getTime()) ? null : d
+}
+
 function formatDate(val) {
   if (!val) return '—'
-  const d = new Date(val)
-  if (isNaN(d.getTime())) return val
+  // If already in DD/MM/YYYY, return as-is
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(String(val))) return val
+  const d = parseDateBR(val)
+  if (!d) return val
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
@@ -193,10 +205,10 @@ const filteredRows = computed(() => {
     const dir = sortDir.value === 'asc' ? 1 : -1
 
     rows.sort((a, b) => {
-      // Date column: sort by timestamp
+      // Date column: sort by timestamp (parse DD/MM/YYYY correctly)
       if (key === 'data_criacao') {
-        const at = new Date(a[key] || 0).getTime()
-        const bt = new Date(b[key] || 0).getTime()
+        const at = (parseDateBR(a[key]) || new Date(0)).getTime()
+        const bt = (parseDateBR(b[key]) || new Date(0)).getTime()
         return (at - bt) * dir
       }
       // Default: case-insensitive string comparison

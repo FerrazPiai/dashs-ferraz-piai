@@ -221,17 +221,8 @@ const selectedChannel = ref('consolidado')
 const selectedCloser  = ref('todos')
 const selectedSdr     = ref('todos')
 const ALL_CHANNEL_IDS = CANAIS.map((c) => c.id)
-const selectedChannels = ref(['consolidado'])
 
-const isConsolidado = computed(() => selectedChannels.value.includes('consolidado'))
-
-function isChannelActive(id) {
-  return !isConsolidado.value && selectedChannels.value.includes(id)
-}
-
-function handleChannelClick(channelId) {
-  selectedChannels.value = [channelId]
-}
+const isConsolidado = computed(() => selectedChannel.value === 'consolidado')
 
 // ── Closer / SDR options (from raw API data) ─────────────────────────────────
 const closerOptions = computed(() => {
@@ -264,10 +255,13 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
   if (!source) return null
 
   const rawListagem = source.listagem ?? []
-  let rawKpis = (source.kpis ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
-  let rawFunil = (source.funil ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
+  const allKpisByMonth = (source.kpis ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
+  const allFunilByMonth = (source.funil ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
 
-  // Filter by closer if selected (case-insensitive)
+  // Filtered by closer/sdr (for values)
+  let rawKpis = allKpisByMonth
+  let rawFunil = allFunilByMonth
+
   if (closer && closer !== 'todos') {
     const cl = closer.toLowerCase()
     rawKpis = rawKpis.filter((r) => r.closer?.toLowerCase() === cl)
@@ -284,37 +278,66 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
   )
   const normalizeCanal = (name) => CANAL_LABEL_TO_ID[name.toLowerCase()] ?? name
 
-  // Group KPIs by canal, summing across months
+  // Sum metas per canal from all rows (before closer/sdr filtering)
+  const metasByCanal = {}
+  for (const row of allKpisByMonth) {
+    const canal = normalizeCanal(row.canal)
+    if (!metasByCanal[canal]) {
+      metasByCanal[canal] = {
+        leads_meta: 0, mql_meta: 0, sql_meta: 0,
+        sal_meta: 0, commit_meta: 0, booking_meta: 0,
+      }
+    }
+    const m = metasByCanal[canal]
+    m.leads_meta   += toNum(row.leads_meta)   ?? 0
+    m.mql_meta     += toNum(row.mql_meta)     ?? 0
+    m.sql_meta     += toNum(row.sql_meta)     ?? 0
+    m.sal_meta     += toNum(row.sal_meta)     ?? 0
+    m.commit_meta  += toNum(row.commit_meta)  ?? 0
+    m.booking_meta += toNum(row.booking_meta) ?? 0
+  }
+
+  // Group KPIs by canal, summing values from filtered rows + metas from all rows
   const kpisByCanal = {}
   for (const row of rawKpis) {
     const canal = normalizeCanal(row.canal)
     if (!kpisByCanal[canal]) {
+      const cm = metasByCanal[canal] ?? {}
       kpisByCanal[canal] = {
-        leads_value: 0, leads_provisionado: null, leads_meta: 0,
-        mql_value: 0,   mql_provisionado: null,   mql_meta: 0,
-        sql_value: 0,   sql_meta: 0,
-        sal_value: 0,   sal_meta: 0,
-        commit_value: 0, commit_meta: 0,
-        booking_value: 0, booking_meta: 0,
+        leads_value: 0, leads_provisionado: null, leads_meta: cm.leads_meta ?? 0,
+        mql_value: 0,   mql_provisionado: null,   mql_meta: cm.mql_meta ?? 0,
+        sql_value: 0,   sql_meta: cm.sql_meta ?? 0,
+        sal_value: 0,   sal_meta: cm.sal_meta ?? 0,
+        commit_value: 0, commit_meta: cm.commit_meta ?? 0,
+        booking_value: 0, booking_meta: cm.booking_meta ?? 0,
       }
     }
     const acc = kpisByCanal[canal]
     acc.leads_value += toNum(row.leads_value) ?? 0
     const lp = toNum(row.leads_provisionado)
     if (lp != null) acc.leads_provisionado = (acc.leads_provisionado ?? 0) + lp
-    acc.leads_meta += toNum(row.leads_meta) ?? 0
     acc.mql_value += toNum(row.mql_value) ?? 0
     const mp = toNum(row.mql_provisionado)
     if (mp != null) acc.mql_provisionado = (acc.mql_provisionado ?? 0) + mp
-    acc.mql_meta += toNum(row.mql_meta) ?? 0
     acc.sql_value += toNum(row.sql_value) ?? 0
-    acc.sql_meta  += toNum(row.sql_meta)  ?? 0
     acc.sal_value += toNum(row.sal_value) ?? 0
-    acc.sal_meta  += toNum(row.sal_meta)  ?? 0
     acc.commit_value  += toNum(row.commit_value)  ?? 0
-    acc.commit_meta   += toNum(row.commit_meta)   ?? 0
     acc.booking_value += toNum(row.booking_value) ?? 0
-    acc.booking_meta  += toNum(row.booking_meta)  ?? 0
+  }
+
+  // Ensure channels with metas but no filtered value rows still appear
+  for (const canal of Object.keys(metasByCanal)) {
+    if (!kpisByCanal[canal]) {
+      const cm = metasByCanal[canal]
+      kpisByCanal[canal] = {
+        leads_value: 0, leads_provisionado: null, leads_meta: cm.leads_meta ?? 0,
+        mql_value: 0,   mql_provisionado: null,   mql_meta: cm.mql_meta ?? 0,
+        sql_value: 0,   sql_meta: cm.sql_meta ?? 0,
+        sal_value: 0,   sal_meta: cm.sal_meta ?? 0,
+        commit_value: 0, commit_meta: cm.commit_meta ?? 0,
+        booking_value: 0, booking_meta: cm.booking_meta ?? 0,
+      }
+    }
   }
 
   // Check if funil has tier-level data (field "tier" present in rows)
@@ -672,7 +695,7 @@ const mvAnalistaData = computed(() => {
     if (!r.closer) continue
     const name = r.closer
     if (!map.has(name)) {
-      map.set(name, { name, avatar: name.slice(0, 2).toUpperCase(), investimento: 0, trend: null, trendDir: null, prospects: 0, leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
+      map.set(name, { name, avatar: name.slice(0, 2).toUpperCase(), leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
     }
     const a = map.get(name)
     a.leads     += Number(r.leads)   || 0
@@ -696,7 +719,7 @@ const mvCanalData = computed(() => {
     if (!canal || /^\d{4}-\d{2}$/.test(canal)) continue
     if (!map.has(canal)) {
       const meta = MV_CANAL_META[canal] ?? { icon: 'radio-tower', color: '#888' }
-      map.set(canal, { name: canal, icon: meta.icon, iconColor: meta.color, investimento: 0, trend: null, trendDir: null, prospects: 0, leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
+      map.set(canal, { name: canal, icon: meta.icon, iconColor: meta.color, leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
     }
     const c = map.get(canal)
     c.leads     += Number(r.leads_value)   || 0
@@ -716,6 +739,8 @@ const mvListagemData = computed(() => resolvedData.value?.listagem ?? [])
 const lastUpdateTime = ref(null)
 
 async function handleRefresh() {
+  loading.value = true
+
   // Step 1: POST trigger webhook para N8N regenerar os dados
   try {
     const res = await fetch('/api/gtm-motion/trigger-update')

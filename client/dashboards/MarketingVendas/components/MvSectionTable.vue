@@ -12,8 +12,6 @@
         <thead>
           <tr>
             <th class="col-name">Segmento</th>
-            <th>Investimento</th>
-            <th>Prospects</th>
             <th>Leads</th>
             <th>Reuniões<br>Agendadas</th>
             <th>Reuniões<br>Realizadas</th>
@@ -26,7 +24,7 @@
           <!-- Loading skeleton -->
           <template v-if="loading">
             <tr v-for="i in 4" :key="i" class="skeleton-row">
-              <td v-for="j in 9" :key="j"><span class="skeleton-bar"></span></td>
+              <td v-for="j in 7" :key="j"><span class="skeleton-bar"></span></td>
             </tr>
           </template>
 
@@ -51,20 +49,7 @@
                 </span>
               </td>
 
-              <!-- Col 2: Investimento + trend -->
-              <td class="col-currency">
-                {{ formatCurrency(row.investimento) }}
-                <span
-                  v-if="row.trend"
-                  class="trend"
-                  :class="row.trendDir === 'up' ? 'trend-up' : 'trend-down'"
-                >
-                  {{ row.trendDir === 'up' ? '↑' : '↓' }} {{ row.trend }}
-                </span>
-              </td>
-
-              <!-- Cols 3-7: numeric -->
-              <td>{{ formatNumber(row.prospects) }}</td>
+              <!-- Cols numeric -->
               <td>{{ formatNumber(row.leads) }}</td>
               <td>{{ formatNumber(row.agendadas) }}</td>
               <td>{{ formatNumber(row.realizadas) }}</td>
@@ -245,16 +230,6 @@ watch(() => props.loading, (val) => { if (!val) initIcons() })
   stroke-width: 1.5;
   flex-shrink: 0;
 }
-
-/* Trend */
-.trend {
-  font-size: 10px;
-  font-weight: 700;
-  margin-left: 4px;
-}
-
-.trend-up { color: #22c55e; }
-.trend-down { color: #ef4444; }
 
 /* Booking */
 .col-booking {
