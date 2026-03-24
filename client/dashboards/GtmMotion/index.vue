@@ -143,15 +143,23 @@
         title="Visão por Analista"
         icon="users"
         type="analyst"
-        :rows="mvAnalistaData"
+        nameLabel="Analista"
+        :mode="analistaMode"
+        :rows="mvAnalistaRows"
         :loading="loading"
-      />
+        sortable
+      >
+        <template #header-actions>
+          <VToggleGroup v-model="analistaMode" :options="analistaModeOptions" />
+        </template>
+      </MvSectionTable>
       <MvSectionTable
         title="Visão por Canal"
         icon="radio-tower"
         type="canal"
         :rows="mvCanalData"
         :loading="loading"
+        sortable
       />
     </div>
 
@@ -183,6 +191,13 @@ const mvView = ref('agrupada')
 const mvViewOptions = [
   { value: 'agrupada', label: 'Agrupada' },
   { value: 'lista', label: 'Lista' }
+]
+
+// ── Analista SDR/Closer toggle ───────────────────────────────────────────────
+const analistaMode = ref('sdr')
+const analistaModeOptions = [
+  { value: 'sdr', label: 'SDR' },
+  { value: 'closer', label: 'Closer' }
 ]
 
 // ── Month range ───────────────────────────────────────────────────────────────
@@ -726,7 +741,28 @@ function readAgrupada(r) {
   }
 }
 
-const mvAnalistaData = computed(() => {
+// SDR view: group agrupadas by SDR → leads, agendadas, realizadas
+const mvAnalistaSdrData = computed(() => {
+  const source = resolvedData.value
+  if (!source?.agrupadas?.length) return []
+  const map = new Map()
+  for (const r of source.agrupadas) {
+    const name = r.sdr
+    if (!name || name.toLowerCase() === 'sem sdr') continue
+    if (!map.has(name)) {
+      map.set(name, { name, avatar: name.slice(0, 2).toUpperCase(), leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
+    }
+    const a = map.get(name)
+    const v = readAgrupada(r)
+    a.leads      += v.leads
+    a.agendadas  += v.agendadas
+    a.realizadas += v.realizadas
+  }
+  return [...map.values()].map(mvAddConversions)
+})
+
+// Closer view: group agrupadas by Closer → contratos, booking, avgTicket
+const mvAnalistaCloserData = computed(() => {
   const source = resolvedData.value
   if (!source?.agrupadas?.length) return []
   const map = new Map()
@@ -738,14 +774,23 @@ const mvAnalistaData = computed(() => {
     }
     const a = map.get(name)
     const v = readAgrupada(r)
-    a.leads      += v.leads
-    a.agendadas  += v.agendadas
-    a.realizadas += v.realizadas
     a.contratos  += v.contratos
     a.booking    += v.booking
   }
+  // Agrupadas may lack booking — supplement from KPIs (same dimensions)
+  for (const kpi of (source.rawKpis ?? [])) {
+    const name = kpi.closer
+    if (!name || name.toLowerCase() === 'sem closer') continue
+    if (map.has(name)) {
+      map.get(name).booking += Number(kpi.booking_value) || 0
+    }
+  }
   return [...map.values()].map(mvAddConversions)
 })
+
+const mvAnalistaRows = computed(() =>
+  analistaMode.value === 'sdr' ? mvAnalistaSdrData.value : mvAnalistaCloserData.value
+)
 
 const mvCanalData = computed(() => {
   const source = resolvedData.value
@@ -765,6 +810,14 @@ const mvCanalData = computed(() => {
     c.realizadas += v.realizadas
     c.contratos  += v.contratos
     c.booking    += v.booking
+  }
+  // Agrupadas may lack booking — supplement from KPIs (same dimensions)
+  for (const kpi of (source.rawKpis ?? [])) {
+    const canal = kpi.canal
+    if (!canal) continue
+    if (map.has(canal)) {
+      map.get(canal).booking += Number(kpi.booking_value) || 0
+    }
   }
   return [...map.values()].map(mvAddConversions)
 })

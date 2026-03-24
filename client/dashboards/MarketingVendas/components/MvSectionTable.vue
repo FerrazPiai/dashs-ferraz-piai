@@ -2,8 +2,13 @@
   <div class="section-card">
     <!-- Section Header -->
     <div class="section-header">
-      <i :data-lucide="icon" class="section-icon"></i>
-      <h3 class="section-title">{{ title }}</h3>
+      <div class="section-header-left">
+        <i :data-lucide="icon" class="section-icon"></i>
+        <h3 class="section-title">{{ title }}</h3>
+      </div>
+      <div v-if="$slots['header-actions']" class="section-header-right">
+        <slot name="header-actions" />
+      </div>
     </div>
 
     <!-- Table -->
@@ -11,29 +16,67 @@
       <table class="mv-table">
         <thead>
           <tr>
-            <th class="col-name">Segmento</th>
-            <th>Leads</th>
-            <th class="col-cr">CR1%</th>
-            <th>Reuniões<br>Agendadas</th>
-            <th class="col-cr">CR2%</th>
-            <th>Reuniões<br>Realizadas</th>
-            <th class="col-cr">CR3%</th>
-            <th>Contratos<br>Assinados</th>
-            <th>R$ Booking</th>
-            <th>Avg. Ticket</th>
+            <th class="col-name" :class="{ 'th-sortable': sortable }" @click="toggleSort('name')">
+              {{ nameLabel }}
+              <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('name')">{{ sortArrow('name') }}</span>
+            </th>
+
+            <!-- SDR columns -->
+            <template v-if="mode === 'full' || mode === 'sdr'">
+              <th :class="{ 'th-sortable': sortable }" @click="toggleSort('leads')">
+                Leads
+                <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('leads')">{{ sortArrow('leads') }}</span>
+              </th>
+              <th class="col-cr" :class="{ 'th-sortable': sortable }" @click="toggleSort('cr1')">
+                CR1%
+                <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('cr1')">{{ sortArrow('cr1') }}</span>
+              </th>
+              <th :class="{ 'th-sortable': sortable }" @click="toggleSort('agendadas')">
+                Reuniões<br>Agendadas
+                <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('agendadas')">{{ sortArrow('agendadas') }}</span>
+              </th>
+              <th class="col-cr" :class="{ 'th-sortable': sortable }" @click="toggleSort('cr2')">
+                CR2%
+                <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('cr2')">{{ sortArrow('cr2') }}</span>
+              </th>
+              <th :class="{ 'th-sortable': sortable }" @click="toggleSort('realizadas')">
+                Reuniões<br>Realizadas
+                <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('realizadas')">{{ sortArrow('realizadas') }}</span>
+              </th>
+            </template>
+
+            <!-- Closer columns -->
+            <template v-if="mode === 'full' || mode === 'closer'">
+              <th v-if="mode === 'full'" class="col-cr" :class="{ 'th-sortable': sortable }" @click="toggleSort('cr3')">
+                CR3%
+                <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('cr3')">{{ sortArrow('cr3') }}</span>
+              </th>
+              <th :class="{ 'th-sortable': sortable }" @click="toggleSort('contratos')">
+                Contratos<br>Assinados
+                <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('contratos')">{{ sortArrow('contratos') }}</span>
+              </th>
+              <th :class="{ 'th-sortable': sortable }" @click="toggleSort('booking')">
+                R$ Booking
+                <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('booking')">{{ sortArrow('booking') }}</span>
+              </th>
+              <th :class="{ 'th-sortable': sortable }" @click="toggleSort('avgTicket')">
+                Avg. Ticket
+                <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('avgTicket')">{{ sortArrow('avgTicket') }}</span>
+              </th>
+            </template>
           </tr>
         </thead>
         <tbody>
           <!-- Loading skeleton -->
           <template v-if="loading">
             <tr v-for="i in 4" :key="i" class="skeleton-row">
-              <td v-for="j in 10" :key="j"><span class="skeleton-bar"></span></td>
+              <td v-for="j in skeletonCols" :key="j"><span class="skeleton-bar"></span></td>
             </tr>
           </template>
 
           <!-- Data rows -->
           <template v-else>
-            <tr v-for="row in rows" :key="row.name" class="data-row">
+            <tr v-for="row in sortedRows" :key="row.name" class="data-row">
               <!-- Col 1: Name (conditional by type) -->
               <td class="col-name-cell">
                 <span v-if="type === 'tier'" class="tier-name">{{ row.name }}</span>
@@ -47,50 +90,40 @@
                 </span>
               </td>
 
-              <!-- Leads -->
-              <td>{{ formatNumber(row.leads) }}</td>
+              <!-- SDR columns -->
+              <template v-if="mode === 'full' || mode === 'sdr'">
+                <td>{{ formatNumber(row.leads) }}</td>
+                <td class="col-cr-cell">
+                  <span v-if="row.cr1" class="cr-badge" :class="`cr-${row.cr1.color}`">
+                    {{ row.cr1.val.toFixed(1) }}%
+                  </span>
+                  <span v-else class="cr-badge cr-neutral">-</span>
+                </td>
+                <td>{{ formatNumber(row.agendadas) }}</td>
+                <td class="col-cr-cell">
+                  <span v-if="row.cr2" class="cr-badge" :class="`cr-${row.cr2.color}`">
+                    {{ row.cr2.val.toFixed(1) }}%
+                  </span>
+                  <span v-else class="cr-badge cr-neutral">-</span>
+                </td>
+                <td>{{ formatNumber(row.realizadas) }}</td>
+              </template>
 
-              <!-- CR1: Leads → Agendadas -->
-              <td class="col-cr-cell">
-                <span v-if="row.cr1" class="cr-badge" :class="`cr-${row.cr1.color}`">
-                  {{ row.cr1.val.toFixed(1) }}%
-                </span>
-                <span v-else class="cr-badge cr-neutral">-</span>
-              </td>
-
-              <!-- Agendadas -->
-              <td>{{ formatNumber(row.agendadas) }}</td>
-
-              <!-- CR2: Agendadas → Realizadas -->
-              <td class="col-cr-cell">
-                <span v-if="row.cr2" class="cr-badge" :class="`cr-${row.cr2.color}`">
-                  {{ row.cr2.val.toFixed(1) }}%
-                </span>
-                <span v-else class="cr-badge cr-neutral">-</span>
-              </td>
-
-              <!-- Realizadas -->
-              <td>{{ formatNumber(row.realizadas) }}</td>
-
-              <!-- CR3: Realizadas → Contratos -->
-              <td class="col-cr-cell">
-                <span v-if="row.cr3" class="cr-badge" :class="`cr-${row.cr3.color}`">
-                  {{ row.cr3.val.toFixed(1) }}%
-                </span>
-                <span v-else class="cr-badge cr-neutral">-</span>
-              </td>
-
-              <!-- Contratos -->
-              <td>{{ formatNumber(row.contratos) }}</td>
-
-              <!-- Booking -->
-              <td class="col-booking">{{ formatCurrency(row.booking) }}</td>
-
-              <!-- Avg Ticket -->
-              <td class="col-currency">
-                <span class="status-dot" :class="`dot-${row.avgTicketColor}`"></span>
-                {{ formatCurrency(row.avgTicket) }}
-              </td>
+              <!-- Closer columns -->
+              <template v-if="mode === 'full' || mode === 'closer'">
+                <td v-if="mode === 'full'" class="col-cr-cell">
+                  <span v-if="row.cr3" class="cr-badge" :class="`cr-${row.cr3.color}`">
+                    {{ row.cr3.val.toFixed(1) }}%
+                  </span>
+                  <span v-else class="cr-badge cr-neutral">-</span>
+                </td>
+                <td>{{ formatNumber(row.contratos) }}</td>
+                <td class="col-booking">{{ formatCurrency(row.booking) }}</td>
+                <td class="col-currency">
+                  <span class="status-dot" :class="`dot-${row.avgTicketColor}`"></span>
+                  {{ formatCurrency(row.avgTicket) }}
+                </td>
+              </template>
             </tr>
           </template>
         </tbody>
@@ -100,7 +133,7 @@
 </template>
 
 <script setup>
-import { onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { formatNumber, formatCurrency } from '../../../composables/useFormatters.js'
 
 const props = defineProps({
@@ -112,7 +145,61 @@ const props = defineProps({
     type: String,
     required: true,
     validator: (v) => ['tier', 'analyst', 'canal'].includes(v)
+  },
+  mode: {
+    type: String,
+    default: 'full',
+    validator: (v) => ['full', 'sdr', 'closer'].includes(v)
+  },
+  nameLabel: { type: String, default: 'Segmento' },
+  sortable: { type: Boolean, default: false }
+})
+
+const skeletonCols = computed(() => {
+  if (props.mode === 'sdr') return 6
+  if (props.mode === 'closer') return 4
+  return 10
+})
+
+/* ── Sorting ── */
+const sortKey = ref(null)
+const sortDir = ref('desc')
+
+function toggleSort(key) {
+  if (!props.sortable) return
+  if (sortKey.value === key) {
+    sortDir.value = sortDir.value === 'asc' ? 'desc' : 'asc'
+  } else {
+    sortKey.value = key
+    sortDir.value = 'desc'
   }
+}
+
+function sortArrow(key) {
+  if (!props.sortable) return ''
+  if (sortKey.value !== key) return '⇅'
+  return sortDir.value === 'asc' ? '↑' : '↓'
+}
+
+function sortArrowClass(key) {
+  return sortKey.value === key ? 'sort-active' : 'sort-idle'
+}
+
+const sortedRows = computed(() => {
+  if (!props.sortable || !sortKey.value) return props.rows
+  const key = sortKey.value
+  const dir = sortDir.value === 'asc' ? 1 : -1
+  return [...props.rows].sort((a, b) => {
+    let va = a[key]
+    let vb = b[key]
+    // CR columns are objects { val, color }
+    if (va && typeof va === 'object' && 'val' in va) va = va.val
+    if (vb && typeof vb === 'object' && 'val' in vb) vb = vb.val
+    if (va == null) va = -Infinity
+    if (vb == null) vb = -Infinity
+    if (typeof va === 'string') return dir * va.localeCompare(vb)
+    return dir * (va - vb)
+  })
 })
 
 async function initIcons() {
@@ -136,6 +223,7 @@ watch(() => props.loading, (val) => { if (!val) initIcons() })
 .section-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   padding: 14px 16px;
   border-bottom: 1px solid #2a2a2a;
@@ -150,6 +238,17 @@ watch(() => props.loading, (val) => { if (!val) initIcons() })
   bottom: 0;
   width: 3px;
   background: #ff0000;
+}
+
+.section-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-header-right {
+  display: flex;
+  align-items: center;
 }
 
 .section-icon {
@@ -303,6 +402,33 @@ watch(() => props.loading, (val) => { if (!val) initIcons() })
 .dot-yellow { background: #eab308; }
 .dot-orange { background: #f97316; }
 .dot-red    { background: #ef4444; }
+
+/* Sortable headers */
+.th-sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s;
+}
+
+.th-sortable:hover {
+  color: #ccc;
+}
+
+.sort-arrow {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 9px;
+  vertical-align: middle;
+}
+
+.sort-idle {
+  opacity: 0.3;
+}
+
+.sort-active {
+  opacity: 1;
+  color: #ff0000;
+}
 
 /* Loading skeleton */
 .skeleton-row td {

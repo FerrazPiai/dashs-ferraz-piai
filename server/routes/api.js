@@ -99,10 +99,41 @@ router.get('/data/:dashboardId', async (req, res, next) => {
     // Fetch from API if no cache or force refresh
     if (!data) {
       console.log(`[${new Date().toISOString()}] Fetching fresh data for ${cacheKey}`)
-      data = await fetchData(apiUrl)
 
-      // Save to cache
-      await setCachedData(cacheKey, data)
+      try {
+        data = await fetchData(apiUrl)
+      } catch (fetchErr) {
+        console.warn(`[${new Date().toISOString()}] Fresh fetch failed for ${cacheKey}:`, fetchErr.message)
+        data = null
+      }
+
+      // If API returned empty/null, fallback to cache (e.g. POST trigger may have cached data)
+      const isEmpty = !data || (Array.isArray(data) && data.length === 0) ||
+        (typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length === 0)
+
+      if (isEmpty) {
+        console.log(`[${new Date().toISOString()}] Fresh data empty for ${cacheKey}, trying cache fallback`)
+        const fallback = await getCachedData(cacheKey, dashboard.cacheTTL)
+        if (fallback) {
+          data = fallback
+          fromCache = true
+        }
+      }
+
+      // Save to cache if we got valid data
+      if (data && !fromCache) {
+        await setCachedData(cacheKey, data)
+      }
+    }
+
+    // If no data after all attempts, return 503
+    if (!data) {
+      return res.status(503).json({
+        error: {
+          message: 'Dados não disponíveis. Clique em Atualizar para buscar dados.',
+          status: 503
+        }
+      })
     }
 
     // Return data
@@ -184,7 +215,8 @@ router.get('/marketing-vendas/trigger-update', async (req, res, next) => {
 /**
  * GET /api/gtm-motion/trigger-update
  * Trigger N8N data extraction webhook before refreshing dashboard data.
- * The webhook returns an empty body with status 200 on success.
+ * The webhook may return the refreshed data in its response body — if so,
+ * we cache it so the subsequent GET /api/data/gtm-motion finds it.
  */
 router.get('/gtm-motion/trigger-update', async (req, res, next) => {
   const webhookUrl = 'https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/82892823-713e-4652-a4d2-137402cfe280'
@@ -201,6 +233,18 @@ router.get('/gtm-motion/trigger-update', async (req, res, next) => {
 
     if (!response.ok) {
       throw new Error(`Webhook retornou HTTP ${response.status}`)
+    }
+
+    // Try to capture response data and cache it for the subsequent GET
+    try {
+      const responseData = await response.json()
+      if (responseData && (Array.isArray(responseData) ? responseData.length > 0 : Object.keys(responseData).length > 0)) {
+        await setCachedData('gtm-motion', responseData)
+        console.log(`[${new Date().toISOString()}] GTM Motion webhook data cached successfully`)
+      }
+    } catch {
+      // Webhook may return empty body — that's ok
+      console.log(`[${new Date().toISOString()}] GTM Motion webhook returned no parseable body`)
     }
 
     console.log(`[${new Date().toISOString()}] GTM Motion webhook executado com sucesso`)
