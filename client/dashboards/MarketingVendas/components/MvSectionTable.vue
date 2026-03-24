@@ -19,13 +19,15 @@
             <th>Reuniões<br>Realizadas</th>
             <th class="col-cr">CR3%</th>
             <th>Contratos<br>Assinados</th>
+            <th>R$ Booking</th>
+            <th>Avg. Ticket</th>
           </tr>
         </thead>
         <tbody>
           <!-- Loading skeleton -->
           <template v-if="loading">
             <tr v-for="i in 4" :key="i" class="skeleton-row">
-              <td v-for="j in 8" :key="j"><span class="skeleton-bar"></span></td>
+              <td v-for="j in 10" :key="j"><span class="skeleton-bar"></span></td>
             </tr>
           </template>
 
@@ -80,6 +82,15 @@
 
               <!-- Contratos -->
               <td>{{ formatNumber(row.contratos) }}</td>
+
+              <!-- Booking -->
+              <td class="col-booking">{{ formatCurrency(row.booking) }}</td>
+
+              <!-- Avg Ticket -->
+              <td class="col-currency">
+                <span class="status-dot" :class="`dot-${row.avgTicketColor}`"></span>
+                {{ formatCurrency(row.avgTicket) }}
+              </td>
             </tr>
           </template>
         </tbody>
@@ -90,7 +101,7 @@
 
 <script setup>
 import { onMounted, watch, nextTick } from 'vue'
-import { formatNumber } from '../../../composables/useFormatters.js'
+import { formatNumber, formatCurrency } from '../../../composables/useFormatters.js'
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -270,6 +281,12 @@ watch(() => props.loading, (val) => { if (!val) initIcons() })
 .cr-yellow { background: rgba(234,179,8,0.12); color: #eab308; }
 .cr-red    { background: rgba(239,68,68,0.12); color: #ef4444; }
 .cr-neutral { background: #2a2a2a; color: #555; }
+
+/* Booking */
+.col-booking {
+  font-weight: 600 !important;
+  color: #fff !important;
+}
 
 /* Status dot */
 .status-dot {

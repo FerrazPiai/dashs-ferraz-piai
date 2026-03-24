@@ -703,11 +703,26 @@ function mvAddConversions(row) {
   const cr1 = row.leads     > 0 ? (row.agendadas  / row.leads)     * 100 : 0
   const cr2 = row.agendadas > 0 ? (row.realizadas / row.agendadas) * 100 : 0
   const cr3 = row.realizadas > 0 ? (row.contratos / row.realizadas) * 100 : 0
+  const avg = row.contratos > 0 ? Math.round(row.booking / row.contratos) : 0
   return {
     ...row,
     cr1: { val: cr1, color: crColor(cr1, 70, 50) },
     cr2: { val: cr2, color: crColor(cr2, 50, 30) },
     cr3: { val: cr3, color: crColor(cr3, 20, 10) },
+    avgTicket: avg,
+    avgTicketColor: mvAvgTicketColor(avg),
+  }
+}
+
+// Read agrupadas fields (keys with accents/spaces from N8N)
+function readAgrupada(r) {
+  return {
+    leads:      Number(r['Leads'] ?? r.leads_value ?? r.Leads ?? 0) || 0,
+    agendadas:  Number(r['Reuniões Agendadas'] ?? r.reunioes_agendadas_value ?? 0) || 0,
+    realizadas: Number(r['Reuniões Realizadas'] ?? r.reunioes_realizadas_value ?? 0) || 0,
+    contratos:  Number(r['Contratos Assinados'] ?? r.contratos_assinados_value ?? 0) || 0,
+    booking:    Number(r['Booking'] ?? r.booking_value ?? 0) || 0,
+    avgTicket:  Number(r['Avg. Ticket'] ?? r.avg_ticket ?? 0) || 0,
   }
 }
 
@@ -719,13 +734,15 @@ const mvAnalistaData = computed(() => {
     const name = r.closer
     if (!name || name.toLowerCase() === 'sem closer') continue
     if (!map.has(name)) {
-      map.set(name, { name, avatar: name.slice(0, 2).toUpperCase(), leads: 0, agendadas: 0, realizadas: 0, contratos: 0 })
+      map.set(name, { name, avatar: name.slice(0, 2).toUpperCase(), leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
     }
     const a = map.get(name)
-    a.leads      += Number(r.leads_value)                  || 0
-    a.agendadas  += Number(r.reunioes_agendadas_value)     || 0
-    a.realizadas += Number(r.reunioes_realizadas_value)    || 0
-    a.contratos  += Number(r.contratos_assinados_value)    || 0
+    const v = readAgrupada(r)
+    a.leads      += v.leads
+    a.agendadas  += v.agendadas
+    a.realizadas += v.realizadas
+    a.contratos  += v.contratos
+    a.booking    += v.booking
   }
   return [...map.values()].map(mvAddConversions)
 })
@@ -739,13 +756,15 @@ const mvCanalData = computed(() => {
     if (!canal) continue
     if (!map.has(canal)) {
       const meta = MV_CANAL_META[canal] ?? { icon: 'radio-tower', color: '#888' }
-      map.set(canal, { name: canal, icon: meta.icon, iconColor: meta.color, leads: 0, agendadas: 0, realizadas: 0, contratos: 0 })
+      map.set(canal, { name: canal, icon: meta.icon, iconColor: meta.color, leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
     }
     const c = map.get(canal)
-    c.leads      += Number(r.leads_value)                  || 0
-    c.agendadas  += Number(r.reunioes_agendadas_value)     || 0
-    c.realizadas += Number(r.reunioes_realizadas_value)    || 0
-    c.contratos  += Number(r.contratos_assinados_value)    || 0
+    const v = readAgrupada(r)
+    c.leads      += v.leads
+    c.agendadas  += v.agendadas
+    c.realizadas += v.realizadas
+    c.contratos  += v.contratos
+    c.booking    += v.booking
   }
   return [...map.values()].map(mvAddConversions)
 })
