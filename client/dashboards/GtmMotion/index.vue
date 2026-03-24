@@ -542,7 +542,23 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
     channels[canal] = { kpis, tiers }
   }
 
-  return { channels, listagem: rawListagem, rawKpis, rawFunil: rawFunil.filter(r => !r.is_empty_row && !r.is_total) }
+  // Parse agrupadas (JSON string or array)
+  let agrupadas = source.agrupadas ?? []
+  if (typeof agrupadas === 'string') {
+    try { agrupadas = JSON.parse(agrupadas) } catch { agrupadas = [] }
+  }
+  // Filter agrupadas by month range and closer/sdr
+  agrupadas = agrupadas.filter((r) => r.mes >= mesIni && r.mes <= mesFim)
+  if (closer && closer !== 'todos') {
+    const cl = closer.toLowerCase()
+    agrupadas = agrupadas.filter((r) => r.closer?.toLowerCase() === cl)
+  }
+  if (sdr && sdr !== 'todos') {
+    const sd = sdr.toLowerCase()
+    agrupadas = agrupadas.filter((r) => r.sdr?.toLowerCase() === sd)
+  }
+
+  return { channels, listagem: rawListagem, rawKpis, rawFunil: rawFunil.filter(r => !r.is_empty_row && !r.is_total), agrupadas }
 }
 
 const useMockData = computed(() => {
@@ -557,15 +573,11 @@ const resolvedData = computed(() => {
   return null
 })
 
-// Build channel dropdown options dynamically (includes API channels not in CANAIS)
+// Build channel dropdown options dynamically from API data only
 const channelOptions = computed(() => {
   const source = resolvedData.value
-  if (!source?.channels) return CANAIS
-  const known = new Set(CANAIS.map(c => c.id))
-  const extras = Object.keys(source.channels)
-    .filter(id => !known.has(id))
-    .map(id => ({ id, label: id }))
-  return [...CANAIS, ...extras]
+  if (!source?.channels) return []
+  return Object.keys(source.channels).map(id => ({ id, label: id }))
 })
 
 const activeChannelIds = computed(() => {
@@ -687,51 +699,55 @@ function mvAvgTicketColor(v) {
   return 'red'
 }
 
+function mvAddConversions(row) {
+  const cr1 = row.leads     > 0 ? (row.agendadas  / row.leads)     * 100 : 0
+  const cr2 = row.agendadas > 0 ? (row.realizadas / row.agendadas) * 100 : 0
+  const cr3 = row.realizadas > 0 ? (row.contratos / row.realizadas) * 100 : 0
+  return {
+    ...row,
+    cr1: { val: cr1, color: crColor(cr1, 70, 50) },
+    cr2: { val: cr2, color: crColor(cr2, 50, 30) },
+    cr3: { val: cr3, color: crColor(cr3, 20, 10) },
+  }
+}
+
 const mvAnalistaData = computed(() => {
   const source = resolvedData.value
-  if (!source?.rawFunil) return []
+  if (!source?.agrupadas?.length) return []
   const map = new Map()
-  for (const r of source.rawFunil) {
-    if (!r.closer) continue
+  for (const r of source.agrupadas) {
     const name = r.closer
+    if (!name || name.toLowerCase() === 'sem closer') continue
     if (!map.has(name)) {
-      map.set(name, { name, avatar: name.slice(0, 2).toUpperCase(), leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
+      map.set(name, { name, avatar: name.slice(0, 2).toUpperCase(), leads: 0, agendadas: 0, realizadas: 0, contratos: 0 })
     }
     const a = map.get(name)
-    a.leads     += Number(r.leads)   || 0
-    a.agendadas += Number(r.mql)     || 0
-    a.realizadas += Number(r.sql)    || 0
-    a.contratos += Number(r.sal)     || 0
-    a.booking   += Number(r.booking) || 0
+    a.leads      += Number(r.leads_value)                  || 0
+    a.agendadas  += Number(r.reunioes_agendadas_value)     || 0
+    a.realizadas += Number(r.reunioes_realizadas_value)    || 0
+    a.contratos  += Number(r.contratos_assinados_value)    || 0
   }
-  return [...map.values()].map(a => {
-    const avg = a.contratos > 0 ? Math.round(a.booking / a.contratos) : 0
-    return { ...a, avgTicket: avg, avgTicketColor: mvAvgTicketColor(avg) }
-  })
+  return [...map.values()].map(mvAddConversions)
 })
 
 const mvCanalData = computed(() => {
   const source = resolvedData.value
-  if (!source?.rawKpis) return []
+  if (!source?.agrupadas?.length) return []
   const map = new Map()
-  for (const r of source.rawKpis) {
+  for (const r of source.agrupadas) {
     const canal = r.canal
-    if (!canal || /^\d{4}-\d{2}$/.test(canal)) continue
+    if (!canal) continue
     if (!map.has(canal)) {
       const meta = MV_CANAL_META[canal] ?? { icon: 'radio-tower', color: '#888' }
-      map.set(canal, { name: canal, icon: meta.icon, iconColor: meta.color, leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
+      map.set(canal, { name: canal, icon: meta.icon, iconColor: meta.color, leads: 0, agendadas: 0, realizadas: 0, contratos: 0 })
     }
     const c = map.get(canal)
-    c.leads     += Number(r.leads_value)   || 0
-    c.agendadas += Number(r.mql_value)     || 0
-    c.realizadas += Number(r.sql_value)    || 0
-    c.contratos += Number(r.commit_value)  || 0
-    c.booking   += Number(r.booking_value) || 0
+    c.leads      += Number(r.leads_value)                  || 0
+    c.agendadas  += Number(r.reunioes_agendadas_value)     || 0
+    c.realizadas += Number(r.reunioes_realizadas_value)    || 0
+    c.contratos  += Number(r.contratos_assinados_value)    || 0
   }
-  return [...map.values()].map(c => {
-    const avg = c.contratos > 0 ? Math.round(c.booking / c.contratos) : 0
-    return { ...c, avgTicket: avg, avgTicketColor: mvAvgTicketColor(avg) }
-  })
+  return [...map.values()].map(mvAddConversions)
 })
 
 const mvListagemData = computed(() => resolvedData.value?.listagem ?? [])

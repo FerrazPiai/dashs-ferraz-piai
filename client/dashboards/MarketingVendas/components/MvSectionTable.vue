@@ -13,18 +13,19 @@
           <tr>
             <th class="col-name">Segmento</th>
             <th>Leads</th>
+            <th class="col-cr">CR1%</th>
             <th>Reuniões<br>Agendadas</th>
+            <th class="col-cr">CR2%</th>
             <th>Reuniões<br>Realizadas</th>
+            <th class="col-cr">CR3%</th>
             <th>Contratos<br>Assinados</th>
-            <th>R$ Booking</th>
-            <th>Avg. Ticket</th>
           </tr>
         </thead>
         <tbody>
           <!-- Loading skeleton -->
           <template v-if="loading">
             <tr v-for="i in 4" :key="i" class="skeleton-row">
-              <td v-for="j in 7" :key="j"><span class="skeleton-bar"></span></td>
+              <td v-for="j in 8" :key="j"><span class="skeleton-bar"></span></td>
             </tr>
           </template>
 
@@ -33,36 +34,52 @@
             <tr v-for="row in rows" :key="row.name" class="data-row">
               <!-- Col 1: Name (conditional by type) -->
               <td class="col-name-cell">
-                <!-- tier: plain text -->
                 <span v-if="type === 'tier'" class="tier-name">{{ row.name }}</span>
-
-                <!-- analyst: avatar circle + name -->
                 <span v-else-if="type === 'analyst'" class="analyst-cell">
                   <span class="avatar">{{ row.avatar }}</span>
                   {{ row.name }}
                 </span>
-
-                <!-- canal: lucide icon + name -->
                 <span v-else-if="type === 'canal'" class="canal-cell">
                   <i :data-lucide="row.icon" class="canal-icon" :style="{ color: row.iconColor }"></i>
                   {{ row.name }}
                 </span>
               </td>
 
-              <!-- Cols numeric -->
+              <!-- Leads -->
               <td>{{ formatNumber(row.leads) }}</td>
-              <td>{{ formatNumber(row.agendadas) }}</td>
-              <td>{{ formatNumber(row.realizadas) }}</td>
-              <td>{{ formatNumber(row.contratos) }}</td>
 
-              <!-- Col 8: Booking -->
-              <td class="col-booking">{{ formatCurrency(row.booking) }}</td>
-
-              <!-- Col 9: Avg Ticket + status dot -->
-              <td class="col-currency">
-                <span class="status-dot" :class="`dot-${row.avgTicketColor}`"></span>
-                {{ formatCurrency(row.avgTicket) }}
+              <!-- CR1: Leads → Agendadas -->
+              <td class="col-cr-cell">
+                <span v-if="row.cr1" class="cr-badge" :class="`cr-${row.cr1.color}`">
+                  {{ row.cr1.val.toFixed(1) }}%
+                </span>
+                <span v-else class="cr-badge cr-neutral">-</span>
               </td>
+
+              <!-- Agendadas -->
+              <td>{{ formatNumber(row.agendadas) }}</td>
+
+              <!-- CR2: Agendadas → Realizadas -->
+              <td class="col-cr-cell">
+                <span v-if="row.cr2" class="cr-badge" :class="`cr-${row.cr2.color}`">
+                  {{ row.cr2.val.toFixed(1) }}%
+                </span>
+                <span v-else class="cr-badge cr-neutral">-</span>
+              </td>
+
+              <!-- Realizadas -->
+              <td>{{ formatNumber(row.realizadas) }}</td>
+
+              <!-- CR3: Realizadas → Contratos -->
+              <td class="col-cr-cell">
+                <span v-if="row.cr3" class="cr-badge" :class="`cr-${row.cr3.color}`">
+                  {{ row.cr3.val.toFixed(1) }}%
+                </span>
+                <span v-else class="cr-badge cr-neutral">-</span>
+              </td>
+
+              <!-- Contratos -->
+              <td>{{ formatNumber(row.contratos) }}</td>
             </tr>
           </template>
         </tbody>
@@ -73,7 +90,7 @@
 
 <script setup>
 import { onMounted, watch, nextTick } from 'vue'
-import { formatNumber, formatCurrency } from '../../../composables/useFormatters.js'
+import { formatNumber } from '../../../composables/useFormatters.js'
 
 const props = defineProps({
   title: { type: String, required: true },
@@ -231,11 +248,28 @@ watch(() => props.loading, (val) => { if (!val) initIcons() })
   flex-shrink: 0;
 }
 
-/* Booking */
-.col-booking {
-  font-weight: 600 !important;
-  color: #fff !important;
+/* CR columns */
+.col-cr {
+  text-align: center !important;
+  width: 60px;
 }
+
+.col-cr-cell {
+  text-align: center !important;
+}
+
+.cr-badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.cr-green  { background: rgba(34,197,94,0.12); color: #22c55e; }
+.cr-yellow { background: rgba(234,179,8,0.12); color: #eab308; }
+.cr-red    { background: rgba(239,68,68,0.12); color: #ef4444; }
+.cr-neutral { background: #2a2a2a; color: #555; }
 
 /* Status dot */
 .status-dot {
