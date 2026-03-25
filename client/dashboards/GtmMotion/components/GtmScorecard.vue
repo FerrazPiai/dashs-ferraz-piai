@@ -1,5 +1,5 @@
 <template>
-  <div class="gtm-scorecard">
+  <div class="gtm-scorecard" :class="statusBorderClass">
     <div class="scorecard-label">{{ label }}</div>
 
     <div v-if="loading" class="scorecard-value">
@@ -87,8 +87,15 @@ const formattedDelta = computed(() => {
 const deltaClass = computed(() => {
   if (effectiveDelta.value == null) return 'delta-neutral'
   if (effectiveDelta.value >= 100) return 'delta-green'
-  if (effectiveDelta.value >= 80)  return 'delta-yellow'
+  if (effectiveDelta.value >= 85)  return 'delta-yellow'
   return 'delta-red'
+})
+
+const statusBorderClass = computed(() => {
+  if (effectiveDelta.value == null) return ''
+  if (effectiveDelta.value >= 100) return 'border-green'
+  if (effectiveDelta.value >= 85)  return 'border-yellow'
+  return 'border-red'
 })
 </script>
 
@@ -153,7 +160,7 @@ const deltaClass = computed(() => {
 }
 
 .delta-yellow {
-  color: #eab308;
+  color: #fbbf24;
 }
 
 .delta-red {
@@ -162,6 +169,18 @@ const deltaClass = computed(() => {
 
 .delta-neutral {
   color: #888;
+}
+
+.gtm-scorecard.border-green {
+  border-left: 3px solid #22c55e;
+}
+
+.gtm-scorecard.border-yellow {
+  border-left: 3px solid #fbbf24;
+}
+
+.gtm-scorecard.border-red {
+  border-left: 3px solid #ef4444;
 }
 
 /* Loading */

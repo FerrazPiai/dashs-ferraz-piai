@@ -20,6 +20,24 @@
             <option v-for="m in mesesFinalDisponiveis" :key="m.value" :value="m.value">{{ m.label }}</option>
           </select>
         </div>
+        <div class="legend-wrapper">
+          <i data-lucide="info" class="legend-icon"></i>
+          <div class="legend-tooltip">
+            <div class="legend-title">Legenda de Cores</div>
+            <div class="legend-item">
+              <span class="legend-dot legend-dot--green"></span>
+              Meta atingida ou superada
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot legend-dot--yellow"></span>
+              Até 15% abaixo da meta
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot legend-dot--red"></span>
+              Mais de 15% abaixo da meta
+            </div>
+          </div>
+        </div>
         <VRefreshButton :loading="loading" @click="handleRefresh" />
       </div>
     </div>
@@ -878,6 +896,85 @@ onMounted(async () => {
   font-weight: 400;
   color: #888;
   margin: 0;
+}
+
+/* Legend tooltip */
+.legend-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.legend-icon {
+  width: 16px;
+  height: 16px;
+  color: #666;
+  transition: color 0.2s;
+}
+
+.legend-wrapper:hover .legend-icon {
+  color: #999;
+}
+
+.legend-tooltip {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 12px 14px;
+  min-width: 220px;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.legend-wrapper:hover .legend-tooltip {
+  display: block;
+}
+
+.legend-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  color: #ccc;
+  padding: 3px 0;
+  white-space: nowrap;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.legend-dot--green {
+  background: #22c55e;
+  box-shadow: 0 0 6px rgba(34, 197, 94, 0.4);
+}
+
+.legend-dot--yellow {
+  background: #fbbf24;
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.4);
+}
+
+.legend-dot--red {
+  background: #ef4444;
+  box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
 }
 
 /* Period range */
