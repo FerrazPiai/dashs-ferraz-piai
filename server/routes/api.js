@@ -111,16 +111,23 @@ router.get('/data/:dashboardId', async (req, res, next) => {
       const isEmpty = !data || (Array.isArray(data) && data.length === 0) ||
         (typeof data === 'object' && !Array.isArray(data) && Object.keys(data).length === 0)
 
-      if (isEmpty) {
-        console.log(`[${new Date().toISOString()}] Fresh data empty for ${cacheKey}, trying cache fallback`)
+      // Detect null-payload responses: array with inner data object where all fields are null
+      const isNullPayload = !isEmpty && Array.isArray(data) && data.length > 0 &&
+        data[0]?.data && typeof data[0].data === 'object' &&
+        Object.values(data[0].data).every(v => v === null)
+
+      if (isEmpty || isNullPayload) {
+        console.log(`[${new Date().toISOString()}] Fresh data ${isNullPayload ? 'has null payload' : 'empty'} for ${cacheKey}, trying cache fallback`)
         const fallback = await getCachedData(cacheKey, dashboard.cacheTTL)
         if (fallback) {
           data = fallback
           fromCache = true
+        } else if (isNullPayload) {
+          data = null // don't serve null-payload data
         }
       }
 
-      // Save to cache if we got valid data
+      // Save to cache if we got valid data (skip null payloads)
       if (data && !fromCache) {
         await setCachedData(cacheKey, data)
       }

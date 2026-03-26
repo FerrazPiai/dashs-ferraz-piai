@@ -26,15 +26,15 @@
             <div class="legend-title">Legenda de Cores</div>
             <div class="legend-item">
               <span class="legend-dot legend-dot--green"></span>
-              Meta atingida ou superada
+              {{ legendGreenText }}
             </div>
             <div class="legend-item">
               <span class="legend-dot legend-dot--yellow"></span>
-              Até 15% abaixo da meta
+              {{ legendYellowText }}
             </div>
             <div class="legend-item">
               <span class="legend-dot legend-dot--red"></span>
-              Mais de 15% abaixo da meta
+              {{ legendRedText }}
             </div>
           </div>
         </div>
@@ -85,6 +85,8 @@
         :meta="kpis.leads?.meta ?? null"
         :delta="kpis.leads?.delta ?? null"
         :loading="loading"
+        :greenThreshold="colorThresholds.green"
+        :yellowThreshold="colorThresholds.yellow"
       />
       <GtmScorecard
         label="MQL"
@@ -94,6 +96,8 @@
         :meta="kpis.mql?.meta ?? null"
         :delta="kpis.mql?.delta ?? null"
         :loading="loading"
+        :greenThreshold="colorThresholds.green"
+        :yellowThreshold="colorThresholds.yellow"
       />
       <GtmScorecard
         label="SQL"
@@ -103,6 +107,8 @@
         :meta="kpis.sql?.meta ?? null"
         :delta="kpis.sql?.delta ?? null"
         :loading="loading"
+        :greenThreshold="colorThresholds.green"
+        :yellowThreshold="colorThresholds.yellow"
       />
       <GtmScorecard
         label="SAL"
@@ -112,6 +118,8 @@
         :meta="kpis.sal?.meta ?? null"
         :delta="kpis.sal?.delta ?? null"
         :loading="loading"
+        :greenThreshold="colorThresholds.green"
+        :yellowThreshold="colorThresholds.yellow"
       />
       <GtmScorecard
         label="Commit"
@@ -121,6 +129,8 @@
         :meta="kpis.commit?.meta ?? null"
         :delta="kpis.commit?.delta ?? null"
         :loading="loading"
+        :greenThreshold="colorThresholds.green"
+        :yellowThreshold="colorThresholds.yellow"
       />
       <GtmScorecard
         label="Avg Ticket"
@@ -130,6 +140,8 @@
         :meta="kpis.avgTicket?.meta ?? null"
         :delta="kpis.avgTicket?.delta ?? null"
         :loading="loading"
+        :greenThreshold="colorThresholds.green"
+        :yellowThreshold="colorThresholds.yellow"
       />
       <GtmScorecard
         label="Booking"
@@ -139,6 +151,8 @@
         :meta="kpis.booking?.meta ?? null"
         :delta="kpis.booking?.delta ?? null"
         :loading="loading"
+        :greenThreshold="colorThresholds.green"
+        :yellowThreshold="colorThresholds.yellow"
       />
     </div>
 
@@ -286,6 +300,8 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
   // API retorna { data: { kpis, funil } } ou [{ data: { kpis, funil } }]
   const source = Array.isArray(rawData) ? rawData[0]?.data : rawData?.data
   if (!source) return null
+  // Guard against null-payload API responses (all inner fields null)
+  if (!source.kpis && !source.funil) return null
 
   const rawListagem = source.listagem ?? []
   const allKpisByMonth = (source.kpis ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
@@ -591,7 +607,10 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
     agrupadas = agrupadas.filter((r) => r.sdr?.toLowerCase() === sd)
   }
 
-  return { channels, listagem: rawListagem, rawKpis, rawFunil: rawFunil.filter(r => !r.is_empty_row && !r.is_total), agrupadas }
+  // Extract taxa (color thresholds per canal/month)
+  const rawTaxa = source.taxa ?? []
+
+  return { channels, listagem: rawListagem, rawKpis, rawFunil: rawFunil.filter(r => !r.is_empty_row && !r.is_total), agrupadas, taxa: rawTaxa }
 }
 
 const useMockData = computed(() => {
@@ -650,6 +669,73 @@ const kpis = computed(() => {
     delta: null,
   }
   return sum
+})
+
+// ── Color thresholds from taxa (dynamic green/yellow cutoffs) ────────────────
+const colorThresholds = computed(() => {
+  const source = resolvedData.value
+  const taxa = source?.taxa ?? []
+  if (!taxa.length) return { green: 100, yellow: 85 } // fallback: hardcoded
+
+  const mesIni = mesInicial.value
+  const mesFim = mesFinal.value
+  const channels = activeChannelIds.value
+
+  // Filter taxa by month range and active channels
+  const normalizeCanal = (name) => {
+    const CANAL_LABEL_TO_ID = Object.fromEntries(CANAIS.map(c => [c.label.toLowerCase(), c.id]))
+    return CANAL_LABEL_TO_ID[name.toLowerCase()] ?? name
+  }
+  const filtered = taxa.filter((t) => {
+    const mes = t.mes ?? t['Mês']
+    if (!mes || mes < mesIni || mes > mesFim) return false
+    const canal = normalizeCanal(t.canal ?? t['Canal'] ?? '')
+    return channels.includes(canal)
+  })
+
+  if (!filtered.length) return { green: 100, yellow: 85 }
+
+  // Group by cor, collect "% abaixo da meta" values
+  const verdeValues = []
+  const amareloValues = []
+  for (const t of filtered) {
+    const cor = (t.cor ?? '').toLowerCase()
+    const pct = Number(t['% abaixo da meta'] ?? t.pct_abaixo_meta ?? 0)
+    if (cor === 'verde') verdeValues.push(pct)
+    else if (cor === 'amarelo') amareloValues.push(pct)
+  }
+
+  const avg = (arr) => arr.length > 0 ? arr.reduce((a, b) => a + b, 0) / arr.length : null
+
+  const verdeAvg = avg(verdeValues)
+  const amareloAvg = avg(amareloValues)
+
+  // green threshold = 100 - verde_pct (e.g., 10 → 90%)
+  // yellow threshold = 100 - amarelo_pct (e.g., 25 → 75%)
+  return {
+    green: verdeAvg != null ? 100 - verdeAvg : 100,
+    yellow: amareloAvg != null ? 100 - amareloAvg : 85,
+  }
+})
+
+const legendGreenText = computed(() => {
+  const t = colorThresholds.value
+  if (t.green >= 100) return 'Meta atingida ou superada'
+  const pctBelow = Math.round(100 - t.green)
+  return `Até ${pctBelow}% abaixo da meta`
+})
+
+const legendYellowText = computed(() => {
+  const t = colorThresholds.value
+  const greenPct = Math.round(100 - t.green)
+  const yellowPct = Math.round(100 - t.yellow)
+  return `De ${greenPct}% a ${yellowPct}% abaixo da meta`
+})
+
+const legendRedText = computed(() => {
+  const t = colorThresholds.value
+  const yellowPct = Math.round(100 - t.yellow)
+  return `Mais de ${yellowPct}% abaixo da meta`
 })
 
 // Aggregate tiers from active channels

@@ -57,6 +57,14 @@ const props = defineProps({
   loading: {
     type: Boolean,
     default: false
+  },
+  greenThreshold: {
+    type: Number,
+    default: 100
+  },
+  yellowThreshold: {
+    type: Number,
+    default: 85
   }
 })
 
@@ -86,15 +94,15 @@ const formattedDelta = computed(() => {
 
 const deltaClass = computed(() => {
   if (effectiveDelta.value == null) return 'delta-neutral'
-  if (effectiveDelta.value >= 100) return 'delta-green'
-  if (effectiveDelta.value >= 85)  return 'delta-yellow'
+  if (effectiveDelta.value >= props.greenThreshold) return 'delta-green'
+  if (effectiveDelta.value >= props.yellowThreshold) return 'delta-yellow'
   return 'delta-red'
 })
 
 const statusBorderClass = computed(() => {
   if (effectiveDelta.value == null) return ''
-  if (effectiveDelta.value >= 100) return 'border-green'
-  if (effectiveDelta.value >= 85)  return 'border-yellow'
+  if (effectiveDelta.value >= props.greenThreshold) return 'border-green'
+  if (effectiveDelta.value >= props.yellowThreshold) return 'border-yellow'
   return 'border-red'
 })
 </script>
