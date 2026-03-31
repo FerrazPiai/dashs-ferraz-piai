@@ -172,15 +172,32 @@ function monthValue(year, month) {
 }
 
 // ---------------------------------------------------------------------------
+// Squad normalization — case-insensitive, with grouping rules
+// Returns canonical squad name or null (filtered out)
+// ---------------------------------------------------------------------------
+
+const SQUAD_CANONICAL = [
+  { canonical: 'Assemble', test: s => /assemble/i.test(s) },
+  { canonical: 'Growthx',  test: s => /growthx/i.test(s) },
+  { canonical: 'V4x',      test: s => /v4\s*x/i.test(s) || /silvania/i.test(s) }
+]
+
+function normalizeSquad(raw) {
+  const match = SQUAD_CANONICAL.find(e => e.test(raw))
+  return match ? match.canonical : null
+}
+
+// ---------------------------------------------------------------------------
 // Raw rows
 // ---------------------------------------------------------------------------
 
 const rawRows = computed(() => {
   if (!data.value || !Array.isArray(data.value)) return []
   return data.value.map(row => {
-    const parsed = parseMonth(row['Mês'])
+    const parsed   = parseMonth(row['Mês'])
+    const squad    = normalizeSquad(row['Squad'] || '')
     return {
-      squad:        row['Squad'] || '',
+      squad,
       coordenador:  row['Coordenador'] || '',
       year:         parsed?.year ?? 0,
       month:        parsed?.month ?? 0,
