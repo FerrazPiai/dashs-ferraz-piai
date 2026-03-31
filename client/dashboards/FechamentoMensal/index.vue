@@ -3,9 +3,9 @@
     <!-- Header -->
     <div class="main-header sticky-header">
       <div class="header-title">
-        <h1 class="main-title">CS</h1>
-        <span class="title-sep">|</span>
-        <h2 class="main-subtitle">Fechamento Mensal</h2>
+        <h1 class="main-title">Fechamento Mensal</h1>
+        <span class="title-sep">—</span>
+        <h2 class="main-subtitle">Competência</h2>
       </div>
       <div class="main-actions">
         <span v-if="lastUpdateTime" class="last-update">Última atualização: {{ lastUpdateTime }}</span>
@@ -24,62 +24,62 @@
             <option v-for="q in quartersDisponiveis" :key="q.value" :value="q.value">{{ q.label }}</option>
           </select>
         </div>
-        <div class="legend-wrapper">
-          <i data-lucide="info" class="legend-icon"></i>
-          <div class="legend-tooltip">
-            <div class="legend-title">Legenda de Cores</div>
-            <div class="legend-item"><span class="legend-dot legend-dot--green"></span>Bom / Acima da meta</div>
-            <div class="legend-item"><span class="legend-dot legend-dot--yellow"></span>Atenção / Moderado</div>
-            <div class="legend-item"><span class="legend-dot legend-dot--red"></span>Crítico / Abaixo da meta</div>
-            <div class="legend-sep"></div>
-            <div class="legend-note">% Perdas: verde ≤25%, amarelo ≤60%, vermelho &gt;60%</div>
-            <div class="legend-note">% Monet.: verde ≥50%, amarelo ≥15%, vermelho &lt;15%</div>
-            <div class="legend-note">Demais: relativo ao grupo</div>
-          </div>
-        </div>
         <VRefreshButton :loading="loading" @click="handleRefresh" />
       </div>
     </div>
+    <p class="page-subtitle">Performance por Squad &amp; Coordenador</p>
 
     <!-- Error State -->
-    <div v-if="error && !tableRows.length" class="error-message">
+    <div v-if="error && !squadColumns.length" class="error-message">
       <i data-lucide="alert-circle"></i>
       <span>{{ error }}</span>
     </div>
 
     <!-- Loading skeleton -->
-    <div v-if="loading && !tableRows.length" class="skeleton-table">
-      <div v-for="i in 6" :key="i" class="skeleton-row">
-        <div v-for="j in 12" :key="j" class="skeleton-cell"></div>
+    <div v-if="loading && !squadColumns.length" class="skeleton-table">
+      <div v-for="i in 8" :key="i" class="skeleton-row">
+        <div v-for="j in 7" :key="j" class="skeleton-cell"></div>
       </div>
     </div>
 
-    <!-- Heatmap Table -->
-    <div v-if="tableRows.length" class="table-wrapper">
+    <!-- Transposed Heatmap Table: rows = metrics, columns = squads -->
+    <div v-if="squadColumns.length" class="table-wrapper">
       <table class="heatmap-table">
         <thead>
           <tr>
-            <th class="col-squad">Squad</th>
-            <th class="col-coord">Coordenador</th>
-            <th v-for="col in COLUMNS" :key="col.key" class="col-metric">{{ col.label }}</th>
+            <!-- Period label in first column -->
+            <th class="col-period">{{ periodLabel }}</th>
+            <!-- One column per squad -->
+            <th v-for="squad in squadColumns" :key="squad.squad" class="col-squad-header">
+              <div class="squad-name">{{ squad.squad }}</div>
+              <div class="squad-coord">{{ squad.coordenador || '—' }}</div>
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in tableRows" :key="row.squad" :class="{ 'row-total': row.isTotal }">
-            <td class="col-squad">{{ row.squad }}</td>
-            <td class="col-coord">{{ row.coordenador }}</td>
+          <tr v-for="metric in METRICS" :key="metric.key" :class="{ 'row-bold': metric.bold }">
+            <td class="col-metric-label" :class="{ 'label-bold': metric.bold }">
+              {{ metric.label }}
+            </td>
             <td
-              v-for="col in COLUMNS"
-              :key="col.key"
-              class="col-metric"
-              :class="[heatClass(col.key, row[col.key], tableRows), { 'bold-cell': col.bold }]"
+              v-for="squad in squadColumns"
+              :key="squad.squad"
+              class="col-value"
+              :class="heatClass(metric.key, squad[metric.key], squadColumns)"
             >
-              <span v-if="row[col.key] === null || row[col.key] === undefined" class="em-dash">—</span>
-              <span v-else>{{ col.fmt(row[col.key]) }}</span>
+              <span v-if="squad[metric.key] === null || squad[metric.key] === undefined" class="em-dash">—</span>
+              <span v-else>{{ metric.fmt(squad[metric.key]) }}</span>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <!-- Legend -->
+    <div v-if="squadColumns.length" class="legend-bar">
+      <span class="legend-item"><span class="legend-dot legend-dot--green"></span>Bom desempenho</span>
+      <span class="legend-item"><span class="legend-dot legend-dot--yellow"></span>Atenção</span>
+      <span class="legend-item"><span class="legend-dot legend-dot--red"></span>Crítico</span>
     </div>
   </div>
 </template>
@@ -87,7 +87,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useDashboardData } from '../../composables/useDashboardData.js'
-import { formatCurrency } from '../../composables/useFormatters.js'
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
 import VToggleGroup from '../../components/ui/VToggleGroup.vue'
 
@@ -109,33 +108,33 @@ const QUARTER_MONTHS = {
   Q4: [10, 11, 12]
 }
 
-const MONTH_LABELS = [
-  '', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-  'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
-]
+const MONTH_NAMES = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
 function fmtBRL(v) {
   if (v === null || v === undefined || isNaN(v)) return '—'
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v)
+  const formatted = new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(Math.abs(v))
+  return v < 0 ? `-${formatted}` : formatted
 }
 
 function fmtPct(v) {
   if (v === null || v === undefined || isNaN(v)) return '—'
-  return v.toFixed(1) + '%'
+  return v.toFixed(2) + '%'
 }
 
-const COLUMNS = [
-  { key: 'mrr',          label: 'MRR Médio',        fmt: fmtBRL,  bold: false },
-  { key: 'churn',        label: 'Rev. Churn',        fmt: fmtBRL,  bold: false },
-  { key: 'isencao',      label: 'Isenção',           fmt: fmtBRL,  bold: false },
-  { key: 'totalPerdas',  label: 'Total Perdas',      fmt: fmtBRL,  bold: true  },
-  { key: 'pctPerdas',    label: '% Perdas',          fmt: fmtPct,  bold: true  },
-  { key: 'monetRec',     label: 'Monet. Rec.',       fmt: fmtBRL,  bold: false },
-  { key: 'monetOneTime', label: 'Monet. One-Time',   fmt: fmtBRL,  bold: false },
-  { key: 'monetVar',     label: 'Monet. Variável',   fmt: fmtBRL,  bold: false },
-  { key: 'totalMonet',   label: 'Total Monet.',      fmt: fmtBRL,  bold: true  },
-  { key: 'pctMonet',     label: '% Monetização',     fmt: fmtPct,  bold: true  },
-  { key: 'saldoFinal',   label: 'Saldo Final',       fmt: fmtBRL,  bold: true  }
+const METRICS = [
+  { key: 'mrr',          label: 'MRR Médio',                               fmt: fmtBRL, bold: false },
+  { key: 'churn',        label: 'Churn Total',                             fmt: fmtBRL, bold: false },
+  { key: 'isencao',      label: 'Isenção Total',                           fmt: fmtBRL, bold: false },
+  { key: 'totalPerdas',  label: 'Total de Perdas',                         fmt: fmtBRL, bold: true  },
+  { key: 'pctPerdas',    label: '% de Total de Perdas Sobre o MRR Médio',  fmt: fmtPct, bold: false },
+  { key: 'totalMonet',   label: 'Monetização Total',                       fmt: fmtBRL, bold: false },
+  { key: 'pctMonet',     label: '% de Monetização sobre o MRR Médio',      fmt: fmtPct, bold: false },
+  { key: 'saldoFinal',   label: 'Saldo Final',                             fmt: fmtBRL, bold: true  }
 ]
 
 // ---------------------------------------------------------------------------
@@ -146,30 +145,21 @@ const periodMode = ref('trimestre')
 const selectedQuarter = ref(null)
 const mesInicial = ref(null)
 const mesFinal = ref(null)
-
-const { data, loading, error, fetchData, fromCache } = useDashboardData(DASHBOARD_ID)
-
 const lastUpdateTime = ref(null)
 
+const { data, loading, error, fetchData } = useDashboardData(DASHBOARD_ID)
+
 // ---------------------------------------------------------------------------
-// Data parsing helpers
+// Parsing helpers
 // ---------------------------------------------------------------------------
 
 function parseCurrency(raw) {
   if (!raw) return 0
-  // "R$ 6.634,23" or "-R$ 500,00" or "6.634,23"
-  const cleaned = String(raw)
-    .replace('R$', '')
-    .replace(/\s/g, '')
-    .replace(/\./g, '')
-    .replace(',', '.')
+  const cleaned = String(raw).replace('R$', '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.')
   const n = parseFloat(cleaned)
   return isNaN(n) ? 0 : n
 }
 
-/**
- * Parse "MM/DD/YYYY" → { year, month } (1-indexed month)
- */
 function parseMonth(raw) {
   if (!raw) return null
   const parts = raw.split('/')
@@ -182,7 +172,7 @@ function monthValue(year, month) {
 }
 
 // ---------------------------------------------------------------------------
-// Raw rows from API
+// Raw rows
 // ---------------------------------------------------------------------------
 
 const rawRows = computed(() => {
@@ -190,16 +180,16 @@ const rawRows = computed(() => {
   return data.value.map(row => {
     const parsed = parseMonth(row['Mês'])
     return {
-      squad:       row['Squad'] || '',
-      coordenador: row['Coordenador'] || '',
-      year:        parsed?.year ?? 0,
-      month:       parsed?.month ?? 0,
-      mrr:         parseCurrency(row['Receita Recorrente']),
-      churn:       parseCurrency(row['Revenue Churn']),
-      isencao:     parseCurrency(row['Isenção']),
-      monetRec:    parseCurrency(row['Monetização Recorrente']),
+      squad:        row['Squad'] || '',
+      coordenador:  row['Coordenador'] || '',
+      year:         parsed?.year ?? 0,
+      month:        parsed?.month ?? 0,
+      mrr:          parseCurrency(row['Receita Recorrente']),
+      churn:        parseCurrency(row['Revenue Churn']),
+      isencao:      parseCurrency(row['Isenção']),
+      monetRec:     parseCurrency(row['Monetização Recorrente']),
       monetOneTime: parseCurrency(row['Atribuição One Time / Bookado']),
-      monetVar:    parseCurrency(row['Monetização Variável'])
+      monetVar:     parseCurrency(row['Monetização Variável'])
     }
   }).filter(r => r.squad && r.year > 0)
 })
@@ -215,7 +205,7 @@ const mesesDisponiveis = computed(() => {
     const v = monthValue(r.year, r.month)
     if (!seen.has(v)) {
       seen.add(v)
-      result.push({ value: v, label: `${MONTH_LABELS[r.month]}/${r.year}`, year: r.year, month: r.month })
+      result.push({ value: v, label: `${MONTH_NAMES[r.month]}/${r.year}`, year: r.year, month: r.month })
     }
   })
   return result.sort((a, b) => a.value - b.value)
@@ -235,22 +225,18 @@ const quartersDisponiveis = computed(() => {
         const key = `${r.year}-${q}`
         if (!seen.has(key)) {
           seen.add(key)
-          result.push({ value: key, label: `${q} ${r.year}`, year: r.year, quarter: q })
+          result.push({ value: key, label: `${q}/${r.year}`, year: r.year, quarter: q })
         }
       }
     }
   })
-  return result.sort((a, b) => {
-    if (a.year !== b.year) return a.year - b.year
-    return a.quarter.localeCompare(b.quarter)
-  })
+  return result.sort((a, b) => a.year !== b.year ? a.year - b.year : a.quarter.localeCompare(b.quarter))
 })
 
-// Initialize period selectors when data arrives
 watch(mesesDisponiveis, (months) => {
   if (!months.length) return
   if (!mesInicial.value) mesInicial.value = months[0].value
-  if (!mesFinal.value) mesFinal.value = months[months.length - 1].value
+  if (!mesFinal.value)   mesFinal.value   = months[months.length - 1].value
 }, { immediate: true })
 
 watch(quartersDisponiveis, (quarters) => {
@@ -259,7 +245,24 @@ watch(quartersDisponiveis, (quarters) => {
 }, { immediate: true })
 
 // ---------------------------------------------------------------------------
-// Filtered rows by period
+// Period label (shown in first column header)
+// ---------------------------------------------------------------------------
+
+const periodLabel = computed(() => {
+  if (periodMode.value === 'trimestre' && selectedQuarter.value) {
+    return selectedQuarter.value.replace('-', '/')
+  }
+  if (periodMode.value === 'mes') {
+    const ini = mesesDisponiveis.value.find(m => m.value === mesInicial.value)
+    const fim = mesesDisponiveis.value.find(m => m.value === mesFinal.value)
+    if (ini && fim && ini.value === fim.value) return ini.label
+    if (ini && fim) return `${ini.label} – ${fim.label}`
+  }
+  return ''
+})
+
+// ---------------------------------------------------------------------------
+// Filtered rows
 // ---------------------------------------------------------------------------
 
 const filteredRows = computed(() => {
@@ -283,138 +286,66 @@ const filteredRows = computed(() => {
 })
 
 // ---------------------------------------------------------------------------
-// Aggregation by squad
+// Aggregation → one object per squad (columns)
 // ---------------------------------------------------------------------------
 
-function aggregateBySquad(rows) {
-  const map = new Map()
+const squadColumns = computed(() => {
+  if (!filteredRows.value.length) return []
 
-  rows.forEach(r => {
+  const map = new Map()
+  filteredRows.value.forEach(r => {
     if (!map.has(r.squad)) {
       map.set(r.squad, {
         squad: r.squad,
         coordenador: r.coordenador,
-        mrrSum: 0,
-        mrrCount: 0,
-        churnSum: 0,
-        isencaoSum: 0,
-        monetRecSum: 0,
-        monetOneTimeSum: 0,
-        monetVarSum: 0
+        mrrSum: 0, mrrCount: 0,
+        churnSum: 0, isencaoSum: 0,
+        monetRecSum: 0, monetOneTimeSum: 0, monetVarSum: 0
       })
     }
     const g = map.get(r.squad)
-    g.mrrSum += r.mrr
-    g.mrrCount += 1
-    g.churnSum += r.churn
-    g.isencaoSum += r.isencao
-    g.monetRecSum += r.monetRec
+    g.mrrSum      += r.mrr
+    g.mrrCount    += 1
+    g.churnSum    += r.churn
+    g.isencaoSum  += r.isencao
+    g.monetRecSum     += r.monetRec
     g.monetOneTimeSum += r.monetOneTime
-    g.monetVarSum += r.monetVar
+    g.monetVarSum     += r.monetVar
   })
 
-  return Array.from(map.values()).map(g => {
-    const mrr = g.mrrCount > 0 ? g.mrrSum / g.mrrCount : 0
-    const churn = g.churnSum
-    const isencao = g.isencaoSum
-    const totalPerdas = Math.abs(churn) + Math.abs(isencao)
-    const pctPerdas = mrr > 0 ? (totalPerdas / mrr) * 100 : null
-    const monetRec = g.monetRecSum
-    const monetOneTime = g.monetOneTimeSum
-    const monetVar = g.monetVarSum
-    const totalMonet = monetRec + monetOneTime + monetVar
-    const pctMonet = mrr > 0 ? (totalMonet / mrr) * 100 : null
-    const saldoFinal = mrr - totalPerdas + totalMonet
-
-    return {
-      squad: g.squad,
-      coordenador: g.coordenador,
-      mrr,
-      churn,
-      isencao,
-      totalPerdas,
-      pctPerdas,
-      monetRec,
-      monetOneTime,
-      monetVar,
-      totalMonet,
-      pctMonet,
-      saldoFinal,
-      isTotal: false
-    }
-  })
-}
-
-function buildTotalRow(squads) {
-  if (!squads.length) return null
-  const sum = (key) => squads.reduce((acc, s) => acc + (s[key] || 0), 0)
-  const mrr = sum('mrr') / squads.length
-  const churn = sum('churn')
-  const isencao = sum('isencao')
-  const totalPerdas = sum('totalPerdas')
-  const pctPerdas = mrr > 0 ? (totalPerdas / mrr) * 100 : null
-  const monetRec = sum('monetRec')
-  const monetOneTime = sum('monetOneTime')
-  const monetVar = sum('monetVar')
-  const totalMonet = sum('totalMonet')
-  const pctMonet = mrr > 0 ? (totalMonet / mrr) * 100 : null
-  const saldoFinal = sum('saldoFinal')
-
-  return {
-    squad: 'Total',
-    coordenador: '',
-    mrr,
-    churn,
-    isencao,
-    totalPerdas,
-    pctPerdas,
-    monetRec,
-    monetOneTime,
-    monetVar,
-    totalMonet,
-    pctMonet,
-    saldoFinal,
-    isTotal: true
-  }
-}
-
-const tableRows = computed(() => {
-  const squads = aggregateBySquad(filteredRows.value).sort((a, b) =>
-    a.squad.localeCompare(b.squad, 'pt-BR')
-  )
-  if (!squads.length) return []
-  const total = buildTotalRow(squads)
-  return total ? [...squads, total] : squads
+  return Array.from(map.values())
+    .sort((a, b) => a.squad.localeCompare(b.squad, 'pt-BR'))
+    .map(g => {
+      const mrr        = g.mrrCount > 0 ? g.mrrSum / g.mrrCount : 0
+      const churn      = g.churnSum
+      const isencao    = g.isencaoSum
+      const totalPerdas = Math.abs(churn) + Math.abs(isencao)
+      const pctPerdas  = mrr > 0 ? (totalPerdas / mrr) * 100 : null
+      const totalMonet = g.monetRecSum + g.monetOneTimeSum + g.monetVarSum
+      const pctMonet   = mrr > 0 ? (totalMonet / mrr) * 100 : null
+      const saldoFinal = mrr - totalPerdas + totalMonet
+      return { squad: g.squad, coordenador: g.coordenador, mrr, churn, isencao, totalPerdas, pctPerdas, totalMonet, pctMonet, saldoFinal }
+    })
 })
 
 // ---------------------------------------------------------------------------
 // Heatmap coloring
 // ---------------------------------------------------------------------------
 
-/**
- * Relative color: best value in group = green, worst = red.
- * lowerIsBetter: true for churn/isenção/perdas, false for mrr/monetização
- */
-function relativeColor(key, value, rows, lowerIsBetter) {
+function relativeColor(key, value, squads, lowerIsBetter) {
   if (value === null || value === undefined || isNaN(value)) return ''
-  const values = rows
-    .filter(r => !r.isTotal && r[key] !== null && r[key] !== undefined && !isNaN(r[key]))
-    .map(r => r[key])
+  const values = squads.map(s => s[key]).filter(v => v !== null && v !== undefined && !isNaN(v))
   if (values.length < 2) return ''
-
   const sorted = [...values].sort((a, b) => lowerIsBetter ? a - b : b - a)
   const rank = sorted.indexOf(value)
   const pct = rank / (sorted.length - 1)
-
   if (pct <= 0.33) return 'c-green'
   if (pct <= 0.66) return 'c-yellow'
   return 'c-red'
 }
 
-function heatClass(key, value, rows) {
+function heatClass(key, value, squads) {
   if (value === null || value === undefined || isNaN(value)) return ''
-  const row = rows.find(r => r[key] === value)
-  if (row?.isTotal) return ''
 
   switch (key) {
     case 'pctPerdas':
@@ -428,23 +359,20 @@ function heatClass(key, value, rows) {
       return 'c-red'
 
     case 'saldoFinal':
-      if (value > 0) return 'c-green'
+      if (value > 0)  return 'c-green'
       if (value === 0) return 'c-yellow'
       return 'c-red'
 
     case 'mrr':
-      return relativeColor(key, value, rows, false)
+      return relativeColor(key, value, squads, false)
 
     case 'churn':
     case 'isencao':
     case 'totalPerdas':
-      return relativeColor(key, value, rows, true)
+      return relativeColor(key, value, squads, true)
 
-    case 'monetRec':
-    case 'monetOneTime':
-    case 'monetVar':
     case 'totalMonet':
-      return relativeColor(key, value, rows, false)
+      return relativeColor(key, value, squads, false)
 
     default:
       return ''
@@ -458,7 +386,9 @@ function heatClass(key, value, rows) {
 onMounted(async () => {
   await fetchData()
   if (data.value) {
-    lastUpdateTime.value = new Date().toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })
+    lastUpdateTime.value = new Date().toLocaleString('pt-BR', {
+      hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
+    })
   }
   await nextTick()
   if (window.lucide) window.lucide.createIcons()
@@ -467,7 +397,9 @@ onMounted(async () => {
 watch(loading, async (val) => {
   if (!val) {
     if (data.value) {
-      lastUpdateTime.value = new Date().toLocaleString('pt-BR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' })
+      lastUpdateTime.value = new Date().toLocaleString('pt-BR', {
+        hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'
+      })
     }
     await nextTick()
     if (window.lucide) window.lucide.createIcons()
@@ -486,13 +418,19 @@ async function handleRefresh() {
   top: 0;
   z-index: 10;
   background: #0d0d0d;
-  padding-bottom: 12px;
+  padding-bottom: 4px;
 }
 
 .title-sep {
-  color: #ff0000;
+  color: #888;
   margin: 0 8px;
   font-weight: 300;
+}
+
+.page-subtitle {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 20px;
 }
 
 /* ---- Period controls ---- */
@@ -507,77 +445,6 @@ async function handleRefresh() {
   font-size: 12px;
 }
 
-/* ---- Legend ---- */
-.legend-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.legend-icon {
-  width: 16px;
-  height: 16px;
-  color: #666;
-  cursor: pointer;
-}
-
-.legend-tooltip {
-  display: none;
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 6px;
-  padding: 12px 14px;
-  width: 260px;
-  z-index: 50;
-}
-
-.legend-wrapper:hover .legend-tooltip {
-  display: block;
-}
-
-.legend-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 8px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #ccc;
-  margin-bottom: 4px;
-}
-
-.legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.legend-dot--green  { background: #22c55e; }
-.legend-dot--yellow { background: #fbbf24; }
-.legend-dot--red    { background: #ef4444; }
-
-.legend-sep {
-  border-top: 1px solid #333;
-  margin: 8px 0;
-}
-
-.legend-note {
-  font-size: 11px;
-  color: #666;
-  margin-bottom: 3px;
-}
-
 /* ---- Table ---- */
 .table-wrapper {
   overflow-x: auto;
@@ -589,67 +456,83 @@ async function handleRefresh() {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
-  min-width: 1100px;
 }
 
-.heatmap-table thead tr {
+/* Column widths */
+.col-period {
+  min-width: 52px;
+  width: 52px;
+  padding: 12px 16px;
   background: #141414;
-  border-bottom: 2px solid #333;
+  border-bottom: 1px solid #2a2a2a;
+  border-right: 1px solid #2a2a2a;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  text-align: left;
+  vertical-align: bottom;
 }
 
-.heatmap-table th {
-  padding: 10px 12px;
+.col-squad-header {
+  min-width: 140px;
+  padding: 10px 16px 12px;
+  background: #141414;
+  border-bottom: 1px solid #2a2a2a;
+  border-right: 1px solid #1e1e1e;
   text-align: right;
-  font-size: 11px;
-  font-weight: 600;
-  color: #888;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
+  vertical-align: bottom;
 }
 
-.heatmap-table th.col-squad,
-.heatmap-table th.col-coord {
+.squad-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 3px;
+}
+
+.squad-coord {
+  font-size: 11px;
+  color: #666;
+}
+
+/* Row cells */
+.col-metric-label {
+  padding: 10px 16px;
+  background: #111;
+  border-bottom: 1px solid #1e1e1e;
+  border-right: 1px solid #2a2a2a;
+  font-size: 13px;
+  color: #aaa;
+  white-space: nowrap;
   text-align: left;
 }
 
-.heatmap-table tbody tr {
-  border-bottom: 1px solid #1a1a1a;
-  transition: background 0.15s;
-}
-
-.heatmap-table tbody tr:hover {
-  background: #161616;
-}
-
-.heatmap-table tbody tr.row-total {
-  background: #161616;
-  border-top: 2px solid #333;
+.label-bold {
+  color: #fff;
   font-weight: 600;
 }
 
-.heatmap-table td {
-  padding: 10px 12px;
+.col-value {
+  padding: 10px 16px;
+  border-bottom: 1px solid #1a1a1a;
+  border-right: 1px solid #1e1e1e;
   text-align: right;
+  font-size: 13px;
   color: #ccc;
   white-space: nowrap;
 }
 
-.heatmap-table td.col-squad {
-  text-align: left;
-  color: #fff;
-  font-weight: 500;
-}
-
-.heatmap-table td.col-coord {
-  text-align: left;
-  color: #888;
-  font-size: 12px;
-}
-
-.bold-cell {
+.row-bold .col-value {
   font-weight: 600;
-  color: #fff !important;
+  color: #fff;
+}
+
+.row-bold .col-metric-label {
+  background: #131313;
+}
+
+.heatmap-table tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .em-dash {
@@ -658,44 +541,71 @@ async function handleRefresh() {
 
 /* ---- Heat map colors ---- */
 .c-green {
-  background: rgba(34, 197, 94, 0.12);
+  background: rgba(34, 197, 94, 0.18) !important;
   color: #4ade80 !important;
 }
 
 .c-yellow {
-  background: rgba(251, 191, 36, 0.12);
-  color: #fcd34d !important;
+  background: rgba(180, 130, 20, 0.22) !important;
+  color: #d4a017 !important;
 }
 
 .c-red {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(180, 30, 30, 0.30) !important;
   color: #f87171 !important;
 }
+
+/* ---- Legend ---- */
+.legend-bar {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 16px;
+  padding: 0 2px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: #888;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-dot--green  { background: #22c55e; }
+.legend-dot--yellow { background: #ca8a04; }
+.legend-dot--red    { background: #ef4444; }
 
 /* ---- Skeleton ---- */
 .skeleton-table {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px 0;
+  gap: 3px;
 }
 
 .skeleton-row {
   display: flex;
-  gap: 4px;
+  gap: 3px;
 }
 
 .skeleton-cell {
-  height: 36px;
+  height: 40px;
   flex: 1;
   background: #141414;
-  border-radius: 4px;
+  border-radius: 3px;
   animation: shimmer 1.4s infinite;
 }
 
 @keyframes shimmer {
   0%, 100% { opacity: 0.4; }
-  50% { opacity: 0.7; }
+  50%       { opacity: 0.7; }
 }
 
 /* ---- Error ---- */
