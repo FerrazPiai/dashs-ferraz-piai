@@ -1,11 +1,11 @@
 <template>
   <div class="dashboard-container">
     <!-- Header -->
-    <div class="main-header sticky-header">
+    <div class="main-header">
       <div class="header-title">
-        <h1 class="main-title">Fechamento Mensal</h1>
-        <span class="title-sep">—</span>
-        <h2 class="main-subtitle">Competência</h2>
+        <h1 class="main-title">CS</h1>
+        <span class="title-sep">|</span>
+        <h2 class="main-subtitle">Fechamento Mensal</h2>
       </div>
       <div class="main-actions">
         <span v-if="lastUpdateTime" class="last-update">Última atualização: {{ lastUpdateTime }}</span>
@@ -27,8 +27,6 @@
         <VRefreshButton :loading="loading" @click="handleRefresh" />
       </div>
     </div>
-    <p class="page-subtitle">Performance por Squad &amp; Coordenador</p>
-
     <!-- Error State -->
     <div v-if="error && !squadColumns.length" class="error-message">
       <i data-lucide="alert-circle"></i>
@@ -433,27 +431,6 @@ async function handleRefresh() {
 </script>
 
 <style scoped>
-/* ---- Layout ---- */
-.sticky-header {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: #0d0d0d;
-  padding-bottom: 4px;
-}
-
-.title-sep {
-  color: #888;
-  margin: 0 8px;
-  font-weight: 300;
-}
-
-.page-subtitle {
-  font-size: 13px;
-  color: #666;
-  margin: 0 0 20px;
-}
-
 /* ---- Period controls ---- */
 .period-range {
   display: flex;
