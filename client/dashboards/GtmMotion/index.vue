@@ -474,7 +474,7 @@ watch(tableDrilldown, (newVal) => {
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 const STEP_ORDER = ['Saber', 'Ter', 'Executar', 'Sem Mapeamento']
-const TIER_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Enterprise', 'Sem mapeamento', 'Total']
+const TIER_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Enterprise', 'Non-ICP', 'Sem mapeamento', 'Total']
 const toNum = (v) => (v === '' || v == null) ? null : Number(v)
 
 function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, step = null, drilldownBy = 'step') {
@@ -593,7 +593,8 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
   // Check if funil has tier-level data (field "tier" present in rows)
   const hasTierData = rawFunil.some((r) => r.tier != null)
 
-  const TIER_ORDER = ['Enterprise', 'Large', 'Medium', 'Small', 'Tiny', 'Non-ICP', 'Sem mapeamento', 'Total']
+  const TIER_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Enterprise', 'Non-ICP', 'Sem mapeamento', 'Total']
+  const TIER_RENAME = { 'Sem informação': 'Non-ICP' }
 
   // Detect data format:
   // - New format (node "1"): subcategorias is an array, one row per canal+tier+closer+sdr (no duplication)
@@ -607,7 +608,8 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
     if (!funilByCanal[canal]) funilByCanal[canal] = {}
 
     if (hasTierData) {
-      const tier      = row.tier ?? 'Sem mapeamento'
+      const rawTier   = row.tier ?? 'Sem mapeamento'
+      const tier      = TIER_RENAME[rawTier] ?? rawTier
       const isEmpty   = !!(row.is_empty_row || row.isEmptyRow)
       const isTotalRow = !!(row.is_total || row.isTotal)
       if (!funilByCanal[canal][tier]) {
@@ -761,12 +763,19 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
     const canalFunil = funilByCanal[canal] ?? {}
 
     if (hasTierData) {
-      // Build tier rows in order, skipping Total (recalculated)
+      // Build tier rows — include ALL tiers from data (not just hardcoded)
       tiers = []
       let totLeads = 0, totMql = 0, totSql = 0, totSal = 0, totCommit = 0, totBooking = 0
 
-      for (const tierName of TIER_ORDER) {
-        if (tierName === 'Total') continue
+      // Collect all tier names from data, sort by TIER_ORDER (unknown tiers go before Total)
+      const allTierNames = Object.keys(canalFunil).filter(t => t !== 'Total' && !canalFunil[t]?.isTotal)
+      allTierNames.sort((a, b) => {
+        const ia = TIER_ORDER.indexOf(a)
+        const ib = TIER_ORDER.indexOf(b)
+        return (ia === -1 ? TIER_ORDER.length - 1 : ia) - (ib === -1 ? TIER_ORDER.length - 1 : ib)
+      })
+
+      for (const tierName of allTierNames) {
         const t = canalFunil[tierName]
         if (!t) continue
 
@@ -1099,8 +1108,12 @@ const currentTiers = computed(() => {
       } else {
         const ex = tierMap[row.tier]
         if (row.isEmptyRow) {
-          ex.leads = (ex.leads ?? 0) + (row.leads ?? 0)
-          ex.mql   = (ex.mql   ?? 0) + (row.mql   ?? 0)
+          ex.leads   = (ex.leads   ?? 0) + (row.leads   ?? 0)
+          ex.mql     = (ex.mql     ?? 0) + (row.mql     ?? 0)
+          ex.sql     = (ex.sql     ?? 0) + (row.sql     ?? 0)
+          ex.sal     = (ex.sal     ?? 0) + (row.sal     ?? 0)
+          ex.commit  = (ex.commit  ?? 0) + (row.commit  ?? 0)
+          ex.booking = (ex.booking ?? 0) + (row.booking ?? 0)
           continue
         }
         ex.leads   = (ex.leads   ?? 0) + (row.leads   ?? 0)
@@ -1153,7 +1166,14 @@ const currentTiers = computed(() => {
       })
     }
   }
-  return TIER_ORDER.filter(name => tierMap[name]).map(name => tierMap[name])
+  // Include ALL tiers from data, sorted by TIER_ORDER (unknown tiers before Total)
+  const allNames = Object.keys(tierMap)
+  allNames.sort((a, b) => {
+    const ia = TIER_ORDER.indexOf(a)
+    const ib = TIER_ORDER.indexOf(b)
+    return (ia === -1 ? TIER_ORDER.length - 1 : ia) - (ib === -1 ? TIER_ORDER.length - 1 : ib)
+  })
+  return allNames.map(name => tierMap[name])
 })
 
 const tableTitle = computed(() => {
