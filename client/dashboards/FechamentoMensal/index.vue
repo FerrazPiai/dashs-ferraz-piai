@@ -315,14 +315,14 @@ const squadColumns = computed(() => {
       map.set(r.squad, {
         squad: r.squad,
         coordenador: r.coordenador,
-        mrrSum: 0, mrrCount: 0,
+        mrrByMonth: new Map(), // monthValue → total MRR naquele mês
         churnSum: 0, isencaoSum: 0,
         monetRecSum: 0, monetOneTimeSum: 0, monetVarSum: 0
       })
     }
     const g = map.get(r.squad)
-    g.mrrSum      += r.mrr
-    g.mrrCount    += 1
+    const mv = monthValue(r.year, r.month)
+    g.mrrByMonth.set(mv, (g.mrrByMonth.get(mv) ?? 0) + r.mrr)
     g.churnSum    += r.churn
     g.isencaoSum  += r.isencao
     g.monetRecSum     += r.monetRec
@@ -333,7 +333,11 @@ const squadColumns = computed(() => {
   return Array.from(map.values())
     .sort((a, b) => a.squad.localeCompare(b.squad, 'pt-BR'))
     .map(g => {
-      const mrr        = g.mrrCount > 0 ? g.mrrSum / g.mrrCount : 0
+      // MRR Total Médio: soma mensal por mês → média entre os meses
+      const monthlyTotals = Array.from(g.mrrByMonth.values())
+      const mrr = monthlyTotals.length > 0
+        ? monthlyTotals.reduce((acc, v) => acc + v, 0) / monthlyTotals.length
+        : 0
       const churn      = g.churnSum
       const isencao    = g.isencaoSum
       const totalPerdas = Math.abs(churn) + Math.abs(isencao)
