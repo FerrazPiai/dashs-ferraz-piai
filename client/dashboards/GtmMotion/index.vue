@@ -11,13 +11,19 @@
         <span v-if="lastUpdateTime" class="last-update">
           Última atualização: {{ lastUpdateTime }}
         </span>
-        <div class="period-range">
+        <VToggleGroup v-model="periodMode" :options="periodModeOptions" />
+        <div v-if="periodMode === 'mes'" class="period-range">
           <select class="month-select" v-model="mesInicial">
-            <option v-for="m in MESES" :key="m.value" :value="m.value">{{ m.label }}</option>
+            <option v-for="m in mesesDisponiveis" :key="m.value" :value="m.value">{{ m.label }}</option>
           </select>
           <span class="period-sep">até</span>
           <select class="month-select" v-model="mesFinal">
             <option v-for="m in mesesFinalDisponiveis" :key="m.value" :value="m.value">{{ m.label }}</option>
+          </select>
+        </div>
+        <div v-else class="period-range">
+          <select class="month-select" v-model="selectedQuarter">
+            <option v-for="q in quartersDisponiveis" :key="q.value" :value="q.value">{{ q.label }}</option>
           </select>
         </div>
         <div class="legend-wrapper">
@@ -59,18 +65,25 @@
           </option>
         </select>
       </div>
-      <div class="filter-group">
+      <div class="filter-group" :class="{ 'filter-hide': tableDrilldown === 'closer' }">
         <label class="filter-label">Closer</label>
         <select class="filter-select" v-model="selectedCloser">
           <option value="todos">Todos</option>
           <option v-for="c in closerOptions" :key="c" :value="c">{{ c }}</option>
         </select>
       </div>
-      <div class="filter-group">
+      <div class="filter-group" :class="{ 'filter-hide': tableDrilldown === 'sdr' }">
         <label class="filter-label">SDR</label>
         <select class="filter-select" v-model="selectedSdr">
           <option value="todos">Todos</option>
           <option v-for="s in sdrOptions" :key="s" :value="s">{{ s }}</option>
+        </select>
+      </div>
+      <div class="filter-group" :class="{ 'filter-hide': tableDrilldown === 'step' }">
+        <label class="filter-label">Step</label>
+        <select class="filter-select" v-model="selectedStep">
+          <option value="todos">Todos</option>
+          <option v-for="s in stepOptions" :key="s" :value="s">{{ s }}</option>
         </select>
       </div>
     </div>
@@ -78,78 +91,92 @@
     <!-- KPI Grid -->
     <div class="kpi-grid">
       <GtmScorecard
-        label="Leads"
+        label="Prospects"
+        tooltip="Total de leads captados no período"
         :value="kpis.leads?.value ?? null"
         :formatter="formatNumber"
         :provisionado="kpis.leads?.provisionado ?? null"
         :meta="kpis.leads?.meta ?? null"
         :delta="kpis.leads?.delta ?? null"
+        :previousDelta="previousDeltas.leads"
         :loading="loading"
         :greenThreshold="colorThresholds.green"
         :yellowThreshold="colorThresholds.yellow"
       />
       <GtmScorecard
         label="MQL"
+        tooltip="Leads qualificados pelo marketing que demonstraram interesse real"
         :value="kpis.mql?.value ?? null"
         :formatter="formatNumber"
         :provisionado="kpis.mql?.provisionado ?? null"
         :meta="kpis.mql?.meta ?? null"
         :delta="kpis.mql?.delta ?? null"
+        :previousDelta="previousDeltas.mql"
         :loading="loading"
         :greenThreshold="colorThresholds.green"
         :yellowThreshold="colorThresholds.yellow"
       />
       <GtmScorecard
         label="SQL"
+        tooltip="Leads aceitos por vendas com reunião agendada"
         :value="kpis.sql?.value ?? null"
         :formatter="formatNumber"
         :provisionado="kpis.sql?.provisionado ?? null"
         :meta="kpis.sql?.meta ?? null"
         :delta="kpis.sql?.delta ?? null"
+        :previousDelta="previousDeltas.sql"
         :loading="loading"
         :greenThreshold="colorThresholds.green"
         :yellowThreshold="colorThresholds.yellow"
       />
       <GtmScorecard
         label="SAL"
+        tooltip="Reuniões realizadas com o prospect"
         :value="kpis.sal?.value ?? null"
         :formatter="formatNumber"
         :provisionado="kpis.sal?.provisionado ?? null"
         :meta="kpis.sal?.meta ?? null"
         :delta="kpis.sal?.delta ?? null"
+        :previousDelta="previousDeltas.sal"
         :loading="loading"
         :greenThreshold="colorThresholds.green"
         :yellowThreshold="colorThresholds.yellow"
       />
       <GtmScorecard
         label="Commit"
+        tooltip="Contratos assinados no período"
         :value="kpis.commit?.value ?? null"
         :formatter="formatNumber"
         :provisionado="kpis.commit?.provisionado ?? null"
         :meta="kpis.commit?.meta ?? null"
         :delta="kpis.commit?.delta ?? null"
+        :previousDelta="previousDeltas.commit"
         :loading="loading"
         :greenThreshold="colorThresholds.green"
         :yellowThreshold="colorThresholds.yellow"
       />
       <GtmScorecard
         label="Avg Ticket"
+        tooltip="Valor médio por contrato (TCV / Commits)"
         :value="kpis.avgTicket?.value ?? null"
         :formatter="formatCurrencyAbbrev"
         :provisionado="kpis.avgTicket?.provisionado ?? null"
         :meta="kpis.avgTicket?.meta ?? null"
         :delta="kpis.avgTicket?.delta ?? null"
+        :previousDelta="previousDeltas.avgTicket"
         :loading="loading"
         :greenThreshold="colorThresholds.green"
         :yellowThreshold="colorThresholds.yellow"
       />
       <GtmScorecard
-        label="Booking"
+        label="TCV"
+        tooltip="Receita total contratada no período (Total Contract Value)"
         :value="kpis.booking?.value ?? null"
         :formatter="formatCurrencyAbbrev"
         :provisionado="kpis.booking?.provisionado ?? null"
         :meta="kpis.booking?.meta ?? null"
         :delta="kpis.booking?.delta ?? null"
+        :previousDelta="previousDeltas.booking"
         :loading="loading"
         :greenThreshold="colorThresholds.green"
         :yellowThreshold="colorThresholds.yellow"
@@ -160,6 +187,7 @@
     <div class="table-section">
       <div class="table-header">
         <h3 class="table-title">{{ tableTitle }}</h3>
+        <VToggleGroup v-model="tableDrilldown" :options="drilldownOptions" />
       </div>
       <GtmFunnelTable :tiers="currentTiers" :loading="loading" />
     </div>
@@ -195,7 +223,7 @@
       />
     </div>
 
-    <!-- Lista: Listagem de Leads -->
+    <!-- Lista: Listagem de Prospects -->
     <MvListagemTable
       v-if="mvView === 'lista'"
       :rows="mvListagemData"
@@ -214,7 +242,7 @@ import GtmFunnelTable from './components/GtmFunnelTable.vue'
 import VToggleGroup from '../../components/ui/VToggleGroup.vue'
 import MvSectionTable from '../MarketingVendas/components/MvSectionTable.vue'
 import MvListagemTable from '../MarketingVendas/components/MvListagemTable.vue'
-import { MOCK_DATA, CANAIS, MESES } from './mock-data.js'
+import { MOCK_DATA, CANAIS, MESES, QUARTERS } from './mock-data.js'
 
 const { data, loading, error, fetchData } = useDashboardData('gtm-motion')
 
@@ -231,6 +259,33 @@ const analistaModeOptions = [
   { value: 'sdr', label: 'SDR' },
   { value: 'closer', label: 'Closer' }
 ]
+
+// ── Period mode (Quarter / Mês) ──────────────────────────────────────────────
+const periodMode = ref('mes')
+const periodModeOptions = [
+  { value: 'quarter', label: 'Quarter' },
+  { value: 'mes', label: 'Mês' },
+]
+
+// ── Quarter selection ────────────────────────────────────────────────────────
+function getCurrentQuarterValue() {
+  const now = new Date()
+  const q = Math.ceil((now.getMonth() + 1) / 3)
+  return `${now.getFullYear()}-Q${q}`
+}
+
+function getPreviousQuarter(q) {
+  const [year, qNum] = [parseInt(q.split('-Q')[0]), parseInt(q.split('-Q')[1])]
+  if (qNum === 1) return `${year - 1}-Q4`
+  return `${year}-Q${qNum - 1}`
+}
+
+const selectedQuarter = ref(getCurrentQuarterValue())
+const compQuarter = ref(getPreviousQuarter(selectedQuarter.value))
+
+watch(selectedQuarter, (q) => {
+  compQuarter.value = getPreviousQuarter(q)
+})
 
 // ── Month range ───────────────────────────────────────────────────────────────
 function getCurrentQuarterRange() {
@@ -249,16 +304,67 @@ function getCurrentQuarterRange() {
   }
 }
 
+function shiftMonth(mes, n) {
+  const [y, m] = mes.split('-').map(Number)
+  const total = y * 12 + m - 1 - n
+  const ny = Math.floor(total / 12)
+  const nm = (total % 12) + 1
+  return `${ny}-${String(nm).padStart(2, '0')}`
+}
+
 const { start: defaultStart, end: defaultEnd } = getCurrentQuarterRange()
 const mesInicial = ref(defaultStart)
 const mesFinal   = ref(defaultEnd)
 
+// Comparison month range — defaults to previous equivalent range
+function calcComparisonRange(ini, fim) {
+  const [y1, m1] = ini.split('-').map(Number)
+  const [y2, m2] = fim.split('-').map(Number)
+  const rangeSize = (y2 * 12 + m2) - (y1 * 12 + m1) + 1
+  return { start: shiftMonth(ini, rangeSize), end: shiftMonth(fim, rangeSize) }
+}
+
+const { start: compStart, end: compEnd } = calcComparisonRange(defaultStart, defaultEnd)
+const compMesInicial = ref(compStart)
+const compMesFinal   = ref(compEnd)
+
 const mesesFinalDisponiveis = computed(() =>
-  MESES.filter((m) => m.value >= mesInicial.value)
+  mesesDisponiveis.value.filter((m) => m.value >= mesInicial.value)
 )
 
 watch(mesInicial, (val) => {
   if (mesFinal.value < val) mesFinal.value = val
+  const comp = calcComparisonRange(val, mesFinal.value)
+  compMesInicial.value = comp.start
+  compMesFinal.value = comp.end
+})
+
+watch(mesFinal, (val) => {
+  const comp = calcComparisonRange(mesInicial.value, val)
+  compMesInicial.value = comp.start
+  compMesFinal.value = comp.end
+})
+
+// Sync period mode ↔ selectors
+watch(periodMode, (mode) => {
+  if (mode === 'quarter') {
+    // Infer quarter from current month
+    const [y, m] = mesInicial.value.split('-').map(Number)
+    const q = Math.ceil(m / 3)
+    selectedQuarter.value = `${y}-Q${q}`
+    compQuarter.value = getPreviousQuarter(selectedQuarter.value)
+  } else {
+    // Infer month range from current quarter
+    const [year, qNum] = [parseInt(selectedQuarter.value.split('-Q')[0]), parseInt(selectedQuarter.value.split('-Q')[1])]
+    const pad = (n) => String(n).padStart(2, '0')
+    const qStart = (qNum - 1) * 3 + 1
+    const qEnd = qStart + 2
+    mesInicial.value = `${year}-${pad(qStart)}`
+    mesFinal.value = `${year}-${pad(qEnd)}`
+    const comp = calcComparisonRange(mesInicial.value, mesFinal.value)
+    compMesInicial.value = comp.start
+    compMesFinal.value = comp.end
+  }
 })
 
 const fetchAllData = (forceRefresh = false) => fetchData(forceRefresh)
@@ -267,9 +373,50 @@ const fetchAllData = (forceRefresh = false) => fetchData(forceRefresh)
 const selectedChannel = ref('consolidado')
 const selectedCloser  = ref('todos')
 const selectedSdr     = ref('todos')
+const selectedStep    = ref('todos')
 const ALL_CHANNEL_IDS = CANAIS.map((c) => c.id)
 
 const isConsolidado = computed(() => selectedChannel.value === 'consolidado')
+
+// ── Available periods from raw data ──────────────────────────────────────────
+const rawSource = computed(() => {
+  const raw = data.value
+  if (!raw) return null
+  return Array.isArray(raw) ? raw[0]?.data : raw?.data
+})
+
+const mesesDisponiveis = computed(() => {
+  const src = rawSource.value
+  if (!src) return MESES
+  const rows = [...(src.kpis ?? []), ...(src.funil ?? [])]
+  const set = new Set(rows.map(r => r.mes).filter(Boolean))
+  if (!set.size) return MESES
+  return MESES.filter(m => set.has(m.value))
+})
+
+const quartersDisponiveis = computed(() => {
+  const src = rawSource.value
+  if (!src) return QUARTERS
+  const rows = [...(src.kpis ?? []), ...(src.funil ?? [])]
+  const set = new Set(rows.map(r => r.quarter).filter(Boolean))
+  if (!set.size) return QUARTERS
+  return QUARTERS.filter(q => set.has(q.value))
+})
+
+// Snap selections to available data when it loads
+watch(mesesDisponiveis, (available) => {
+  if (!available.length) return
+  const vals = available.map(m => m.value)
+  if (!vals.includes(mesInicial.value)) mesInicial.value = vals[vals.length - 1]
+  if (!vals.includes(mesFinal.value))   mesFinal.value   = vals[vals.length - 1]
+  if (mesInicial.value > mesFinal.value) mesInicial.value = mesFinal.value
+}, { immediate: false })
+
+watch(quartersDisponiveis, (available) => {
+  if (!available.length) return
+  const vals = available.map(q => q.value)
+  if (!vals.includes(selectedQuarter.value)) selectedQuarter.value = vals[vals.length - 1]
+}, { immediate: false })
 
 // ── Closer / SDR options (from raw API data) ─────────────────────────────────
 const closerOptions = computed(() => {
@@ -292,11 +439,44 @@ const sdrOptions = computed(() => {
   return [...set].sort()
 })
 
+const stepOptions = computed(() => {
+  const source = Array.isArray(data.value) ? data.value[0]?.data : data.value?.data
+  if (!source) return []
+  const set = new Set()
+  for (const r of (source.funil ?? [])) {
+    const s = r.subcategoria
+    if (s) set.add(s)
+  }
+  const items = [...set]
+  items.sort((a, b) => {
+    const ia = STEP_ORDER.indexOf(a)
+    const ib = STEP_ORDER.indexOf(b)
+    return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib)
+  })
+  return items
+})
+
+// ── Table drill-down selector ───────────────────────────────────────────────
+const tableDrilldown = ref('step')
+const drilldownOptions = [
+  { value: 'step', label: 'Step' },
+  { value: 'closer', label: 'Closer' },
+  { value: 'sdr', label: 'SDR' },
+]
+
+// When drill-down changes, reset the corresponding filter to prevent ghost filtering
+watch(tableDrilldown, (newVal) => {
+  if (newVal === 'closer') selectedCloser.value = 'todos'
+  if (newVal === 'sdr') selectedSdr.value = 'todos'
+  if (newVal === 'step') selectedStep.value = 'todos'
+})
+
 // ── Data ──────────────────────────────────────────────────────────────────────
+const STEP_ORDER = ['Saber', 'Ter', 'Executar', 'Sem Mapeamento']
 const TIER_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Enterprise', 'Sem mapeamento', 'Total']
 const toNum = (v) => (v === '' || v == null) ? null : Number(v)
 
-function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
+function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, step = null, drilldownBy = 'step') {
   // API retorna { data: { kpis, funil } } ou [{ data: { kpis, funil } }]
   const source = Array.isArray(rawData) ? rawData[0]?.data : rawData?.data
   if (!source) return null
@@ -304,8 +484,11 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
   if (!source.kpis && !source.funil) return null
 
   const rawListagem = source.listagem ?? []
-  const allKpisByMonth = (source.kpis ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
-  const allFunilByMonth = (source.funil ?? []).filter((r) => r.mes >= mesIni && r.mes <= mesFim)
+  const filterPeriod = quarter
+    ? (r) => r.quarter === quarter
+    : (r) => r.mes >= mesIni && r.mes <= mesFim
+  const allKpisByMonth = (source.kpis ?? []).filter(filterPeriod)
+  const allFunilByMonth = (source.funil ?? []).filter(filterPeriod)
 
   // Filtered by closer/sdr (for values)
   let rawKpis = allKpisByMonth
@@ -320,6 +503,22 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
     const sd = sdr.toLowerCase()
     rawKpis = rawKpis.filter((r) => r.sdr?.toLowerCase() === sd)
     rawFunil = rawFunil.filter((r) => r.sdr?.toLowerCase() === sd)
+  }
+  if (step && step !== 'todos') {
+    const st = step.toLowerCase()
+    // KPIs: field is 'steps' (array) — filter rows where any element matches
+    rawKpis = rawKpis.filter((r) => {
+      const rs = r.steps
+      if (!rs) return true
+      if (Array.isArray(rs)) return rs.some(s => s.toLowerCase() === st)
+      return String(rs).toLowerCase() === st
+    })
+    // Funil: field is 'subcategoria' (string)
+    rawFunil = rawFunil.filter((r) => {
+      const rs = r.subcategoria
+      if (!rs) return true
+      return rs.toLowerCase() === st
+    })
   }
   const CANAL_LABEL = Object.fromEntries(CANAIS.map((c) => [c.id, c.label]))
   const CANAL_LABEL_TO_ID = Object.fromEntries(
@@ -403,7 +602,6 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
     if (hasTierData) {
       // Funil sheet uses: tier, subcategoria (step), leads, mql, sql, sal, commit, booking, is_empty_row, is_total
       const tier      = row.tier ?? 'Sem mapeamento'
-      const step      = row.subcategoria ?? null
       const isEmpty   = !!(row.is_empty_row || row.isEmptyRow)
       const isTotalRow = !!(row.is_total || row.isTotal)
       if (!funilByCanal[canal][tier]) {
@@ -423,7 +621,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
       const fSal     = toNum(row.sal     ?? row.sal_value)     ?? 0
       const fCommit  = toNum(row.commit  ?? row.commit_value)  ?? 0
       const fBooking = toNum(row.booking ?? row.booking_value) ?? 0
-      if (!step) {
+      // Summary rows (subcategoria empty/null) → tier totals
+      // Detail rows (subcategoria filled) → sub-rows only (avoids double-counting)
+      if (!row.subcategoria) {
         acc.leads_value   += fLeads
         acc.mql_value     += fMql
         acc.sql_value     += fSql
@@ -431,16 +631,22 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
         acc.commit_value  += fCommit
         acc.booking_value += fBooking
       } else {
-        if (!acc.steps[step]) {
-          acc.steps[step] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+        // Group detail rows into sub-rows by the selected drill-down dimension
+        const subKey = drilldownBy === 'step' ? row.subcategoria
+          : drilldownBy === 'closer' ? row.closer
+          : drilldownBy === 'sdr' ? row.sdr : null
+        if (subKey) {
+          if (!acc.steps[subKey]) {
+            acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+          }
+          const sa = acc.steps[subKey]
+          sa.leads   += fLeads
+          sa.mql     += fMql
+          sa.sql     += fSql
+          sa.sal     += fSal
+          sa.commit  += fCommit
+          sa.booking += fBooking
         }
-        const sa = acc.steps[step]
-        sa.leads   += fLeads
-        sa.mql     += fMql
-        sa.sql     += fSql
-        sa.sal     += fSal
-        sa.commit  += fCommit
-        sa.booking += fBooking
       }
     } else {
       // No tier data: aggregate canal totals
@@ -524,6 +730,13 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
           name, leads: s.leads, mql: s.mql, sql: s.sql,
           sal: s.sal, commit: s.commit, booking: s.booking,
         }))
+        if (drilldownBy === 'step') {
+          steps.sort((a, b) => {
+            const ia = STEP_ORDER.indexOf(a.name)
+            const ib = STEP_ORDER.indexOf(b.name)
+            return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib)
+          })
+        }
 
         tiers.push({
           tier: tierName,
@@ -596,8 +809,8 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
   if (typeof agrupadas === 'string') {
     try { agrupadas = JSON.parse(agrupadas) } catch { agrupadas = [] }
   }
-  // Filter agrupadas by month range and closer/sdr
-  agrupadas = agrupadas.filter((r) => r.mes >= mesIni && r.mes <= mesFim)
+  // Filter agrupadas by period and closer/sdr
+  agrupadas = agrupadas.filter(filterPeriod)
   if (closer && closer !== 'todos') {
     const cl = closer.toLowerCase()
     agrupadas = agrupadas.filter((r) => r.closer?.toLowerCase() === cl)
@@ -605,6 +818,14 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr) {
   if (sdr && sdr !== 'todos') {
     const sd = sdr.toLowerCase()
     agrupadas = agrupadas.filter((r) => r.sdr?.toLowerCase() === sd)
+  }
+  if (step && step !== 'todos') {
+    const st = step.toLowerCase()
+    agrupadas = agrupadas.filter((r) => {
+      const rs = r.step ?? r.subcategoria
+      if (!rs) return true
+      return rs.toLowerCase() === st
+    })
   }
 
   // Extract taxa (color thresholds per canal/month)
@@ -620,9 +841,23 @@ const useMockData = computed(() => {
 
 const resolvedData = computed(() => {
   if (useMockData.value) return MOCK_DATA
-  if (data.value) return transformApiData(data.value, mesInicial.value, mesFinal.value, selectedCloser.value, selectedSdr.value)
+  if (data.value) {
+    if (periodMode.value === 'quarter') {
+      return transformApiData(data.value, null, null, selectedCloser.value, selectedSdr.value, selectedQuarter.value, selectedStep.value, tableDrilldown.value)
+    }
+    return transformApiData(data.value, mesInicial.value, mesFinal.value, selectedCloser.value, selectedSdr.value, null, selectedStep.value, tableDrilldown.value)
+  }
   if (import.meta.env.DEV) return MOCK_DATA
   return null
+})
+
+// Comparison period data
+const comparisonData = computed(() => {
+  if (useMockData.value || !data.value) return null
+  if (periodMode.value === 'quarter') {
+    return transformApiData(data.value, null, null, selectedCloser.value, selectedSdr.value, compQuarter.value, selectedStep.value, tableDrilldown.value)
+  }
+  return transformApiData(data.value, compMesInicial.value, compMesFinal.value, selectedCloser.value, selectedSdr.value, null, selectedStep.value, tableDrilldown.value)
 })
 
 // Build channel dropdown options dynamically from API data only
@@ -669,6 +904,50 @@ const kpis = computed(() => {
     delta: null,
   }
   return sum
+})
+
+// ── Previous period deltas (comparison KPIs) ────────────────────────────────
+const previousDeltas = computed(() => {
+  const compData = comparisonData.value
+  if (!compData?.channels) return {}
+
+  // Aggregate comparison KPIs from active channels
+  const compSum = {}
+  for (const channelId of activeChannelIds.value) {
+    const chKpis = compData.channels?.[channelId]?.kpis ?? {}
+    for (const [key, kpi] of Object.entries(chKpis)) {
+      if (key === 'avgTicket') continue
+      if (!compSum[key]) compSum[key] = { value: 0 }
+      compSum[key].value += kpi.value ?? 0
+    }
+  }
+  // avgTicket = booking / commit
+  const compCommitVal = compSum.commit?.value ?? 0
+  const compBookingVal = compSum.booking?.value ?? 0
+  compSum.avgTicket = { value: compCommitVal > 0 ? Math.round(compBookingVal / compCommitVal) : null }
+
+  // Calculate % change: (current - previous) / previous * 100
+  // When no previous data exists, return 0 to avoid nonsensical numbers
+  const current = kpis.value
+  const hasAnyPrevData = Object.values(compSum).some(v => v.value > 0)
+  if (!hasAnyPrevData) {
+    const zeros = {}
+    for (const key of Object.keys(current)) zeros[key] = 0
+    return zeros
+  }
+
+  const result = {}
+  for (const key of Object.keys(current)) {
+    const curVal = current[key]?.value
+    const prevVal = compSum[key]?.value
+    if (curVal != null && prevVal != null && prevVal > 0) {
+      const pct = ((curVal - prevVal) / prevVal) * 100
+      result[key] = Math.abs(pct) > 1500 ? 0 : pct
+    } else {
+      result[key] = 0
+    }
+  }
+  return result
 })
 
 // ── Color thresholds from taxa (dynamic green/yellow cutoffs) ────────────────
@@ -1101,7 +1380,6 @@ onMounted(async () => {
 /* Filters Bar */
 .filters-bar {
   display: flex;
-  gap: 16px;
   flex-wrap: wrap;
   margin-bottom: 16px;
 }
@@ -1115,6 +1393,21 @@ onMounted(async () => {
   border-radius: 6px;
   padding: 8px 14px;
   min-width: 160px;
+  margin: 0 16px 4px 0;
+  max-width: 300px;
+  transition: max-width 0.3s ease, min-width 0.3s ease, opacity 0.25s ease,
+              padding 0.3s ease, margin 0.3s ease, border-color 0.3s ease;
+}
+
+.filter-group.filter-hide {
+  max-width: 0;
+  min-width: 0;
+  padding: 0;
+  margin: 0;
+  border-color: transparent;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
 }
 
 .filter-label {
@@ -1176,12 +1469,12 @@ onMounted(async () => {
   background: #141414;
   border: 1px solid #222;
   border-radius: 6px;
-  overflow: hidden;
 }
 
 .table-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   padding: 14px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -1207,4 +1500,5 @@ onMounted(async () => {
   flex-direction: column;
   gap: 20px;
 }
+
 </style>

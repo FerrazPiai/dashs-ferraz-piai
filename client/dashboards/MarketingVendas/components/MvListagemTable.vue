@@ -3,8 +3,8 @@
     <!-- Header -->
     <div class="section-header">
       <i data-lucide="list" class="section-icon"></i>
-      <h3 class="section-title">Listagem de Leads</h3>
-      <span v-if="!loading && rows.length" class="row-badge">{{ rows.length }} leads</span>
+      <h3 class="section-title">Listagem de Prospects</h3>
+      <span v-if="!loading && rows.length" class="row-badge">{{ rows.length }} prospects</span>
     </div>
 
     <!-- Controls -->
@@ -64,7 +64,7 @@
             <tr>
               <td :colspan="columns.length" class="empty-state">
                 <i data-lucide="inbox"></i>
-                <span>{{ searchQuery ? 'Nenhum lead encontrado para a busca.' : 'Nenhum lead disponível.' }}</span>
+                <span>{{ searchQuery ? 'Nenhum prospect encontrado para a busca.' : 'Nenhum prospect disponível.' }}</span>
               </td>
             </tr>
           </template>

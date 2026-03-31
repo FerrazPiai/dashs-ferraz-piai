@@ -1,6 +1,9 @@
 <template>
   <div class="gtm-scorecard" :class="statusBorderClass">
-    <div class="scorecard-label">{{ label }}</div>
+    <div class="scorecard-label">
+      {{ label }}
+      <span v-if="tooltip" class="info-hint" :data-tip="tooltip">?</span>
+    </div>
 
     <div v-if="loading" class="scorecard-value">
       <span class="spinner"></span>
@@ -15,8 +18,12 @@
         <span class="sub-val">{{ formattedMeta }}</span>
       </div>
       <div class="sub-row">
-        <span class="sub-key">Delta</span>
+        <span class="sub-key">Δ Meta</span>
         <span class="sub-val" :class="deltaClass">{{ formattedDelta }}</span>
+      </div>
+      <div v-if="previousDelta !== null && previousDelta !== undefined" class="sub-row">
+        <span class="sub-key">Δ Período Anterior</span>
+        <span class="sub-val" :class="previousDeltaClass">{{ formattedPreviousDelta }}</span>
       </div>
     </div>
     <div v-else class="scorecard-sub skeleton-sub">
@@ -52,6 +59,14 @@ const props = defineProps({
   },
   delta: {
     type: Number,
+    default: null
+  },
+  previousDelta: {
+    type: Number,
+    default: null
+  },
+  tooltip: {
+    type: String,
     default: null
   },
   loading: {
@@ -99,6 +114,19 @@ const deltaClass = computed(() => {
   return 'delta-red'
 })
 
+const formattedPreviousDelta = computed(() => {
+  if (props.previousDelta == null) return '--'
+  const sign = props.previousDelta > 0 ? '+' : ''
+  return sign + props.previousDelta.toFixed(1).replace('.', ',') + '%'
+})
+
+const previousDeltaClass = computed(() => {
+  if (props.previousDelta == null) return 'delta-neutral'
+  if (props.previousDelta > 0) return 'delta-green'
+  if (props.previousDelta < 0) return 'delta-red'
+  return 'delta-neutral'
+})
+
 const statusBorderClass = computed(() => {
   if (effectiveDelta.value == null) return ''
   if (effectiveDelta.value >= props.greenThreshold) return 'border-green'
@@ -124,8 +152,67 @@ const statusBorderClass = computed(() => {
   color: #888;
   font-weight: 500;
   white-space: nowrap;
-  overflow: hidden;
+  overflow: visible;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.info-hint {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  color: #555;
+  border: 1px solid #333;
+  cursor: help;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.info-hint:hover {
+  color: #ccc;
+  border-color: #555;
+  background: #1a1a1a;
+}
+
+.info-hint:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #ccc;
+  font-size: 11px;
+  font-weight: 400;
+  padding: 6px 10px;
+  border-radius: 4px;
+  white-space: normal;
+  width: max-content;
+  max-width: 220px;
+  line-height: 1.4;
+  z-index: 50;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.info-hint:hover::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #333;
+  z-index: 51;
 }
 
 .scorecard-value {

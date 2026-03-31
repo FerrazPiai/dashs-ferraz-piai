@@ -4,19 +4,19 @@
       <table class="funnel-table">
         <thead>
           <tr>
-            <th class="col-tier">Tier</th>
-            <th class="col-num">Leads</th>
-            <th class="col-cr">CR1%</th>
-            <th class="col-num">MQL</th>
-            <th class="col-cr">CR2%</th>
-            <th class="col-num">SQL</th>
-            <th class="col-cr">CR3%</th>
-            <th class="col-num">SAL</th>
-            <th class="col-cr">CR4%</th>
-            <th class="col-num">Commit</th>
-            <th class="col-cr">MQL&gt;Won%</th>
-            <th class="col-money">Avg Ticket</th>
-            <th class="col-money">Booking</th>
+            <th class="col-tier">Tier <span class="th-hint" data-tip="Porte da empresa prospectada">?</span></th>
+            <th class="col-num">Prospects <span class="th-hint" data-tip="Total de leads captados">?</span></th>
+            <th class="col-cr">CR1% <span class="th-hint" data-tip="Conversão de Prospect para MQL">?</span></th>
+            <th class="col-num">MQL <span class="th-hint" data-tip="Leads qualificados pelo marketing">?</span></th>
+            <th class="col-cr">CR2% <span class="th-hint" data-tip="Conversão de MQL para SQL">?</span></th>
+            <th class="col-num">SQL <span class="th-hint" data-tip="Leads com reunião agendada">?</span></th>
+            <th class="col-cr">CR3% <span class="th-hint" data-tip="Conversão de SQL para SAL">?</span></th>
+            <th class="col-num">SAL <span class="th-hint" data-tip="Reuniões efetivamente realizadas">?</span></th>
+            <th class="col-cr">CR4% <span class="th-hint" data-tip="Conversão de SAL para Commit">?</span></th>
+            <th class="col-num">Commit <span class="th-hint" data-tip="Contratos assinados">?</span></th>
+            <th class="col-cr">MQL&gt;Won% <span class="th-hint" data-tip="Conversão direta de MQL para contrato fechado">?</span></th>
+            <th class="col-money">Avg Ticket <span class="th-hint th-hint--right" data-tip="Valor médio por contrato">?</span></th>
+            <th class="col-money">TCV <span class="th-hint th-hint--right" data-tip="Receita total contratada">?</span></th>
           </tr>
         </thead>
         <tbody v-if="loading">
@@ -190,11 +190,11 @@ function crClass(color) {
   background: #141414;
   border: 1px solid #222;
   border-radius: 6px;
-  overflow: hidden;
 }
 
 .table-scroll {
   overflow-x: auto;
+  overflow-y: visible;
 }
 
 .funnel-table {
@@ -216,6 +216,76 @@ thead th {
   color: #666;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  white-space: nowrap;
+  position: relative;
+  overflow: visible;
+}
+
+.th-hint {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  font-size: 8px;
+  font-weight: 700;
+  color: #444;
+  border: 1px solid #333;
+  cursor: help;
+  vertical-align: middle;
+  margin-left: 2px;
+  text-transform: none;
+  letter-spacing: 0;
+  transition: all 0.15s ease;
+}
+
+.th-hint:hover {
+  color: #ccc;
+  border-color: #555;
+  background: #1a1a1a;
+}
+
+.th-hint:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #ccc;
+  font-size: 11px;
+  font-weight: 400;
+  padding: 6px 10px;
+  border-radius: 4px;
+  white-space: normal;
+  width: max-content;
+  max-width: 200px;
+  line-height: 1.4;
+  z-index: 50;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.th-hint:hover::before {
+  content: '';
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 5px;
+  border: 4px solid transparent;
+  border-bottom-color: #333;
+  z-index: 51;
+}
+
+.th-hint--right:hover::after {
+  left: auto;
+  right: 0;
+}
+
+.th-hint--right:hover::before {
+  left: auto;
+  right: 5px;
 }
 
 .col-tier { text-align: left; min-width: 160px; }

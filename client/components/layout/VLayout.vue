@@ -8,19 +8,11 @@
 
     <div
       class="sidebar-overlay"
-      :class="{ visible: !sidebarCollapsed && isMobile }"
+      :class="{ visible: !sidebarCollapsed }"
       @click="toggleSidebar"
     ></div>
 
-    <button
-      class="sidebar-toggle"
-      @click="toggleSidebar"
-      aria-label="Toggle sidebar"
-    >
-      <i :data-lucide="sidebarCollapsed ? 'menu' : 'x'"></i>
-    </button>
-
-    <main class="main-content" :class="{ expanded: sidebarCollapsed }">
+    <main class="main-content">
       <slot></slot>
     </main>
 
@@ -47,7 +39,7 @@ const props = defineProps({
   }
 })
 
-const sidebarCollapsed = ref(false)
+const sidebarCollapsed = ref(true)
 const isMobile = ref(false)
 const route = useRoute()
 
@@ -67,6 +59,9 @@ const checkMobile = () => {
 
 const toggleSidebar = () => {
   sidebarCollapsed.value = !sidebarCollapsed.value
+  setTimeout(() => {
+    if (window.lucide) window.lucide.createIcons()
+  }, 0)
 }
 
 const showStatusIfNeeded = (dashboards, path) => {
@@ -84,6 +79,8 @@ watch(
   () => route.path,
   (path) => {
     showStatusIfNeeded(props.dashboards, path)
+    // Collapse sidebar on navigation
+    sidebarCollapsed.value = true
 
     setTimeout(() => {
       if (window.lucide) {

@@ -3,8 +3,11 @@
     <div class="sidebar-header">
       <div class="sidebar-logo">
         <i data-lucide="bar-chart-3" class="sidebar-logo-icon"></i>
-        <span>Dashboards V4</span>
+        <span class="sidebar-label">Dashboards V4</span>
       </div>
+      <button class="sidebar-toggle-btn" @click="$emit('toggle')" aria-label="Toggle sidebar">
+        <i :data-lucide="collapsed ? 'chevrons-right' : 'chevrons-left'" class="sidebar-toggle-icon"></i>
+      </button>
     </div>
 
     <nav class="sidebar-nav">
@@ -18,9 +21,10 @@
             :to="`/${dashboard.id}`"
             class="sidebar-nav-link"
             active-class="active"
+            :title="collapsed ? dashboard.title : undefined"
           >
             <i :data-lucide="dashboard.icon" class="sidebar-nav-icon"></i>
-            <span>{{ dashboard.title }}</span>
+            <span class="sidebar-label">{{ dashboard.title }}</span>
             <span
               v-if="dashboard.status"
               class="status-dot"
@@ -75,6 +79,46 @@ watch(
 </script>
 
 <style scoped>
+.sidebar-toggle-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted, #888);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle-btn:hover {
+  color: var(--text-high, #fff);
+  background: var(--bg-inner, #1a1a1a);
+}
+
+.sidebar-toggle-icon {
+  width: 18px;
+  height: 18px;
+}
+
+.sidebar-label {
+  white-space: nowrap;
+  overflow: hidden;
+  transition: opacity 0.2s ease;
+}
+
+.sidebar.collapsed .sidebar-label {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+}
+
+.sidebar.collapsed .status-dot {
+  display: none;
+}
+
 .status-dot {
   display: inline-block;
   width: 7px;

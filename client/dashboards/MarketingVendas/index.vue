@@ -31,6 +31,7 @@
         title="Visão por Tier"
         icon="layers"
         type="tier"
+        nameLabel="Tier"
         :rows="tierData"
         :loading="loading"
       />
@@ -38,6 +39,7 @@
         title="Visão por Analista"
         icon="users"
         type="analyst"
+        nameLabel="Analista"
         :rows="analistaData"
         :loading="loading"
       />

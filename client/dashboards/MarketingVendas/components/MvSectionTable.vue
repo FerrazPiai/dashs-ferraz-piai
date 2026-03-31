@@ -24,7 +24,7 @@
             <!-- SDR columns -->
             <template v-if="mode === 'full' || mode === 'sdr'">
               <th :class="{ 'th-sortable': sortable }" @click="toggleSort('leads')">
-                Leads
+                Prospects
                 <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('leads')">{{ sortArrow('leads') }}</span>
               </th>
               <th class="col-cr" :class="{ 'th-sortable': sortable }" @click="toggleSort('cr1')">
@@ -32,7 +32,7 @@
                 <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('cr1')">{{ sortArrow('cr1') }}</span>
               </th>
               <th :class="{ 'th-sortable': sortable }" @click="toggleSort('agendadas')">
-                Reuniões<br>Agendadas
+                SQL
                 <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('agendadas')">{{ sortArrow('agendadas') }}</span>
               </th>
               <th class="col-cr" :class="{ 'th-sortable': sortable }" @click="toggleSort('cr2')">
@@ -40,7 +40,7 @@
                 <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('cr2')">{{ sortArrow('cr2') }}</span>
               </th>
               <th :class="{ 'th-sortable': sortable }" @click="toggleSort('realizadas')">
-                Reuniões<br>Realizadas
+                SAL
                 <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('realizadas')">{{ sortArrow('realizadas') }}</span>
               </th>
             </template>
@@ -56,7 +56,7 @@
                 <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('contratos')">{{ sortArrow('contratos') }}</span>
               </th>
               <th :class="{ 'th-sortable': sortable }" @click="toggleSort('booking')">
-                R$ Booking
+                R$ TCV
                 <span v-if="sortable" class="sort-arrow" :class="sortArrowClass('booking')">{{ sortArrow('booking') }}</span>
               </th>
               <th :class="{ 'th-sortable': sortable }" @click="toggleSort('avgTicket')">
@@ -151,7 +151,7 @@ const props = defineProps({
     default: 'full',
     validator: (v) => ['full', 'sdr', 'closer'].includes(v)
   },
-  nameLabel: { type: String, default: 'Segmento' },
+  nameLabel: { type: String, default: 'Canal' },
   sortable: { type: Boolean, default: false }
 })
 
