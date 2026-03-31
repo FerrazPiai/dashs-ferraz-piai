@@ -35,5 +35,15 @@
     "apiEndpoint": "API_ENDPOINT_DIAGRAMA_SANKEY",
     "cacheTTL": 300000,
     "status": "available"
+  },
+  {
+    "id": "fechamento-mensal",
+    "title": "Fechamento Mensal",
+    "icon": "calendar-check",
+    "componentPath": "FechamentoMensal",
+    "apiEndpoint": "API_ENDPOINT_FECHAMENTO_MENSAL",
+    "cacheTTL": 300000,
+    "status": "development",
+    "statusMessage": "Este dashboard está em desenvolvimento. Os dados podem estar incompletos."
   }
 ]
