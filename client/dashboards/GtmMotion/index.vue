@@ -444,8 +444,9 @@ const stepOptions = computed(() => {
   if (!source) return []
   const set = new Set()
   for (const r of (source.funil ?? [])) {
-    const s = r.subcategoria
-    if (s) set.add(s)
+    const s = r.subcategorias ?? r.subcategoria
+    if (Array.isArray(s)) { for (const item of s) if (item) set.add(item) }
+    else if (s) set.add(s)
   }
   const items = [...set]
   items.sort((a, b) => {
@@ -506,18 +507,19 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
   }
   if (step && step !== 'todos') {
     const st = step.toLowerCase()
-    // KPIs: field is 'steps' (array) — filter rows where any element matches
+    // KPIs: field is 'steps' (array)
     rawKpis = rawKpis.filter((r) => {
       const rs = r.steps
       if (!rs) return true
       if (Array.isArray(rs)) return rs.some(s => s.toLowerCase() === st)
       return String(rs).toLowerCase() === st
     })
-    // Funil: field is 'subcategoria' (string)
+    // Funil: field is 'subcategorias' (array) or legacy 'subcategoria' (string)
     rawFunil = rawFunil.filter((r) => {
-      const rs = r.subcategoria
+      const rs = r.subcategorias ?? r.subcategoria
       if (!rs) return true
-      return rs.toLowerCase() === st
+      if (Array.isArray(rs)) return rs.some(s => s.toLowerCase() === st)
+      return String(rs).toLowerCase() === st
     })
   }
   const CANAL_LABEL = Object.fromEntries(CANAIS.map((c) => [c.id, c.label]))
@@ -621,19 +623,33 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
       const fSal     = toNum(row.sal     ?? row.sal_value)     ?? 0
       const fCommit  = toNum(row.commit  ?? row.commit_value)  ?? 0
       const fBooking = toNum(row.booking ?? row.booking_value) ?? 0
-      // Summary rows (subcategoria empty/null) → tier totals
-      // Detail rows (subcategoria filled) → sub-rows only (avoids double-counting)
-      if (!row.subcategoria) {
-        acc.leads_value   += fLeads
-        acc.mql_value     += fMql
-        acc.sql_value     += fSql
-        acc.sal_value     += fSal
-        acc.commit_value  += fCommit
-        acc.booking_value += fBooking
+      // Each row is unique — always accumulate to tier total (no duplicate rows)
+      acc.leads_value   += fLeads
+      acc.mql_value     += fMql
+      acc.sql_value     += fSql
+      acc.sal_value     += fSal
+      acc.commit_value  += fCommit
+      acc.booking_value += fBooking
+
+      // Group into sub-rows by drill-down dimension
+      // subcategorias is an array (multi-product); closer/sdr are strings
+      if (drilldownBy === 'step') {
+        const subs = row.subcategorias ?? (row.subcategoria ? [row.subcategoria] : [])
+        for (const subKey of (Array.isArray(subs) ? subs : [subs])) {
+          if (!subKey) continue
+          if (!acc.steps[subKey]) {
+            acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+          }
+          const sa = acc.steps[subKey]
+          sa.leads   += fLeads
+          sa.mql     += fMql
+          sa.sql     += fSql
+          sa.sal     += fSal
+          sa.commit  += fCommit
+          sa.booking += fBooking
+        }
       } else {
-        // Group detail rows into sub-rows by the selected drill-down dimension
-        const subKey = drilldownBy === 'step' ? row.subcategoria
-          : drilldownBy === 'closer' ? row.closer
+        const subKey = drilldownBy === 'closer' ? row.closer
           : drilldownBy === 'sdr' ? row.sdr : null
         if (subKey) {
           if (!acc.steps[subKey]) {
@@ -1072,6 +1088,16 @@ const currentTiers = computed(() => {
           }
         }
       }
+    }
+  }
+  // Sort steps within each tier by STEP_ORDER
+  for (const tier of Object.values(tierMap)) {
+    if (tier.steps?.length > 1) {
+      tier.steps.sort((a, b) => {
+        const ia = STEP_ORDER.indexOf(a.name)
+        const ib = STEP_ORDER.indexOf(b.name)
+        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib)
+      })
     }
   }
   return TIER_ORDER.filter(name => tierMap[name]).map(name => tierMap[name])
