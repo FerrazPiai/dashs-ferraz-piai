@@ -595,6 +595,11 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
 
   const TIER_ORDER = ['Enterprise', 'Large', 'Medium', 'Small', 'Tiny', 'Non-ICP', 'Sem mapeamento', 'Total']
 
+  // Detect data format:
+  // - New format (node "1"): subcategorias is an array, one row per canal+tier+closer+sdr (no duplication)
+  // - Old format: subcategoria is a string, summary rows (empty) + detail rows (non-empty) for same record
+  const isNewFormat = rawFunil.some((r) => Array.isArray(r.subcategorias))
+
   // Group Funil by canal + tier (when tier data is available), or by canal only
   const funilByCanal = {}
   for (const row of rawFunil) {
@@ -602,7 +607,6 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
     if (!funilByCanal[canal]) funilByCanal[canal] = {}
 
     if (hasTierData) {
-      // Funil sheet uses: tier, subcategoria (step), leads, mql, sql, sal, commit, booking, is_empty_row, is_total
       const tier      = row.tier ?? 'Sem mapeamento'
       const isEmpty   = !!(row.is_empty_row || row.isEmptyRow)
       const isTotalRow = !!(row.is_total || row.isTotal)
@@ -616,52 +620,96 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         }
       }
       const acc = funilByCanal[canal][tier]
-      // Field names from Funil sheet: leads, mql, sql, sal, commit, booking
       const fLeads   = toNum(row.leads   ?? row.leads_value)   ?? 0
       const fMql     = toNum(row.mql     ?? row.mql_value)     ?? 0
       const fSql     = toNum(row.sql     ?? row.sql_value)     ?? 0
       const fSal     = toNum(row.sal     ?? row.sal_value)     ?? 0
       const fCommit  = toNum(row.commit  ?? row.commit_value)  ?? 0
       const fBooking = toNum(row.booking ?? row.booking_value) ?? 0
-      // Each row is unique — always accumulate to tier total (no duplicate rows)
-      acc.leads_value   += fLeads
-      acc.mql_value     += fMql
-      acc.sql_value     += fSql
-      acc.sal_value     += fSal
-      acc.commit_value  += fCommit
-      acc.booking_value += fBooking
 
-      // Group into sub-rows by drill-down dimension
-      // subcategorias is an array (multi-product); closer/sdr are strings
-      if (drilldownBy === 'step') {
-        const subs = row.subcategorias ?? (row.subcategoria ? [row.subcategoria] : [])
-        for (const subKey of (Array.isArray(subs) ? subs : [subs])) {
-          if (!subKey) continue
-          if (!acc.steps[subKey]) {
-            acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+      if (isNewFormat) {
+        // New format: each row is unique (no duplication), always accumulate to tier totals
+        acc.leads_value   += fLeads
+        acc.mql_value     += fMql
+        acc.sql_value     += fSql
+        acc.sal_value     += fSal
+        acc.commit_value  += fCommit
+        acc.booking_value += fBooking
+
+        // Step drilldown: distribute row metrics to each subcategoria in the array
+        if (drilldownBy === 'step') {
+          const subs = row.subcategorias ?? []
+          for (const subKey of subs) {
+            if (!subKey) continue
+            if (!acc.steps[subKey]) {
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+            }
+            const sa = acc.steps[subKey]
+            sa.leads   += fLeads
+            sa.mql     += fMql
+            sa.sql     += fSql
+            sa.sal     += fSal
+            sa.commit  += fCommit
+            sa.booking += fBooking
           }
-          const sa = acc.steps[subKey]
-          sa.leads   += fLeads
-          sa.mql     += fMql
-          sa.sql     += fSql
-          sa.sal     += fSal
-          sa.commit  += fCommit
-          sa.booking += fBooking
+        } else {
+          // Closer/SDR drilldown
+          const subKey = drilldownBy === 'closer' ? row.closer
+            : drilldownBy === 'sdr' ? row.sdr : null
+          if (subKey) {
+            if (!acc.steps[subKey]) {
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+            }
+            const sa = acc.steps[subKey]
+            sa.leads   += fLeads
+            sa.mql     += fMql
+            sa.sql     += fSql
+            sa.sal     += fSal
+            sa.commit  += fCommit
+            sa.booking += fBooking
+          }
         }
       } else {
-        const subKey = drilldownBy === 'closer' ? row.closer
-          : drilldownBy === 'sdr' ? row.sdr : null
-        if (subKey) {
-          if (!acc.steps[subKey]) {
-            acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+        // Old format: summary rows (subcategoria="") for tier totals,
+        // detail rows (subcategoria="Saber" etc.) for step breakdown
+        const subVal = row.subcategoria ?? ''
+        const isSummaryRow = !subVal
+
+        if (isSummaryRow) {
+          acc.leads_value   += fLeads
+          acc.mql_value     += fMql
+          acc.sql_value     += fSql
+          acc.sal_value     += fSal
+          acc.commit_value  += fCommit
+          acc.booking_value += fBooking
+        }
+
+        if (drilldownBy === 'step' && !isSummaryRow) {
+          if (!acc.steps[subVal]) {
+            acc.steps[subVal] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
           }
-          const sa = acc.steps[subKey]
+          const sa = acc.steps[subVal]
           sa.leads   += fLeads
           sa.mql     += fMql
           sa.sql     += fSql
           sa.sal     += fSal
           sa.commit  += fCommit
           sa.booking += fBooking
+        } else if (drilldownBy !== 'step' && isSummaryRow) {
+          const subKey = drilldownBy === 'closer' ? row.closer
+            : drilldownBy === 'sdr' ? row.sdr : null
+          if (subKey) {
+            if (!acc.steps[subKey]) {
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+            }
+            const sa = acc.steps[subKey]
+            sa.leads   += fLeads
+            sa.mql     += fMql
+            sa.sql     += fSql
+            sa.sal     += fSal
+            sa.commit  += fCommit
+            sa.booking += fBooking
+          }
         }
       }
     } else {
@@ -724,8 +772,13 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
 
         if (t.isEmptyRow) {
           tiers.push({ tier: tierName, leads: t.leads_value, mql: t.mql_value, isEmptyRow: true })
-          totLeads += t.leads_value
-          totMql   += t.mql_value
+          // Include all metrics in Total (even from unmapped tiers)
+          totLeads   += t.leads_value
+          totMql     += t.mql_value
+          totSql     += t.sql_value
+          totSal     += t.sal_value
+          totCommit  += t.commit_value
+          totBooking += t.booking_value
           continue
         }
 
