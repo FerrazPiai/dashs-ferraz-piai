@@ -127,13 +127,13 @@ function fmtPct(v) {
 }
 
 const METRICS = [
-  { key: 'mrr',          label: 'MRR Médio',                               fmt: fmtBRL, bold: false },
+  { key: 'mrr',          label: 'MRR',                                     fmt: fmtBRL, bold: false },
   { key: 'churn',        label: 'Churn Total',                             fmt: fmtBRL, bold: false },
   { key: 'isencao',      label: 'Isenção Total',                           fmt: fmtBRL, bold: false },
   { key: 'totalPerdas',  label: 'Total de Perdas',                         fmt: fmtBRL, bold: true  },
-  { key: 'pctPerdas',    label: '% de Total de Perdas Sobre o MRR Médio',  fmt: fmtPct, bold: false },
+  { key: 'pctPerdas',    label: '% de Total de Perdas Sobre o MRR',        fmt: fmtPct, bold: false },
   { key: 'totalMonet',   label: 'Monetização Total',                       fmt: fmtBRL, bold: false },
-  { key: 'pctMonet',     label: '% de Monetização sobre o MRR Médio',      fmt: fmtPct, bold: false },
+  { key: 'pctMonet',     label: '% de Monetização sobre o MRR',             fmt: fmtPct, bold: false },
   { key: 'saldoFinal',   label: 'Saldo Final',                             fmt: fmtBRL, bold: true  }
 ]
 
