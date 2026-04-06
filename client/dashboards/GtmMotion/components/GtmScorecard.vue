@@ -13,14 +13,16 @@
     </div>
 
     <div v-if="!loading" class="scorecard-sub">
-      <div class="sub-row">
-        <span class="sub-key">Meta</span>
-        <span class="sub-val">{{ formattedMeta }}</span>
-      </div>
-      <div class="sub-row">
-        <span class="sub-key">Δ Meta</span>
-        <span class="sub-val" :class="deltaClass">{{ formattedDelta }}</span>
-      </div>
+      <template v-if="!hideMeta">
+        <div class="sub-row">
+          <span class="sub-key">Meta</span>
+          <span class="sub-val">{{ formattedMeta }}</span>
+        </div>
+        <div class="sub-row">
+          <span class="sub-key">Δ Meta</span>
+          <span class="sub-val" :class="deltaClass">{{ formattedDelta }}</span>
+        </div>
+      </template>
       <div v-if="previousDelta !== null && previousDelta !== undefined" class="sub-row">
         <span class="sub-key">Δ Período Anterior</span>
         <span class="sub-val" :class="previousDeltaClass">{{ formattedPreviousDelta }}</span>
@@ -68,6 +70,10 @@ const props = defineProps({
   tooltip: {
     type: String,
     default: null
+  },
+  hideMeta: {
+    type: Boolean,
+    default: false
   },
   loading: {
     type: Boolean,

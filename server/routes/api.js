@@ -265,6 +265,49 @@ router.get('/gtm-motion/trigger-update', async (req, res, next) => {
 })
 
 /**
+ * GET /api/tx-conv-saber-monetizacao/trigger-update
+ * Trigger N8N data extraction webhook before refreshing dashboard data.
+ * Same pattern as GTM Motion: POST to update webhook, cache response if available.
+ */
+router.get('/tx-conv-saber-monetizacao/trigger-update', async (req, res, next) => {
+  const webhookUrl = 'https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/atualizar-cache-dash-conv-saber-para-monetizacao'
+
+  try {
+    console.log(`[${new Date().toISOString()}] Triggering Tx Conv Saber Monetização update webhook`)
+
+    const response = await globalThis.fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+      signal: AbortSignal.timeout(300000)
+    })
+
+    if (!response.ok) {
+      throw new Error(`Webhook retornou HTTP ${response.status}`)
+    }
+
+    // Try to capture response data and cache it for the subsequent GET
+    try {
+      const responseData = await response.json()
+      if (responseData && (Array.isArray(responseData) ? responseData.length > 0 : Object.keys(responseData).length > 0)) {
+        await setCachedData('tx-conv-saber-monetizacao', responseData)
+        console.log(`[${new Date().toISOString()}] Tx Conv Saber Monetização webhook data cached successfully`)
+      }
+    } catch {
+      console.log(`[${new Date().toISOString()}] Tx Conv Saber Monetização webhook returned no parseable body`)
+    }
+
+    console.log(`[${new Date().toISOString()}] Tx Conv Saber Monetização webhook executado com sucesso`)
+    res.json({ ok: true, timestamp: new Date().toISOString() })
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] Tx Conv Saber Monetização webhook error:`, error.message, error.stack)
+    res.status(502).json({
+      error: { message: 'Falha ao executar webhook de atualização', status: 502 }
+    })
+  }
+})
+
+/**
  * GET /api/dashboards
  * Get list of all available dashboards
  */

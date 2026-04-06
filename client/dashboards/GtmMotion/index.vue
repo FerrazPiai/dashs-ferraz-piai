@@ -54,7 +54,7 @@
       <span>{{ error }}</span>
     </div>
 
-    <!-- Filters -->
+    <!-- Filters + KPI Layout Toggle -->
     <div class="filters-bar">
       <div class="filter-group">
         <label class="filter-label">Canal</label>
@@ -86,10 +86,37 @@
           <option v-for="s in stepOptions" :key="s" :value="s">{{ s }}</option>
         </select>
       </div>
+      <div class="kpi-layout-toggle">
+        <button
+          class="layout-btn"
+          :class="{ active: kpiLayout === 'compact' }"
+          @click="kpiLayout = 'compact'"
+          aria-label="1 linha"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="0" y="5" width="14" height="4" rx="1" fill="currentColor"/></svg>
+        </button>
+        <button
+          class="layout-btn"
+          :class="{ active: kpiLayout === 'expanded' }"
+          @click="kpiLayout = 'expanded'"
+          aria-label="2 linhas"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="0" y="1" width="14" height="4" rx="1" fill="currentColor"/><rect x="0" y="9" width="14" height="4" rx="1" fill="currentColor"/></svg>
+        </button>
+      </div>
     </div>
 
     <!-- KPI Grid -->
-    <div class="kpi-grid">
+    <div class="kpi-grid" :class="{ 'kpi-grid--compact': kpiLayout === 'compact' }">
+      <GtmScorecard
+        label="Investimento"
+        tooltip="Investimento total no período"
+        :value="kpis.investimento?.value ?? null"
+        :formatter="formatCurrencyAbbrev"
+        :previousDelta="previousDeltas.investimento"
+        :loading="loading"
+        hideMeta
+      />
       <GtmScorecard
         label="Prospects"
         tooltip="Total de leads captados no período"
@@ -181,6 +208,24 @@
         :greenThreshold="colorThresholds.green"
         :yellowThreshold="colorThresholds.yellow"
       />
+      <GtmScorecard
+        label="ROAS Booking"
+        tooltip="Retorno sobre investimento (TCV / Investimento)"
+        :value="kpis.roas_booking?.value ?? null"
+        :formatter="formatRoas"
+        :previousDelta="previousDeltas.roas_booking"
+        :loading="loading"
+        hideMeta
+      />
+      <GtmScorecard
+        label="ROAS Fee"
+        tooltip="Retorno sobre investimento em fee (Fee / Investimento)"
+        :value="kpis.roas_fee?.value ?? null"
+        :formatter="formatRoas"
+        :previousDelta="previousDeltas.roas_fee"
+        :loading="loading"
+        hideMeta
+      />
     </div>
 
     <!-- Funnel Table -->
@@ -245,6 +290,9 @@ import MvListagemTable from '../MarketingVendas/components/MvListagemTable.vue'
 import { MOCK_DATA, CANAIS, MESES, QUARTERS } from './mock-data.js'
 
 const { data, loading, error, fetchData } = useDashboardData('gtm-motion')
+
+// ── KPI Layout Toggle ───────────────────────────────────────────────────────
+const kpiLayout = ref('expanded')
 
 // ── MV Toggle ─────────────────────────────────────────────────────────────────
 const mvView = ref('agrupada')
@@ -473,6 +521,11 @@ watch(tableDrilldown, (newVal) => {
 })
 
 // ── Data ──────────────────────────────────────────────────────────────────────
+const formatRoas = (v) => {
+  if (v == null || isNaN(v)) return '-'
+  return v.toFixed(2).replace('.', ',') + 'x'
+}
+
 const STEP_ORDER = ['Saber', 'Ter', 'Executar', 'Sem Mapeamento']
 const TIER_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Enterprise', 'Non-ICP', 'Sem mapeamento', 'Total']
 const toNum = (v) => (v === '' || v == null) ? null : Number(v)
@@ -560,6 +613,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         sal_value: 0,   sal_meta: cm.sal_meta ?? 0,
         commit_value: 0, commit_meta: cm.commit_meta ?? 0,
         booking_value: 0, booking_meta: cm.booking_meta ?? 0,
+        investimento_value: 0, fee_sum: 0,
       }
     }
     const acc = kpisByCanal[canal]
@@ -573,6 +627,11 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
     acc.sal_value += toNum(row.sal_value) ?? 0
     acc.commit_value  += toNum(row.commit_value)  ?? 0
     acc.booking_value += toNum(row.booking_value) ?? 0
+    const rowInvest = toNum(row.investimento_value ?? row.investimento) ?? 0
+    acc.investimento_value += rowInvest
+    // fee_sum = sum(roas_fee * investimento) para derivar ROAS Fee = fee_sum / total_invest
+    const rowRoasFee = toNum(row.roas_fee_value ?? row.roas_fee) ?? 0
+    acc.fee_sum += rowRoasFee * rowInvest
   }
 
   // Ensure channels with metas but no filtered value rows still appear
@@ -586,6 +645,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         sal_value: 0,   sal_meta: cm.sal_meta ?? 0,
         commit_value: 0, commit_meta: cm.commit_meta ?? 0,
         booking_value: 0, booking_meta: cm.booking_meta ?? 0,
+        investimento_value: 0, fee_sum: 0,
       }
     }
   }
@@ -616,6 +676,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         funilByCanal[canal][tier] = {
           leads_value: 0, mql_value: 0, sql_value: 0,
           sal_value: 0, commit_value: 0, booking_value: 0,
+          investimento_value: 0, roas_booking_value: 0, roas_fee_value: 0,
           isEmptyRow: isEmpty,
           isTotal: isTotalRow,
           steps: {},
@@ -628,6 +689,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
       const fSal     = toNum(row.sal     ?? row.sal_value)     ?? 0
       const fCommit  = toNum(row.commit  ?? row.commit_value)  ?? 0
       const fBooking = toNum(row.booking ?? row.booking_value) ?? 0
+      const fInvest  = toNum(row.investimento ?? row.investimento_value) ?? 0
+      const fRoasB   = toNum(row.roas_booking ?? row.roas_booking_value) ?? 0
+      const fRoasF   = toNum(row.roas_fee ?? row.roas_fee_value)         ?? 0
 
       if (isNewFormat) {
         // New format: each row is unique (no duplication), always accumulate to tier totals
@@ -637,6 +701,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         acc.sal_value     += fSal
         acc.commit_value  += fCommit
         acc.booking_value += fBooking
+        acc.investimento_value += fInvest
+        acc.roas_booking_value += fRoasB
+        acc.roas_fee_value     += fRoasF
 
         // Step drilldown: distribute row metrics to each subcategoria in the array
         if (drilldownBy === 'step') {
@@ -644,7 +711,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           for (const subKey of subs) {
             if (!subKey) continue
             if (!acc.steps[subKey]) {
-              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, roas_booking: 0, roas_fee: 0 }
             }
             const sa = acc.steps[subKey]
             sa.leads   += fLeads
@@ -653,6 +720,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             sa.sal     += fSal
             sa.commit  += fCommit
             sa.booking += fBooking
+            sa.investimento  += fInvest
+            sa.roas_booking  += fRoasB
+            sa.roas_fee      += fRoasF
           }
         } else {
           // Closer/SDR drilldown
@@ -660,7 +730,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             : drilldownBy === 'sdr' ? row.sdr : null
           if (subKey) {
             if (!acc.steps[subKey]) {
-              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, roas_booking: 0, roas_fee: 0 }
             }
             const sa = acc.steps[subKey]
             sa.leads   += fLeads
@@ -669,6 +739,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             sa.sal     += fSal
             sa.commit  += fCommit
             sa.booking += fBooking
+            sa.investimento  += fInvest
+            sa.roas_booking  += fRoasB
+            sa.roas_fee      += fRoasF
           }
         }
       } else {
@@ -684,11 +757,14 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           acc.sal_value     += fSal
           acc.commit_value  += fCommit
           acc.booking_value += fBooking
+          acc.investimento_value += fInvest
+          acc.roas_booking_value += fRoasB
+          acc.roas_fee_value     += fRoasF
         }
 
         if (drilldownBy === 'step' && !isSummaryRow) {
           if (!acc.steps[subVal]) {
-            acc.steps[subVal] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+            acc.steps[subVal] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, roas_booking: 0, roas_fee: 0 }
           }
           const sa = acc.steps[subVal]
           sa.leads   += fLeads
@@ -697,12 +773,15 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           sa.sal     += fSal
           sa.commit  += fCommit
           sa.booking += fBooking
+          sa.investimento  += fInvest
+          sa.roas_booking  += fRoasB
+          sa.roas_fee      += fRoasF
         } else if (drilldownBy !== 'step' && isSummaryRow) {
           const subKey = drilldownBy === 'closer' ? row.closer
             : drilldownBy === 'sdr' ? row.sdr : null
           if (subKey) {
             if (!acc.steps[subKey]) {
-              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0 }
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, roas_booking: 0, roas_fee: 0 }
             }
             const sa = acc.steps[subKey]
             sa.leads   += fLeads
@@ -711,6 +790,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             sa.sal     += fSal
             sa.commit  += fCommit
             sa.booking += fBooking
+            sa.investimento  += fInvest
+            sa.roas_booking  += fRoasB
+            sa.roas_fee      += fRoasF
           }
         }
       }
@@ -757,6 +839,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         delta: null,
       },
       booking: { value: bookingVal, provisionado: null, meta: bookingMeta, delta: null },
+      investimento: { value: k.investimento_value ?? 0, provisionado: null, meta: null, delta: null },
+      roas_booking: { value: (k.investimento_value ?? 0) > 0 ? bookingVal / k.investimento_value : 0, provisionado: null, meta: null, delta: null },
+      roas_fee:     { value: (k.investimento_value ?? 0) > 0 ? (k.fee_sum ?? 0) / k.investimento_value : 0, provisionado: null, meta: null, delta: null },
     }
 
     let tiers
@@ -765,7 +850,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
     if (hasTierData) {
       // Build tier rows — include ALL tiers from data (not just hardcoded)
       tiers = []
-      let totLeads = 0, totMql = 0, totSql = 0, totSal = 0, totCommit = 0, totBooking = 0
+      let totLeads = 0, totMql = 0, totSql = 0, totSal = 0, totCommit = 0, totBooking = 0, totInvest = 0, totFeeProd = 0
 
       // Collect all tier names from data, sort by TIER_ORDER (unknown tiers go before Total)
       const allTierNames = Object.keys(canalFunil).filter(t => t !== 'Total' && !canalFunil[t]?.isTotal)
@@ -780,14 +865,22 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         if (!t) continue
 
         if (t.isEmptyRow) {
-          tiers.push({ tier: tierName, leads: t.leads_value, mql: t.mql_value, isEmptyRow: true })
-          // Include all metrics in Total (even from unmapped tiers)
+          const eInv = t.investimento_value
+          const eFee = t.roas_fee_value * eInv
+          tiers.push({
+            tier: tierName, leads: t.leads_value, mql: t.mql_value, investimento: eInv,
+            roas_booking: eInv > 0 ? t.booking_value / eInv : 0,
+            roas_fee: eInv > 0 ? eFee / eInv : 0,
+            isEmptyRow: true,
+          })
           totLeads   += t.leads_value
           totMql     += t.mql_value
           totSql     += t.sql_value
           totSal     += t.sal_value
           totCommit  += t.commit_value
           totBooking += t.booking_value
+          totInvest  += eInv
+          totFeeProd += eFee
           continue
         }
 
@@ -797,6 +890,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         const fsal = t.sal_value
         const fc  = t.commit_value
         const fb  = t.booking_value
+        const fi  = t.investimento_value
+        // fee_product for weighted ROAS Fee aggregation
+        const tierFeeProd = t.roas_fee_value * fi
 
         const cr1v = fl   > 0 ? (fm  / fl)   * 100 : 0
         const cr2v = fm   > 0 ? (fs  / fm)   * 100 : 0
@@ -804,10 +900,16 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         const cr4v = fsal > 0 ? (fc  / fsal) * 100 : 0
         const mwv  = fm   > 0 ? (fc  / fm)   * 100 : 0
 
-        const steps = Object.entries(t.steps).map(([name, s]) => ({
-          name, leads: s.leads, mql: s.mql, sql: s.sql,
-          sal: s.sal, commit: s.commit, booking: s.booking,
-        }))
+        const steps = Object.entries(t.steps).map(([name, s]) => {
+          const sInv = s.investimento ?? 0
+          return {
+            name, leads: s.leads, mql: s.mql, sql: s.sql,
+            sal: s.sal, commit: s.commit, booking: s.booking,
+            investimento: sInv,
+            roas_booking: sInv > 0 ? (s.booking ?? 0) / sInv : 0,
+            roas_fee: sInv > 0 ? ((s.roas_fee ?? 0) * sInv) / sInv : 0,
+          }
+        })
         if (drilldownBy === 'step') {
           steps.sort((a, b) => {
             const ia = STEP_ORDER.indexOf(a.name)
@@ -819,6 +921,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         tiers.push({
           tier: tierName,
           leads: fl, mql: fm, sql: fs, sal: fsal, commit: fc, booking: fb,
+          investimento: fi,
+          roas_booking: fi > 0 ? fb / fi : 0,
+          roas_fee: fi > 0 ? tierFeeProd / fi : 0,
           avgTicket: fc > 0 ? Math.round(fb / fc) : 0,
           cr1:    { val: cr1v, color: crColor(cr1v, 70, 50) },
           cr2:    { val: cr2v, color: crColor(cr2v, 25, 15) },
@@ -830,6 +935,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
 
         totLeads   += fl;   totMql    += fm;   totSql  += fs
         totSal     += fsal; totCommit += fc;   totBooking += fb
+        totInvest  += fi;   totFeeProd += tierFeeProd
       }
 
       // Add Total row
@@ -842,6 +948,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         tier: 'Total',
         leads: totLeads, mql: totMql, sql: totSql, sal: totSal,
         commit: totCommit, booking: totBooking,
+        investimento: totInvest,
+        roas_booking: totInvest > 0 ? totBooking / totInvest : 0,
+        roas_fee: totInvest > 0 ? totFeeProd / totInvest : 0,
         avgTicket: totCommit > 0 ? Math.round(totBooking / totCommit) : 0,
         cr1:    { val: tcr1, color: crColor(tcr1, 70, 50) },
         cr2:    { val: tcr2, color: crColor(tcr2, 25, 15) },
@@ -876,6 +985,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         cr4:    { val: cr4v, color: crColor(cr4v, 20, 12) },
         mqlWon: { val: mwv,  color: crColor(mwv,  5,  3)  },
         isTotal: true,
+        investimento: 0, roas_booking: 0, roas_fee: 0,
       }]
     }
 
@@ -955,6 +1065,9 @@ function crColor(val, green, yellow) {
   return val >= green ? 'green' : val >= yellow ? 'yellow' : 'red'
 }
 
+// Keys that are derived ratios (not summed across channels)
+const DERIVED_KEYS = new Set(['roas_booking', 'roas_fee'])
+
 // Aggregate KPIs from active channels
 const kpis = computed(() => {
   const source = resolvedData.value
@@ -963,13 +1076,25 @@ const kpis = computed(() => {
   for (const channelId of activeChannelIds.value) {
     const chKpis = source.channels?.[channelId]?.kpis ?? {}
     for (const [key, kpi] of Object.entries(chKpis)) {
-      if (key === 'avgTicket') continue // derived from booking/commit
+      if (key === 'avgTicket' || DERIVED_KEYS.has(key)) continue
       if (!sum[key]) sum[key] = { value: 0, provisionado: null, meta: null, delta: null }
       sum[key].value += kpi.value ?? 0
       if (kpi.provisionado != null) sum[key].provisionado = (sum[key].provisionado ?? 0) + kpi.provisionado
       if (kpi.meta       != null) sum[key].meta          = (sum[key].meta       ?? 0) + kpi.meta
     }
   }
+  // ROAS = computed from aggregated totals
+  const totalInvest = sum.investimento?.value ?? 0
+  const totalBooking = sum.booking?.value ?? 0
+  sum.roas_booking = { value: totalInvest > 0 ? totalBooking / totalInvest : 0, provisionado: null, meta: null, delta: null }
+  // ROAS Fee: back-compute from per-channel fee_sum (roas_fee * invest per row)
+  let totalFee = 0
+  for (const channelId of activeChannelIds.value) {
+    const chRoasFee = source.channels?.[channelId]?.kpis?.roas_fee?.value ?? 0
+    const chInvest = source.channels?.[channelId]?.kpis?.investimento?.value ?? 0
+    totalFee += chRoasFee * chInvest
+  }
+  sum.roas_fee = { value: totalInvest > 0 ? totalFee / totalInvest : 0, provisionado: null, meta: null, delta: null }
   // avgTicket = booking / commit (weighted average)
   const commitVal  = sum.commit?.value ?? 0
   const commitMeta = sum.commit?.meta  ?? 0
@@ -994,11 +1119,22 @@ const previousDeltas = computed(() => {
   for (const channelId of activeChannelIds.value) {
     const chKpis = compData.channels?.[channelId]?.kpis ?? {}
     for (const [key, kpi] of Object.entries(chKpis)) {
-      if (key === 'avgTicket') continue
+      if (key === 'avgTicket' || DERIVED_KEYS.has(key)) continue
       if (!compSum[key]) compSum[key] = { value: 0 }
       compSum[key].value += kpi.value ?? 0
     }
   }
+  // ROAS from totals
+  const compInvest = compSum.investimento?.value ?? 0
+  const compBooking = compSum.booking?.value ?? 0
+  compSum.roas_booking = { value: compInvest > 0 ? compBooking / compInvest : 0 }
+  let compFee = 0
+  for (const channelId of activeChannelIds.value) {
+    const chRoasFee = compData.channels?.[channelId]?.kpis?.roas_fee?.value ?? 0
+    const chInvest = compData.channels?.[channelId]?.kpis?.investimento?.value ?? 0
+    compFee += chRoasFee * chInvest
+  }
+  compSum.roas_fee = { value: compInvest > 0 ? compFee / compInvest : 0 }
   // avgTicket = booking / commit
   const compCommitVal = compSum.commit?.value ?? 0
   const compBookingVal = compSum.booking?.value ?? 0
@@ -1100,11 +1236,23 @@ const currentTiers = computed(() => {
   const source = resolvedData.value
   if (!source) return []
   const tierMap   = {}
+  // Track fee_sum per tier and step (fee = roas_fee * investimento per source row)
+  const tierFeeSums = {} // { tierName: { fee: number, steps: { name: number } } }
   for (const channelId of activeChannelIds.value) {
     const tiers = source.channels?.[channelId]?.tiers ?? []
     for (const row of tiers) {
+      if (!tierFeeSums[row.tier]) tierFeeSums[row.tier] = { fee: 0, steps: {} }
+      const fs = tierFeeSums[row.tier]
+      fs.fee += (row.roas_fee ?? 0) * (row.investimento ?? 0)
+
       if (!tierMap[row.tier]) {
-        tierMap[row.tier] = { ...row }
+        tierMap[row.tier] = { ...row, roas_booking: 0, roas_fee: 0 }
+        if (row.steps?.length) {
+          tierMap[row.tier].steps = row.steps.map(s => ({ ...s, roas_booking: 0, roas_fee: 0 }))
+          for (const s of row.steps) {
+            fs.steps[s.name] = (fs.steps[s.name] ?? 0) + (s.roas_fee ?? 0) * (s.investimento ?? 0)
+          }
+        }
       } else {
         const ex = tierMap[row.tier]
         if (row.isEmptyRow) {
@@ -1114,6 +1262,7 @@ const currentTiers = computed(() => {
           ex.sal     = (ex.sal     ?? 0) + (row.sal     ?? 0)
           ex.commit  = (ex.commit  ?? 0) + (row.commit  ?? 0)
           ex.booking = (ex.booking ?? 0) + (row.booking ?? 0)
+          ex.investimento = (ex.investimento ?? 0) + (row.investimento ?? 0)
           continue
         }
         ex.leads   = (ex.leads   ?? 0) + (row.leads   ?? 0)
@@ -1122,6 +1271,7 @@ const currentTiers = computed(() => {
         ex.sal     = (ex.sal     ?? 0) + (row.sal     ?? 0)
         ex.commit  = (ex.commit  ?? 0) + (row.commit  ?? 0)
         ex.booking = (ex.booking ?? 0) + (row.booking ?? 0)
+        ex.investimento = (ex.investimento ?? 0) + (row.investimento ?? 0)
         ex.avgTicket = ex.commit > 0 ? Math.round(ex.booking / ex.commit) : 0
         const cr1v = ex.leads  > 0 ? (ex.mql    / ex.leads)  * 100 : 0
         const cr2v = ex.mql    > 0 ? (ex.sql    / ex.mql)    * 100 : 0
@@ -1136,9 +1286,13 @@ const currentTiers = computed(() => {
         // Merge steps by name
         if (row.steps?.length > 0) {
           if (!ex.steps?.length) {
-            ex.steps = row.steps.map(s => ({ ...s }))
+            ex.steps = row.steps.map(s => ({ ...s, roas_booking: 0, roas_fee: 0 }))
+            for (const s of row.steps) {
+              fs.steps[s.name] = (fs.steps[s.name] ?? 0) + (s.roas_fee ?? 0) * (s.investimento ?? 0)
+            }
           } else {
             for (const step of row.steps) {
+              fs.steps[step.name] = (fs.steps[step.name] ?? 0) + (step.roas_fee ?? 0) * (step.investimento ?? 0)
               const exStep = ex.steps.find(s => s.name === step.name)
               if (exStep) {
                 exStep.leads   = (exStep.leads   ?? 0) + (step.leads   ?? 0)
@@ -1147,12 +1301,27 @@ const currentTiers = computed(() => {
                 exStep.sal     = (exStep.sal     ?? 0) + (step.sal     ?? 0)
                 exStep.commit  = (exStep.commit  ?? 0) + (step.commit  ?? 0)
                 exStep.booking = (exStep.booking ?? 0) + (step.booking ?? 0)
+                exStep.investimento = (exStep.investimento ?? 0) + (step.investimento ?? 0)
               } else {
-                ex.steps.push({ ...step })
+                ex.steps.push({ ...step, roas_booking: 0, roas_fee: 0 })
               }
             }
           }
         }
+      }
+    }
+  }
+  // Compute ROAS from aggregated totals: booking/investimento
+  for (const [name, ex] of Object.entries(tierMap)) {
+    const inv = ex.investimento ?? 0
+    ex.roas_booking = inv > 0 ? (ex.booking ?? 0) / inv : 0
+    const fs = tierFeeSums[name]
+    ex.roas_fee = inv > 0 && fs ? fs.fee / inv : 0
+    if (ex.steps?.length) {
+      for (const s of ex.steps) {
+        const sInv = s.investimento ?? 0
+        s.roas_booking = sInv > 0 ? (s.booking ?? 0) / sInv : 0
+        s.roas_fee = sInv > 0 && fs?.steps[s.name] ? fs.steps[s.name] / sInv : 0
       }
     }
   }
@@ -1480,7 +1649,8 @@ onMounted(async () => {
 .filters-bar {
   display: flex;
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
 .filter-group {
@@ -1547,20 +1717,100 @@ onMounted(async () => {
   padding: 8px 12px;
 }
 
-/* KPI Grid */
+/* KPI Layout Toggle */
+.kpi-layout-toggle {
+  display: inline-flex;
+  gap: 0;
+  background: #1a1a1a;
+  border-radius: 4px;
+  padding: 3px;
+  margin-left: auto;
+}
+
+.layout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: #444;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.layout-btn:hover {
+  color: #777;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.layout-btn.active {
+  color: #aaa;
+  background: #252525;
+}
+
+/* KPI Grid — expanded (2 rows) */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 12px;
   margin-bottom: 20px;
 }
 
-@media (max-width: 1200px) {
-  .kpi-grid { grid-template-columns: repeat(4, 1fr); }
+/* KPI Grid — compact (1 row) */
+.kpi-grid--compact {
+  grid-template-columns: repeat(10, 1fr);
+  gap: 6px;
 }
 
-@media (max-width: 768px) {
+.kpi-grid--compact :deep(.gtm-scorecard) {
+  padding: 10px 10px;
+  gap: 4px;
+}
+
+.kpi-grid--compact :deep(.scorecard-value) {
+  font-size: 18px;
+  min-height: 24px;
+}
+
+.kpi-grid--compact :deep(.scorecard-label) {
+  font-size: 10px;
+}
+
+.kpi-grid--compact :deep(.scorecard-sub) {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+
+.kpi-grid--compact :deep(.sub-row) {
+  gap: 2px;
+}
+
+.kpi-grid--compact :deep(.sub-key) {
+  font-size: 9px;
+  color: #666;
+}
+
+.kpi-grid--compact :deep(.sub-val) {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+@media (max-width: 1600px) {
+  .kpi-grid--compact { grid-template-columns: repeat(5, 1fr); }
+}
+
+@media (max-width: 900px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  .kpi-grid--compact { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 600px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .kpi-grid--compact { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* Table section */

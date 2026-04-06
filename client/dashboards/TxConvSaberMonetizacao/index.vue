@@ -532,8 +532,20 @@ const formatTimestamp = () => {
 }
 
 // Handlers
-const handleRefresh = () => {
-  fetchData(true)
+async function handleRefresh() {
+  loading.value = true
+
+  // Step 1: POST trigger webhook para N8N regenerar os dados
+  try {
+    const res = await fetch('/api/tx-conv-saber-monetizacao/trigger-update')
+    if (!res.ok) console.warn('[Tx Conv Saber] Webhook de atualização retornou', res.status)
+  } catch (err) {
+    console.warn('[Tx Conv Saber] Falha ao chamar webhook de atualização:', err.message)
+  }
+
+  // Step 2: GET dados atualizados (bypassa cache)
+  await fetchData(true)
+  lastUpdateTime.value = formatTimestamp()
 }
 
 // Initialize
