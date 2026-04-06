@@ -1,26 +1,26 @@
 <template>
   <div class="gtm-scorecard" :class="statusBorderClass">
     <div class="scorecard-label">
-      {{ label }}
+      <span class="label-text" :title="label">{{ label }}</span>
       <span v-if="tooltip" class="info-hint" :data-tip="tooltip">?</span>
     </div>
 
     <div v-if="loading" class="scorecard-value">
       <span class="spinner"></span>
     </div>
-    <div v-else class="scorecard-value">
-      {{ formattedValue }}
+    <div v-else class="scorecard-value" :class="{ 'has-value-tooltip': valueTooltip }" :data-vtip="valueTooltip || undefined">
+      <span class="value-text" :title="fullValue">{{ formattedValue }}</span>
     </div>
 
     <div v-if="!loading" class="scorecard-sub">
       <template v-if="!hideMeta">
         <div class="sub-row">
           <span class="sub-key">Meta</span>
-          <span class="sub-val">{{ formattedMeta }}</span>
+          <span class="sub-val" :title="formattedMeta">{{ formattedMeta }}</span>
         </div>
         <div class="sub-row">
           <span class="sub-key">Δ Meta</span>
-          <span class="sub-val" :class="deltaClass">{{ formattedDelta }}</span>
+          <span class="sub-val" :class="deltaClass" :title="formattedDelta">{{ formattedDelta }}</span>
         </div>
       </template>
       <div v-if="previousDelta !== null && previousDelta !== undefined" class="sub-row">
@@ -75,6 +75,14 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
+  valueTooltip: {
+    type: String,
+    default: null
+  },
+  fullFormatter: {
+    type: Function,
+    default: null
+  },
   loading: {
     type: Boolean,
     default: false
@@ -90,6 +98,11 @@ const props = defineProps({
 })
 
 const formattedValue = computed(() => props.formatter(props.value))
+const fullValue = computed(() => {
+  if (!props.fullFormatter) return null
+  const full = props.fullFormatter(props.value)
+  return full !== formattedValue.value ? full : null
+})
 
 const formattedProvisionado = computed(() =>
   props.provisionado != null ? props.formatter(props.provisionado) : '--'
@@ -146,23 +159,29 @@ const statusBorderClass = computed(() => {
   background: #141414;
   border: 1px solid #222;
   border-radius: 6px;
-  padding: 14px 16px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
 }
 
 .scorecard-label {
-  font-size: 12px;
+  font-size: 10px;
   color: #888;
   font-weight: 500;
   white-space: nowrap;
   overflow: visible;
-  text-overflow: ellipsis;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
+  min-width: 0;
+}
+
+.label-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .info-hint {
@@ -222,13 +241,45 @@ const statusBorderClass = computed(() => {
 }
 
 .scorecard-value {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   color: #fff;
   line-height: 1.1;
-  min-height: 28px;
-  display: flex;
-  align-items: center;
+  min-height: 22px;
+  position: relative;
+  min-width: 0;
+}
+
+.value-text {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.scorecard-value.has-value-tooltip {
+  cursor: help;
+}
+
+.scorecard-value.has-value-tooltip:hover::after {
+  content: attr(data-vtip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #ccc;
+  font-size: 12px;
+  font-weight: 400;
+  padding: 8px 12px;
+  border-radius: 4px;
+  white-space: pre-line;
+  width: max-content;
+  max-width: 240px;
+  line-height: 1.5;
+  z-index: 50;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .scorecard-sub {
@@ -248,12 +299,17 @@ const statusBorderClass = computed(() => {
 .sub-key {
   font-size: 10px;
   color: #555;
+  flex-shrink: 0;
 }
 
 .sub-val {
   font-size: 10px;
   color: #888;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 
 .delta-green {

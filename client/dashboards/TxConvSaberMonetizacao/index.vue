@@ -195,6 +195,29 @@
       </div>
     </div>
   </div>
+
+  <!-- Modal: Confirmação de atualização -->
+  <VConfirmModal
+    :visible="showConfirmModal"
+    title="Atualizar dados"
+    message="A atualização dos dados pode levar até 10 minutos. Durante esse período, outros usuários não poderão solicitar uma nova atualização. Deseja continuar?"
+    confirmText="Sim, atualizar"
+    cancelText="Cancelar"
+    type="warning"
+    @confirm="confirmRefresh"
+    @cancel="cancelRefresh"
+  />
+
+  <!-- Modal: Atualização já em andamento -->
+  <VConfirmModal
+    :visible="showUpdatingModal"
+    title="Atualização em andamento"
+    message="Já existe uma atualização dos dados em andamento. Aguarde a conclusão antes de solicitar uma nova atualização."
+    confirmText="Entendido"
+    type="info"
+    @confirm="showUpdatingModal = false"
+    @cancel="showUpdatingModal = false"
+  />
 </template>
 
 <script setup>
@@ -203,6 +226,7 @@ import { useDashboardData } from '@/composables/useDashboardData'
 import { formatNumber, formatPercentage } from '@/composables/useFormatters'
 import VScorecard from '@/components/ui/VScorecard.vue'
 import VRefreshButton from '@/components/ui/VRefreshButton.vue'
+import VConfirmModal from '@/components/ui/VConfirmModal.vue'
 import VToggleGroup from '@/components/ui/VToggleGroup.vue'
 import VDataTable from '@/components/ui/VDataTable.vue'
 import VChartCard from '@/components/charts/VChartCard.vue'
@@ -531,14 +555,46 @@ const formatTimestamp = () => {
   return `${day}/${month}/${year} às ${hours}:${minutes}`
 }
 
+// ── Update confirmation modal state ──────────────────────────────────────────
+const showConfirmModal = ref(false)
+const showUpdatingModal = ref(false)
+
 // Handlers
 async function handleRefresh() {
+  // Check if another update is already in progress
+  try {
+    const statusRes = await fetch('/api/update-status/tx-conv-saber-monetizacao')
+    const statusData = await statusRes.json()
+    if (statusData.updating) {
+      showUpdatingModal.value = true
+      return
+    }
+  } catch {
+    // If status check fails, proceed with confirmation anyway
+  }
+
+  showConfirmModal.value = true
+}
+
+function cancelRefresh() {
+  showConfirmModal.value = false
+}
+
+async function confirmRefresh() {
+  showConfirmModal.value = false
   loading.value = true
 
   // Step 1: POST trigger webhook para N8N regenerar os dados
   try {
     const res = await fetch('/api/tx-conv-saber-monetizacao/trigger-update')
-    if (!res.ok) console.warn('[Tx Conv Saber] Webhook de atualização retornou', res.status)
+    if (!res.ok) {
+      if (res.status === 409) {
+        loading.value = false
+        showUpdatingModal.value = true
+        return
+      }
+      console.warn('[Tx Conv Saber] Webhook de atualização retornou', res.status)
+    }
   } catch (err) {
     console.warn('[Tx Conv Saber] Falha ao chamar webhook de atualização:', err.message)
   }

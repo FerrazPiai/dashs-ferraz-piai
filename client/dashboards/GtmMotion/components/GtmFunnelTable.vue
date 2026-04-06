@@ -21,11 +21,15 @@
             <th class="col-money">TCV <span class="th-hint th-hint--right" data-tip="Receita total contratada">?</span></th>
             <th class="col-center">ROAS Booking <span class="th-hint th-hint--right" data-tip="TCV / Investimento">?</span></th>
             <th class="col-center">ROAS Fee <span class="th-hint th-hint--right" data-tip="Fee / Investimento">?</span></th>
+            <th class="col-num">LT Médio <span class="th-hint th-hint--right" data-tip="Lead Time médio em dias">?</span></th>
+            <th class="col-money">LTV <span class="th-hint th-hint--right" data-tip="Lifetime Value (Fee médio × LT em meses)">?</span></th>
+            <th class="col-num">CR Monet. <span class="th-hint th-hint--right" data-tip="Commits de monetização">?</span></th>
+            <th class="col-money">Booking Monet. <span class="th-hint th-hint--right" data-tip="Booking de monetização (TCV)">?</span></th>
           </tr>
         </thead>
         <tbody v-if="loading">
           <tr v-for="i in 6" :key="i" class="skeleton-row">
-            <td v-for="j in 17" :key="j"><div class="skeleton-cell"></div></td>
+            <td v-for="j in 21" :key="j"><div class="skeleton-cell"></div></td>
           </tr>
         </tbody>
         <tbody v-else>
@@ -52,6 +56,10 @@
               <td class="col-money">—</td>
               <td class="col-center">{{ fmtRoas(row.roas_booking) }}</td>
               <td class="col-center">{{ fmtRoas(row.roas_fee) }}</td>
+              <td class="col-num">{{ fmtLt(row.LT_medio) }}</td>
+              <td class="col-money">{{ fmtLtv(row) }}</td>
+              <td class="col-num">{{ formatNumber(row.CR_monetizacao) }}</td>
+              <td class="col-money">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
 
             <!-- Total row -->
@@ -76,6 +84,10 @@
               <td class="col-money total-val">{{ formatCurrency(row.booking) }}</td>
               <td class="col-center total-val">{{ fmtRoas(row.roas_booking) }}</td>
               <td class="col-center total-val">{{ fmtRoas(row.roas_fee) }}</td>
+              <td class="col-num total-val">{{ fmtLt(row.LT_medio) }}</td>
+              <td class="col-money total-val">{{ fmtLtv(row) }}</td>
+              <td class="col-num total-val">{{ formatNumber(row.CR_monetizacao) }}</td>
+              <td class="col-money total-val">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
 
             <!-- Normal tier row -->
@@ -117,6 +129,10 @@
               <td class="col-money booking-val">{{ formatCurrency(row.booking) }}</td>
               <td class="col-center">{{ fmtRoas(row.roas_booking) }}</td>
               <td class="col-center">{{ fmtRoas(row.roas_fee) }}</td>
+              <td class="col-num">{{ fmtLt(row.LT_medio) }}</td>
+              <td class="col-money">{{ fmtLtv(row) }}</td>
+              <td class="col-num">{{ formatNumber(row.CR_monetizacao) }}</td>
+              <td class="col-money">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
 
             <!-- Step rows -->
@@ -130,14 +146,14 @@
                   <span class="step-indent">↳</span>
                   {{ step.name }}
                 </td>
-                <td class="col-center step-val">{{ fmtMoney(step.investimento) }}</td>
-                <td class="col-center step-val">{{ fmtCpl(step.investimento, step.leads) }}</td>
-                <td class="col-num step-val"></td>
-                <td class="col-cr"></td>
-                <td class="col-num step-val"></td>
-                <td class="col-cr"></td>
-                <td class="col-num step-val"></td>
-                <td class="col-cr"></td>
+                <td class="col-center step-val">{{ drilldown === 'sdr' ? fmtMoney(step.investimento) : '' }}</td>
+                <td class="col-center step-val">{{ drilldown === 'sdr' ? fmtCpl(step.investimento, step.leads) : '' }}</td>
+                <td class="col-num step-val">{{ drilldown === 'sdr' ? formatNumber(step.leads) : '' }}</td>
+                <td class="col-cr">{{ drilldown === 'sdr' ? fmtCalcCr(step.mql, step.leads) : '' }}</td>
+                <td class="col-num step-val">{{ drilldown === 'sdr' ? formatNumber(step.mql) : '' }}</td>
+                <td class="col-cr">{{ drilldown === 'sdr' ? fmtCalcCr(step.sql, step.mql) : '' }}</td>
+                <td class="col-num step-val">{{ drilldown === 'sdr' || drilldown === 'closer' ? formatNumber(step.sql) : '' }}</td>
+                <td class="col-cr">{{ drilldown === 'sdr' || drilldown === 'closer' ? fmtCalcCr(step.sal, step.sql) : '' }}</td>
                 <td class="col-num step-val">{{ formatNumber(step.sal) }}</td>
                 <td class="col-cr"><span :class="crClass(row.cr4?.color)">{{ fmtCalcCr(step.commit, step.sal) }}</span></td>
                 <td class="col-num step-val">{{ formatNumber(step.commit) }}</td>
@@ -146,6 +162,10 @@
                 <td class="col-money step-val">{{ step.booking > 0 ? formatCurrency(step.booking) : '—' }}</td>
                 <td class="col-center step-val">{{ fmtRoas(step.roas_booking) }}</td>
                 <td class="col-center step-val">{{ fmtRoas(step.roas_fee) }}</td>
+                <td class="col-num step-val">{{ fmtLt(step.LT_medio) }}</td>
+                <td class="col-money step-val">{{ fmtLtv(step) }}</td>
+                <td class="col-num step-val">{{ formatNumber(step.CR_monetizacao) }}</td>
+                <td class="col-money step-val">{{ fmtMoney(step.booking_monetizacao) }}</td>
               </tr>
             </template>
           </template>
@@ -167,6 +187,10 @@ const props = defineProps({
   loading: {
     type: Boolean,
     default: false
+  },
+  drilldown: {
+    type: String,
+    default: 'step'
   }
 })
 
@@ -220,6 +244,19 @@ function fmtRoas(val) {
   if (val == null || isNaN(val) || val === 0) return '—'
   return val.toFixed(2).replace('.', ',') + 'x'
 }
+
+function fmtLt(val) {
+  if (val == null || isNaN(val) || val === 0) return '—'
+  return Math.round(val) + 'd'
+}
+
+function fmtLtv(row) {
+  const fee = (row.roas_fee ?? 0) * (row.investimento ?? 0)
+  const lt = row.LT_medio ?? 0
+  if (lt <= 0 || fee <= 0) return '—'
+  const ltMonths = lt / 30
+  return formatCurrency(Math.round(fee * ltMonths))
+}
 </script>
 
 <style scoped>
@@ -227,15 +264,18 @@ function fmtRoas(val) {
   background: #141414;
   border: 1px solid #222;
   border-radius: 6px;
+  overflow: hidden;
 }
 
 .table-scroll {
   overflow-x: auto;
   overflow-y: visible;
+  max-width: 100%;
 }
 
 .funnel-table {
   width: 100%;
+  min-width: max-content;
   border-collapse: collapse;
   font-size: 13px;
   white-space: nowrap;
@@ -326,11 +366,11 @@ thead th {
   right: 5px;
 }
 
-.col-tier { text-align: left; min-width: 130px; }
-.col-num { text-align: center; min-width: 55px; }
-.col-cr { text-align: center; min-width: 60px; }
-.col-money { text-align: right; min-width: 90px; }
-.col-center { text-align: center; min-width: 80px; }
+.col-tier { text-align: left; min-width: 120px; }
+.col-num { text-align: center; min-width: 50px; }
+.col-cr { text-align: center; min-width: 55px; }
+.col-money { text-align: center; min-width: 80px; }
+.col-center { text-align: center; min-width: 70px; }
 
 /* Sticky first column */
 .col-sticky {

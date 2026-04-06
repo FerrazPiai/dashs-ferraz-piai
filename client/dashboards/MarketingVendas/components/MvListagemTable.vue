@@ -37,16 +37,9 @@
               :class="['sortable-th', col.key === 'nome' ? 'col-nome' : '']"
               @click="handleSort(col.key)"
             >
-              <span class="th-inner">
-                {{ col.label }}
-                <span class="sort-icon">
-                  <template v-if="sortKey === col.key">
-                    <i :data-lucide="sortDir === 'asc' ? 'chevron-up' : 'chevron-down'" class="sort-chevron active"></i>
-                  </template>
-                  <template v-else>
-                    <i data-lucide="chevrons-up-down" class="sort-chevron"></i>
-                  </template>
-                </span>
+              {{ col.label }}
+              <span class="sort-arrow" :class="sortKey === col.key ? 'sort-active' : 'sort-idle'">
+                {{ sortKey === col.key ? (sortDir === 'asc' ? '↑' : '↓') : '⇅' }}
               </span>
             </th>
           </tr>
@@ -392,23 +385,17 @@ watch(() => props.loading, (val) => { if (!val) initIcons() })
   transition: color 0.15s;
 }
 
-.sortable-th:hover { color: #999; }
+.sortable-th:hover { color: #ccc; }
 
-.th-inner {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+.sort-arrow {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 9px;
+  vertical-align: middle;
 }
 
-.sort-chevron {
-  width: 12px;
-  height: 12px;
-  stroke-width: 2;
-  color: #444;
-  flex-shrink: 0;
-}
-
-.sort-chevron.active { color: #ff0000; }
+.sort-idle { opacity: 0.3; }
+.sort-active { opacity: 1; color: #ff0000; }
 
 .mv-table tbody td {
   padding: 10px 14px;
