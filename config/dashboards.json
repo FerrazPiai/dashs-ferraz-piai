@@ -6,8 +6,7 @@
     "componentPath": "TxConvSaberMonetizacao",
     "apiEndpoint": "API_ENDPOINT_CONV_SABER_MONETIZACAO",
     "cacheTTL": 1800000,
-    "status": "maintenance",
-    "statusMessage": "Este dashboard está temporariamente em manutenção. Os dados podem estar desatualizados ou indisponíveis."
+    "status": "available"
   },
   {
     "id": "gtm-motion",
