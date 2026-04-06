@@ -251,7 +251,8 @@ function fmtLt(val) {
 }
 
 function fmtLtv(row) {
-  const fee = (row.roas_fee ?? 0) * (row.investimento ?? 0)
+  if (row.ltv != null) return formatCurrency(row.ltv)
+  const fee = row.fee_total ?? 0
   const lt = row.LT_medio ?? 0
   if (lt <= 0 || fee <= 0) return '—'
   const ltMonths = lt / 30

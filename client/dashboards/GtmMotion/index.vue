@@ -95,7 +95,7 @@
         >
           <span class="toggle-hint" data-tip="Valores abreviados (ex: R$ 25k)">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <text x="1" y="11" font-size="10" font-weight="700" fill="currentColor">k</text>
+              <text x="1" y="12" font-size="13" font-weight="700" fill="currentColor">K</text>
             </svg>
           </span>
         </button>
@@ -106,8 +106,8 @@
           aria-label="Valores completos"
         >
           <span class="toggle-hint" data-tip="Valores completos (ex: R$ 25.000,00)">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <text x="0" y="11" font-size="7.5" font-weight="700" fill="currentColor">0,0</text>
+            <svg width="22" height="14" viewBox="0 0 22 14" fill="none">
+              <text x="1" y="12" font-size="13" font-weight="700" fill="currentColor">0,0</text>
             </svg>
           </span>
         </button>
@@ -267,7 +267,7 @@
       <GtmScorecard
         label="LTV"
         tooltip="Lifetime Value estimado (Fee médio × LT médio em meses)"
-        :value="kpis.ltv?.value ?? null"
+        :value="kpiLtv"
         :formatter="kpiCurrencyFormatter"
         :fullFormatter="formatCurrency"
         :previousDelta="previousDeltas.ltv"
@@ -1019,7 +1019,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
     if (hasTierData) {
       // Build tier rows — include ALL tiers from data (not just hardcoded)
       tiers = []
-      let totLeads = 0, totMql = 0, totSql = 0, totSal = 0, totCommit = 0, totBooking = 0, totInvest = 0, totFeeProd = 0, totLtSum = 0, totLtCount = 0, totCrMon = 0, totBkMon = 0
+      let totLeads = 0, totMql = 0, totSql = 0, totSal = 0, totCommit = 0, totBooking = 0, totInvest = 0, totFeeProd = 0, totLtSum = 0, totLtCount = 0, totCrMon = 0, totBkMon = 0, totLtv = 0
 
       // Collect all tier names from data, sort by TIER_ORDER (unknown tiers go before Total)
       const allTierNames = Object.keys(canalFunil).filter(t => t !== 'Total' && !canalFunil[t]?.isTotal)
@@ -1038,6 +1038,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           const eFee = t.fee_value
           tiers.push({
             tier: tierName, leads: t.leads_value, mql: t.mql_value, investimento: eInv,
+            fee_total: eFee,
             roas_booking: eInv > 0 ? t.booking_value / eInv : 0,
             roas_fee: eInv > 0 ? eFee / eInv : 0,
             LT_medio: t.LT_count > 0 ? t.LT_sum / t.LT_count : 0,
@@ -1054,6 +1055,8 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           totFeeProd += eFee
           totLtSum   += t.LT_sum; totLtCount += t.LT_count
           totCrMon   += t.CR_monetizacao; totBkMon += t.booking_monetizacao
+          const eLt = t.LT_count > 0 ? t.LT_sum / t.LT_count : 0
+          if (eFee > 0 && eLt > 0) totLtv += eFee * (eLt / 30)
           continue
         }
 
@@ -1074,12 +1077,14 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
 
         const steps = Object.entries(t.steps).map(([name, s]) => {
           const sInv = s.investimento ?? 0
+          const sFee = s.fee_value ?? 0
           return {
             name, leads: s.leads, mql: s.mql, sql: s.sql,
             sal: s.sal, commit: s.commit, booking: s.booking,
             investimento: sInv,
+            fee_total: sFee,
             roas_booking: sInv > 0 ? (s.booking ?? 0) / sInv : 0,
-            roas_fee: sInv > 0 ? (s.fee_value ?? 0) / sInv : 0,
+            roas_fee: sInv > 0 ? sFee / sInv : 0,
             LT_medio: (s.LT_count ?? 0) > 0 ? s.LT_sum / s.LT_count : 0,
             CR_monetizacao: s.CR_monetizacao ?? 0,
             booking_monetizacao: s.booking_monetizacao ?? 0,
@@ -1103,6 +1108,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           tier: tierName,
           leads: fl, mql: fm, sql: fs, sal: fsal, commit: fc, booking: fb,
           investimento: fi,
+          fee_total: tierFee,
           roas_booking: fi > 0 ? fb / fi : 0,
           roas_fee: fi > 0 ? tierFee / fi : 0,
           avgTicket: fc > 0 ? Math.round(fb / fc) : 0,
@@ -1120,6 +1126,8 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         totSal     += fsal; totCommit += fc;   totBooking += fb
         totInvest  += fi;   totFeeProd += tierFee
         totLtSum   += t.LT_sum; totLtCount += t.LT_count
+        const tierLt = t.LT_count > 0 ? t.LT_sum / t.LT_count : 0
+        if (tierFee > 0 && tierLt > 0) totLtv += tierFee * (tierLt / 30)
         totCrMon   += t.CR_monetizacao; totBkMon += t.booking_monetizacao
       }
 
@@ -1134,6 +1142,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         leads: totLeads, mql: totMql, sql: totSql, sal: totSal,
         commit: totCommit, booking: totBooking,
         investimento: totInvest,
+        fee_total: totFeeProd,
         roas_booking: totInvest > 0 ? totBooking / totInvest : 0,
         roas_fee: totInvest > 0 ? totFeeProd / totInvest : 0,
         avgTicket: totCommit > 0 ? Math.round(totBooking / totCommit) : 0,
@@ -1143,6 +1152,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         cr4:    { val: tcr4, color: crColor(tcr4, 20, 12) },
         mqlWon: { val: tmw,  color: crColor(tmw,  5,  3)  },
         LT_medio: totLtCount > 0 ? totLtSum / totLtCount : 0,
+        ltv: totLtv > 0 ? Math.round(totLtv) : null,
         CR_monetizacao: totCrMon, booking_monetizacao: totBkMon,
         isTotal: true,
       })
@@ -1343,10 +1353,9 @@ const kpis = computed(() => {
     totalFeeVal += source.channels?.[channelId]?.kpis?.fee_total?.value ?? 0
   }
   sum.fee_total = { value: totalFeeVal }
-  // LTV = soma fee recorrente × LT médio em meses
-  const ltVal = sum.lt_medio?.value ?? 0
-  const ltMonths = ltVal > 0 ? ltVal / 30 : 0
-  sum.ltv = { value: totalFeeVal > 0 && ltMonths > 0 ? Math.round(totalFeeVal * ltMonths) : null }
+  // LTV = soma dos LTVs por tier (para consistência com a tabela)
+  // Calculado depois em kpiLtv computed (depende de currentTiers)
+  sum.ltv = { value: null }
   return sum
 })
 
@@ -1400,15 +1409,21 @@ const previousDeltas = computed(() => {
   const compCrMon = compSum.CR_monetizacao?.value ?? 0
   const compBkMon = compSum.booking_monetizacao?.value ?? 0
   compSum.avgTicketMonetizacao = { value: compCrMon > 0 ? Math.round(compBkMon / compCrMon) : null }
-  // Fee total & LTV for comparison
+  // Fee total & LTV for comparison (sum of per-tier LTVs)
   let compFeeTotal = 0
+  let compLtvSum = 0
   for (const channelId of activeChannelIds.value) {
     compFeeTotal += compData.channels?.[channelId]?.kpis?.fee_total?.value ?? 0
+    const tiers = compData.channels?.[channelId]?.tiers ?? []
+    for (const t of tiers) {
+      if (t.isTotal) continue
+      const tFee = t.fee_total ?? 0
+      const tLt = t.LT_medio ?? 0
+      if (tFee > 0 && tLt > 0) compLtvSum += tFee * (tLt / 30)
+    }
   }
   compSum.fee_total = { value: compFeeTotal }
-  const compLtVal = compSum.lt_medio?.value ?? 0
-  const compLtMonths = compLtVal > 0 ? compLtVal / 30 : 0
-  compSum.ltv = { value: compFeeTotal > 0 && compLtMonths > 0 ? Math.round(compFeeTotal * compLtMonths) : null }
+  compSum.ltv = { value: compLtvSum > 0 ? Math.round(compLtvSum) : null }
 
   // Calculate % change: (current - previous) / previous * 100
   // When no previous data exists, return 0 to avoid nonsensical numbers
@@ -1602,11 +1617,12 @@ const currentTiers = computed(() => {
       }
     }
   }
-  // Compute ROAS and LT from aggregated totals
+  // Compute ROAS, fee_total and LT from aggregated totals
   for (const [name, ex] of Object.entries(tierMap)) {
     const inv = ex.investimento ?? 0
     ex.roas_booking = inv > 0 ? (ex.booking ?? 0) / inv : 0
     const fs = tierFeeSums[name]
+    ex.fee_total = fs ? fs.fee : 0
     ex.roas_fee = inv > 0 && fs ? fs.fee / inv : 0
     // Recompute LT_medio as simple average of non-zero values
     const ls = tierLtSums[name]
@@ -1615,11 +1631,26 @@ const currentTiers = computed(() => {
       for (const s of ex.steps) {
         const sInv = s.investimento ?? 0
         s.roas_booking = sInv > 0 ? (s.booking ?? 0) / sInv : 0
+        s.fee_total = fs?.steps[s.name] ?? 0
         s.roas_fee = sInv > 0 && fs?.steps[s.name] ? fs.steps[s.name] / sInv : 0
         const sls = ls?.steps?.[s.name]
         s.LT_medio = sls && sls.count > 0 ? sls.sum / sls.count : 0
       }
     }
+  }
+  // Compute LTV per tier and sum for Total
+  let consolidatedLtvSum = 0
+  for (const [name, ex] of Object.entries(tierMap)) {
+    if (ex.isTotal) continue
+    const tFee = ex.fee_total ?? 0
+    const tLt = ex.LT_medio ?? 0
+    if (tFee > 0 && tLt > 0) {
+      ex.ltv = null // let fmtLtv compute per-tier
+      consolidatedLtvSum += tFee * (tLt / 30)
+    }
+  }
+  if (tierMap['Total']) {
+    tierMap['Total'].ltv = consolidatedLtvSum > 0 ? Math.round(consolidatedLtvSum) : null
   }
   // Sort steps within each tier by STEP_ORDER, "Sem closer"/"Sem SDR" always last
   for (const tier of Object.values(tierMap)) {
@@ -1642,6 +1673,12 @@ const currentTiers = computed(() => {
     return (ia === -1 ? TIER_ORDER.length - 1 : ia) - (ib === -1 ? TIER_ORDER.length - 1 : ib)
   })
   return allNames.map(name => tierMap[name])
+})
+
+// LTV do KPI = LTV do Total da tabela (mesma fonte, mesmo cálculo)
+const kpiLtv = computed(() => {
+  const totalRow = currentTiers.value.find(r => r.isTotal)
+  return totalRow?.ltv ?? null
 })
 
 const tableTitle = computed(() => {
@@ -2070,6 +2107,7 @@ onMounted(async () => {
   background: #1a1a1a;
   border-radius: 4px;
   padding: 3px;
+  margin-left: 6px;
 }
 
 .layout-btn {
