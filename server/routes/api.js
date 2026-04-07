@@ -11,6 +11,35 @@ const __dirname = dirname(__filename)
 const router = Router()
 
 /**
+ * In-memory update lock — prevents concurrent webhook triggers across users.
+ * Map<dashboardId, { lockedAt: number }>
+ * Auto-expires after LOCK_TTL_MS (10 minutes).
+ */
+const updateLocks = new Map()
+const LOCK_TTL_MS = 10 * 60 * 1000 // 10 minutos
+
+function isUpdateLocked(dashboardId) {
+  const lock = updateLocks.get(dashboardId)
+  if (!lock) return false
+  if (Date.now() - lock.lockedAt > LOCK_TTL_MS) {
+    updateLocks.delete(dashboardId)
+    console.log(`[${new Date().toISOString()}] Update lock expired for ${dashboardId}`)
+    return false
+  }
+  return true
+}
+
+function setUpdateLock(dashboardId) {
+  updateLocks.set(dashboardId, { lockedAt: Date.now() })
+  console.log(`[${new Date().toISOString()}] Update lock SET for ${dashboardId}`)
+}
+
+function clearUpdateLock(dashboardId) {
+  updateLocks.delete(dashboardId)
+  console.log(`[${new Date().toISOString()}] Update lock CLEARED for ${dashboardId}`)
+}
+
+/**
  * Load dashboard registry
  * @returns {Promise<Array>} Array of dashboard configurations
  */
@@ -189,12 +218,42 @@ router.get('/cache/status/:dashboardId', async (req, res, next) => {
 })
 
 /**
+ * GET /api/update-status/:dashboardId
+ * Check if an update is currently in progress for the given dashboard.
+ */
+router.get('/update-status/:dashboardId', async (req, res) => {
+  const { dashboardId } = req.params
+  const lock = updateLocks.get(dashboardId)
+  const locked = isUpdateLocked(dashboardId)
+
+  if (locked && lock) {
+    const elapsed = Date.now() - lock.lockedAt
+    return res.json({
+      updating: true,
+      elapsedMs: elapsed,
+      elapsedMinutes: Math.round(elapsed / 60000)
+    })
+  }
+
+  res.json({ updating: false })
+})
+
+/**
  * GET /api/marketing-vendas/trigger-update
  * Trigger N8N data extraction webhook before refreshing Marketing & Vendas data.
  */
 router.get('/marketing-vendas/trigger-update', async (req, res, next) => {
+  const dashboardId = 'marketing-vendas'
+
+  if (isUpdateLocked(dashboardId)) {
+    return res.status(409).json({
+      error: { message: 'Já existe uma atualização em andamento para este dashboard.', status: 409, updating: true }
+    })
+  }
+
   const webhookUrl = 'https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/82892823-713e-4652-a4d2-137402cfe280'
 
+  setUpdateLock(dashboardId)
   try {
     console.log(`[${new Date().toISOString()}] Triggering Marketing & Vendas update webhook`)
 
@@ -216,6 +275,8 @@ router.get('/marketing-vendas/trigger-update', async (req, res, next) => {
     res.status(502).json({
       error: { message: 'Falha ao executar webhook de atualização', status: 502 }
     })
+  } finally {
+    clearUpdateLock(dashboardId)
   }
 })
 
@@ -226,8 +287,17 @@ router.get('/marketing-vendas/trigger-update', async (req, res, next) => {
  * we cache it so the subsequent GET /api/data/gtm-motion finds it.
  */
 router.get('/gtm-motion/trigger-update', async (req, res, next) => {
+  const dashboardId = 'gtm-motion'
+
+  if (isUpdateLocked(dashboardId)) {
+    return res.status(409).json({
+      error: { message: 'Já existe uma atualização em andamento para este dashboard.', status: 409, updating: true }
+    })
+  }
+
   const webhookUrl = 'https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/82892823-713e-4652-a4d2-137402cfe280'
 
+  setUpdateLock(dashboardId)
   try {
     console.log(`[${new Date().toISOString()}] Triggering GTM Motion update webhook`)
 
@@ -261,6 +331,62 @@ router.get('/gtm-motion/trigger-update', async (req, res, next) => {
     res.status(502).json({
       error: { message: 'Falha ao executar webhook de atualização', status: 502 }
     })
+  } finally {
+    clearUpdateLock(dashboardId)
+  }
+})
+
+/**
+ * GET /api/tx-conv-saber-monetizacao/trigger-update
+ * Trigger N8N data extraction webhook before refreshing dashboard data.
+ * Same pattern as GTM Motion: POST to update webhook, cache response if available.
+ */
+router.get('/tx-conv-saber-monetizacao/trigger-update', async (req, res, next) => {
+  const dashboardId = 'tx-conv-saber-monetizacao'
+
+  if (isUpdateLocked(dashboardId)) {
+    return res.status(409).json({
+      error: { message: 'Já existe uma atualização em andamento para este dashboard.', status: 409, updating: true }
+    })
+  }
+
+  const webhookUrl = 'https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/atualizar-cache-dash-conv-saber-para-monetizacao'
+
+  setUpdateLock(dashboardId)
+  try {
+    console.log(`[${new Date().toISOString()}] Triggering Tx Conv Saber Monetização update webhook`)
+
+    const response = await globalThis.fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}',
+      signal: AbortSignal.timeout(300000)
+    })
+
+    if (!response.ok) {
+      throw new Error(`Webhook retornou HTTP ${response.status}`)
+    }
+
+    // Try to capture response data and cache it for the subsequent GET
+    try {
+      const responseData = await response.json()
+      if (responseData && (Array.isArray(responseData) ? responseData.length > 0 : Object.keys(responseData).length > 0)) {
+        await setCachedData('tx-conv-saber-monetizacao', responseData)
+        console.log(`[${new Date().toISOString()}] Tx Conv Saber Monetização webhook data cached successfully`)
+      }
+    } catch {
+      console.log(`[${new Date().toISOString()}] Tx Conv Saber Monetização webhook returned no parseable body`)
+    }
+
+    console.log(`[${new Date().toISOString()}] Tx Conv Saber Monetização webhook executado com sucesso`)
+    res.json({ ok: true, timestamp: new Date().toISOString() })
+  } catch (error) {
+    console.error(`[${new Date().toISOString()}] Tx Conv Saber Monetização webhook error:`, error.message, error.stack)
+    res.status(502).json({
+      error: { message: 'Falha ao executar webhook de atualização', status: 502 }
+    })
+  } finally {
+    clearUpdateLock(dashboardId)
   }
 })
 

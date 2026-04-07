@@ -56,6 +56,29 @@
       />
     </div>
   </div>
+
+  <!-- Modal: Confirmação de atualização -->
+  <VConfirmModal
+    :visible="showConfirmModal"
+    title="Atualizar dados"
+    message="A atualização dos dados pode levar até 10 minutos. Durante esse período, outros usuários não poderão solicitar uma nova atualização. Deseja continuar?"
+    confirmText="Sim, atualizar"
+    cancelText="Cancelar"
+    type="warning"
+    @confirm="confirmRefresh"
+    @cancel="cancelRefresh"
+  />
+
+  <!-- Modal: Atualização já em andamento -->
+  <VConfirmModal
+    :visible="showUpdatingModal"
+    title="Atualização em andamento"
+    message="Já existe uma atualização dos dados em andamento. Aguarde a conclusão antes de solicitar uma nova atualização."
+    confirmText="Entendido"
+    type="info"
+    @confirm="showUpdatingModal = false"
+    @cancel="showUpdatingModal = false"
+  />
 </template>
 
 <script setup>
@@ -63,6 +86,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useDashboardData } from '../../composables/useDashboardData.js'
 import { formatDateTime } from '../../composables/useFormatters.js'
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
+import VConfirmModal from '../../components/ui/VConfirmModal.vue'
 import MvSectionTable from './components/MvSectionTable.vue'
 import MvListagemTable from './components/MvListagemTable.vue'
 import { MOCK_DATA } from './mock-data.js'
@@ -186,7 +210,32 @@ const lastUpdateTime = ref(null)
 const refreshing     = ref(false)
 const triggerError   = ref(null)
 
+// ── Update confirmation modal state ──────────────────────────────────────────
+const showConfirmModal = ref(false)
+const showUpdatingModal = ref(false)
+
 async function handleRefresh() {
+  // Check if another update is already in progress
+  try {
+    const statusRes = await fetch('/api/update-status/marketing-vendas')
+    const statusData = await statusRes.json()
+    if (statusData.updating) {
+      showUpdatingModal.value = true
+      return
+    }
+  } catch {
+    // If status check fails, proceed with confirmation anyway
+  }
+
+  showConfirmModal.value = true
+}
+
+function cancelRefresh() {
+  showConfirmModal.value = false
+}
+
+async function confirmRefresh() {
+  showConfirmModal.value = false
   triggerError.value = null
   refreshing.value   = true
 
@@ -194,6 +243,11 @@ async function handleRefresh() {
     // Step 1: Trigger N8N webhook to regenerate the data
     const res = await fetch('/api/marketing-vendas/trigger-update')
     if (!res.ok) {
+      if (res.status === 409) {
+        refreshing.value = false
+        showUpdatingModal.value = true
+        return
+      }
       const body = await res.json().catch(() => ({}))
       throw new Error(body?.error?.message || `Webhook retornou HTTP ${res.status}`)
     }

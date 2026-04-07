@@ -136,6 +136,8 @@
   margin-left: 60px;
   padding: var(--spacing-lg);
   min-height: 100vh;
+  overflow-x: hidden;
+  max-width: calc(100vw - 60px);
 }
 
 /* Main Header */
