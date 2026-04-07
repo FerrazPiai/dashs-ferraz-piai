@@ -1067,8 +1067,16 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         const cr6v = t.sql_monetizacao > 0 ? (t.sal_monetizacao / t.sql_monetizacao) * 100 : 0
         const cr7v = t.sal_monetizacao > 0 ? (t.commit_monetizacao / t.sal_monetizacao) * 100 : 0
 
-        const steps = Object.entries(t.steps).map(([name, s]) => {
-          const sInv = s.investimento ?? 0
+        // Distribute investimento proportionally based on drilldown type:
+        // step→SAL, closer→SQL, canal→leads, sdr→leads
+        const baseMetricKey = drilldownBy === 'step' ? 'sal'
+          : drilldownBy === 'closer' ? 'sql' : 'leads'
+        const stepEntries = Object.entries(t.steps)
+        const totalBase = stepEntries.reduce((sum, [, s]) => sum + (s[baseMetricKey] ?? 0), 0)
+
+        const steps = stepEntries.map(([name, s]) => {
+          const proportion = totalBase > 0 ? (s[baseMetricKey] ?? 0) / totalBase : 0
+          const sInv = fi * proportion
           const sFee = s.fee_value ?? 0
           return {
             name, leads: s.leads, mql: s.mql, sql: s.sql,
