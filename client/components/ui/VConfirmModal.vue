@@ -148,6 +148,7 @@ const typeLabel = computed(() => {
   color: #ccc;
   line-height: 1.6;
   margin: 0 0 24px;
+  white-space: pre-line;
 }
 
 .confirm-modal-actions {
