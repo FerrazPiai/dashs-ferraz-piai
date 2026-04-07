@@ -3,9 +3,9 @@
     <!-- Header -->
     <div class="main-header">
       <div class="header-title">
-        <h1 class="main-title">CS</h1>
+        <h1 class="main-title">Operação</h1>
         <span class="title-sep">|</span>
-        <h2 class="main-subtitle">Fechamento Mensal</h2>
+        <h2 class="main-subtitle">Comparativo Entre Squads</h2>
       </div>
       <div class="main-actions">
         <span v-if="lastUpdateTime" class="last-update">Última atualização: {{ lastUpdateTime }}</span>
@@ -167,7 +167,7 @@ import { HISTORICO_2025 } from './historico-2025.js'
 // Constants
 // ---------------------------------------------------------------------------
 
-const DASHBOARD_ID = 'fechamento-mensal'
+const DASHBOARD_ID = 'comparativo-squads'
 
 const periodModeOptions = [
   { value: 'trimestre', label: 'Trimestre' },
@@ -402,16 +402,19 @@ watch(mesesDisponiveis, (months) => {
   if (!mesFinal.value)   mesFinal.value   = months[months.length - 1].value
 }, { immediate: true })
 
+const quarterInitialized = ref(false)
+
 watch(quartersDisponiveis, (quarters) => {
   if (!quarters.length) return
-  if (!selectedQuarter.value) {
-    // Selecionar o trimestre atual
+  if (!quarterInitialized.value) {
     const now = new Date()
     const curYear = now.getFullYear()
     const curQ = `Q${Math.ceil((now.getMonth() + 1) / 3)}`
     const curKey = `${curYear}-${curQ}`
     const match = quarters.find(q => q.value === curKey)
     selectedQuarter.value = match ? match.value : quarters[quarters.length - 1].value
+    // Só marcar como inicializado quando os dados da API já carregaram
+    if (rawRows.value.length > 0) quarterInitialized.value = true
   }
 }, { immediate: true })
 

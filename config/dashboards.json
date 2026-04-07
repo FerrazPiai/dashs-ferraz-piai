@@ -36,13 +36,12 @@
     "status": "available"
   },
   {
-    "id": "fechamento-mensal",
-    "title": "Fechamento Mensal",
-    "icon": "calendar-check",
+    "id": "comparativo-squads",
+    "title": "Comparativo Squads",
+    "icon": "git-compare",
     "componentPath": "FechamentoMensal",
-    "apiEndpoint": "API_ENDPOINT_FECHAMENTO_MENSAL",
+    "apiEndpoint": "API_ENDPOINT_COMPARATIVO_SQUADS",
     "cacheTTL": 300000,
-    "status": "development",
-    "statusMessage": "Este dashboard está em desenvolvimento. Os dados podem estar incompletos."
+    "status": "available"
   }
 ]
