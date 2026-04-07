@@ -16,7 +16,7 @@
             <th class="col-num">SAL <span class="th-hint" data-tip="Reuniões efetivamente realizadas">?</span></th>
             <th class="col-cr">CR4% <span class="th-hint" data-tip="Conversão de SAL para Commit">?</span></th>
             <th class="col-num">Commit <span class="th-hint" data-tip="Contratos assinados">?</span></th>
-            <th class="col-cr">MQL&gt;Won% <span class="th-hint" data-tip="Conversão direta de MQL para contrato fechado">?</span></th>
+            <th class="col-cr">Hit Rate <span class="th-hint" data-tip="Conversão direta de MQL para contrato fechado">?</span></th>
             <th class="col-money">Avg Ticket <span class="th-hint th-hint--right" data-tip="Valor médio por contrato">?</span></th>
             <th class="col-money">TCV <span class="th-hint th-hint--right" data-tip="Receita total contratada">?</span></th>
             <th class="col-center">ROAS Booking <span class="th-hint th-hint--right" data-tip="TCV / Investimento">?</span></th>

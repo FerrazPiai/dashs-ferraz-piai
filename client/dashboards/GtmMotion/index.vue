@@ -317,7 +317,7 @@
   <VConfirmModal
     :visible="showConfirmModal"
     title="Atualizar dados"
-    message="A atualização dos dados pode levar até 10 minutos. Durante esse período, outros usuários não poderão solicitar uma nova atualização. Deseja continuar?"
+    :message="confirmMessage"
     confirmText="Sim, atualizar"
     cancelText="Cancelar"
     type="warning"
@@ -595,8 +595,8 @@ const tableDrilldown = ref('step')
 const drilldownOptions = [
   { value: 'step', label: 'Step' },
   { value: 'closer', label: 'Closer' },
-  { value: 'sdr', label: 'SDR' },
   { value: 'canal', label: 'Canal' },
+  { value: 'sdr', label: 'SDR' },
 ]
 
 // When drill-down changes, reset the corresponding filter to prevent ghost filtering
@@ -1764,6 +1764,14 @@ const tableTitle = computed(() => {
 const mvListagemData = computed(() => resolvedData.value?.listagem ?? [])
 
 const lastUpdateTime = ref(null)
+
+const confirmMessage = computed(() => {
+  const base = 'Os dados são atualizados automaticamente a cada 1 hora.'
+  const lastUpdate = lastUpdateTime.value
+    ? `\nÚltima atualização: ${lastUpdateTime.value}.`
+    : ''
+  return `${base}${lastUpdate}\n\nA atualização manual pode levar até 10 minutos. Durante esse período, outros usuários não poderão solicitar uma nova atualização. Deseja continuar?`
+})
 
 // ── Update confirmation modal state ──────────────────────────────────────────
 const showConfirmModal = ref(false)
