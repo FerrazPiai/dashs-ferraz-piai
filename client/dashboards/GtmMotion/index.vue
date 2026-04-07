@@ -306,40 +306,8 @@
       <GtmFunnelTable :tiers="currentTiers" :loading="loading" :drilldown="tableDrilldown" />
     </div>
 
-    <!-- Marketing & Vendas Toggle -->
-    <div class="mv-toggle-wrapper">
-      <VToggleGroup v-model="mvView" :options="mvViewOptions" />
-    </div>
-
-    <!-- Agrupada: Analista + Canal -->
-    <div v-if="mvView === 'agrupada'" class="mv-sections">
-      <MvSectionTable
-        title="Visão por Analista"
-        icon="users"
-        type="analyst"
-        nameLabel="Analista"
-        :mode="analistaMode"
-        :rows="mvAnalistaRows"
-        :loading="loading"
-        sortable
-      >
-        <template #header-actions>
-          <VToggleGroup v-model="analistaMode" :options="analistaModeOptions" />
-        </template>
-      </MvSectionTable>
-      <MvSectionTable
-        title="Visão por Canal"
-        icon="radio-tower"
-        type="canal"
-        :rows="mvCanalData"
-        :loading="loading"
-        sortable
-      />
-    </div>
-
     <!-- Lista: Listagem de Prospects -->
     <MvListagemTable
-      v-if="mvView === 'lista'"
       :rows="mvListagemData"
       :loading="loading"
     />
@@ -378,7 +346,6 @@ import VConfirmModal from '../../components/ui/VConfirmModal.vue'
 import GtmScorecard from './components/GtmScorecard.vue'
 import GtmFunnelTable from './components/GtmFunnelTable.vue'
 import VToggleGroup from '../../components/ui/VToggleGroup.vue'
-import MvSectionTable from '../MarketingVendas/components/MvSectionTable.vue'
 import MvListagemTable from '../MarketingVendas/components/MvListagemTable.vue'
 import { MOCK_DATA, CANAIS, MESES, QUARTERS } from './mock-data.js'
 
@@ -425,19 +392,6 @@ const kpiCurrencyFormatter = computed(() =>
   kpiValueMode.value === 'full' ? formatCurrency : formatCurrencyAbbrev
 )
 
-// ── MV Toggle ─────────────────────────────────────────────────────────────────
-const mvView = ref('agrupada')
-const mvViewOptions = [
-  { value: 'agrupada', label: 'Agrupada' },
-  { value: 'lista', label: 'Lista' }
-]
-
-// ── Analista SDR/Closer toggle ───────────────────────────────────────────────
-const analistaMode = ref('sdr')
-const analistaModeOptions = [
-  { value: 'sdr', label: 'SDR' },
-  { value: 'closer', label: 'Closer' }
-]
 
 // ── Period mode (Quarter / Mês) ──────────────────────────────────────────────
 const periodMode = ref('mes')
@@ -642,6 +596,7 @@ const drilldownOptions = [
   { value: 'step', label: 'Step' },
   { value: 'closer', label: 'Closer' },
   { value: 'sdr', label: 'SDR' },
+  { value: 'canal', label: 'Canal' },
 ]
 
 // When drill-down changes, reset the corresponding filter to prevent ghost filtering
@@ -826,6 +781,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           sal_value: 0, commit_value: 0, booking_value: 0,
           investimento_value: 0, fee_value: 0,
           LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0,
+          aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0,
           isEmptyRow: isEmpty,
           isTotal: isTotalRow,
           steps: {},
@@ -843,6 +799,10 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
       const fLt      = toNum(row.LT_medio) ?? 0
       const fCrMon   = toNum(row.CR_monetizacao) ?? 0
       const fBkMon   = toNum(row.booking_monetizacao) ?? 0
+      const fAqlMon  = toNum(row.aql_monetizacao) ?? 0
+      const fSqlMon  = toNum(row.sql_monetizacao) ?? 0
+      const fSalMon  = toNum(row.sal_monetizacao) ?? 0
+      const fCommitMon = toNum(row.commit_monetizacao) ?? 0
 
       if (isNewFormat) {
         // New format: each row is unique (no duplication), always accumulate to tier totals
@@ -858,6 +818,10 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         if (fLt > 0) { acc.LT_sum += fLt; acc.LT_count++ }
         acc.CR_monetizacao += fCrMon
         acc.booking_monetizacao += fBkMon
+        acc.aql_monetizacao += fAqlMon
+        acc.sql_monetizacao += fSqlMon
+        acc.sal_monetizacao += fSalMon
+        acc.commit_monetizacao += fCommitMon
 
         // Step drilldown: distribute row metrics to each subcategoria in the array
         if (drilldownBy === 'step') {
@@ -865,7 +829,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           for (const subKey of subs) {
             if (!subKey) continue
             if (!acc.steps[subKey]) {
-              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0 }
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
             }
             const sa = acc.steps[subKey]
             sa.leads   += fLeads
@@ -879,14 +843,19 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             if (fLt > 0) { sa.LT_sum += fLt; sa.LT_count++ }
             sa.CR_monetizacao += fCrMon
             sa.booking_monetizacao += fBkMon
+            sa.aql_monetizacao += fAqlMon
+            sa.sql_monetizacao += fSqlMon
+            sa.sal_monetizacao += fSalMon
+            sa.commit_monetizacao += fCommitMon
           }
         } else {
-          // Closer/SDR drilldown
+          // Closer/SDR/Canal drilldown
           const subKey = drilldownBy === 'closer' ? row.closer
-            : drilldownBy === 'sdr' ? row.sdr : null
+            : drilldownBy === 'sdr' ? row.sdr
+            : drilldownBy === 'canal' ? row.canal : null
           if (subKey) {
             if (!acc.steps[subKey]) {
-              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0 }
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
             }
             const sa = acc.steps[subKey]
             sa.leads   += fLeads
@@ -900,6 +869,10 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             if (fLt > 0) { sa.LT_sum += fLt; sa.LT_count++ }
             sa.CR_monetizacao += fCrMon
             sa.booking_monetizacao += fBkMon
+            sa.aql_monetizacao += fAqlMon
+            sa.sql_monetizacao += fSqlMon
+            sa.sal_monetizacao += fSalMon
+            sa.commit_monetizacao += fCommitMon
           }
         }
       } else {
@@ -920,11 +893,15 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           if (fLt > 0) { acc.LT_sum += fLt; acc.LT_count++ }
           acc.CR_monetizacao += fCrMon
           acc.booking_monetizacao += fBkMon
+          acc.aql_monetizacao += fAqlMon
+          acc.sql_monetizacao += fSqlMon
+          acc.sal_monetizacao += fSalMon
+          acc.commit_monetizacao += fCommitMon
         }
 
         if (drilldownBy === 'step' && !isSummaryRow) {
           if (!acc.steps[subVal]) {
-            acc.steps[subVal] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0 }
+            acc.steps[subVal] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
           }
           const sa = acc.steps[subVal]
           sa.leads   += fLeads
@@ -938,12 +915,17 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           if (fLt > 0) { sa.LT_sum += fLt; sa.LT_count++ }
           sa.CR_monetizacao += fCrMon
           sa.booking_monetizacao += fBkMon
+          sa.aql_monetizacao += fAqlMon
+          sa.sql_monetizacao += fSqlMon
+          sa.sal_monetizacao += fSalMon
+          sa.commit_monetizacao += fCommitMon
         } else if (drilldownBy !== 'step' && isSummaryRow) {
           const subKey = drilldownBy === 'closer' ? row.closer
-            : drilldownBy === 'sdr' ? row.sdr : null
+            : drilldownBy === 'sdr' ? row.sdr
+            : drilldownBy === 'canal' ? row.canal : null
           if (subKey) {
             if (!acc.steps[subKey]) {
-              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0 }
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
             }
             const sa = acc.steps[subKey]
             sa.leads   += fLeads
@@ -957,6 +939,10 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             if (fLt > 0) { sa.LT_sum += fLt; sa.LT_count++ }
             sa.CR_monetizacao += fCrMon
             sa.booking_monetizacao += fBkMon
+            sa.aql_monetizacao += fAqlMon
+            sa.sql_monetizacao += fSqlMon
+            sa.sal_monetizacao += fSalMon
+            sa.commit_monetizacao += fCommitMon
           }
         }
       }
@@ -1019,7 +1005,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
     if (hasTierData) {
       // Build tier rows — include ALL tiers from data (not just hardcoded)
       tiers = []
-      let totLeads = 0, totMql = 0, totSql = 0, totSal = 0, totCommit = 0, totBooking = 0, totInvest = 0, totFeeProd = 0, totLtSum = 0, totLtCount = 0, totCrMon = 0, totBkMon = 0, totLtv = 0
+      let totLeads = 0, totMql = 0, totSql = 0, totSal = 0, totCommit = 0, totBooking = 0, totInvest = 0, totFeeProd = 0, totLtSum = 0, totLtCount = 0, totCrMon = 0, totBkMon = 0, totLtv = 0, totAqlMon = 0, totSqlMon = 0, totSalMon = 0, totCommitMon = 0
 
       // Collect all tier names from data, sort by TIER_ORDER (unknown tiers go before Total)
       const allTierNames = Object.keys(canalFunil).filter(t => t !== 'Total' && !canalFunil[t]?.isTotal)
@@ -1043,6 +1029,8 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             roas_fee: eInv > 0 ? eFee / eInv : 0,
             LT_medio: t.LT_count > 0 ? t.LT_sum / t.LT_count : 0,
             CR_monetizacao: t.CR_monetizacao, booking_monetizacao: t.booking_monetizacao,
+            aql_monetizacao: t.aql_monetizacao, sql_monetizacao: t.sql_monetizacao,
+            sal_monetizacao: t.sal_monetizacao, commit_monetizacao: t.commit_monetizacao,
             isEmptyRow: true,
           })
           totLeads   += t.leads_value
@@ -1055,6 +1043,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           totFeeProd += eFee
           totLtSum   += t.LT_sum; totLtCount += t.LT_count
           totCrMon   += t.CR_monetizacao; totBkMon += t.booking_monetizacao
+          totAqlMon += t.aql_monetizacao; totSqlMon += t.sql_monetizacao; totSalMon += t.sal_monetizacao; totCommitMon += t.commit_monetizacao
           const eLt = t.LT_count > 0 ? t.LT_sum / t.LT_count : 0
           if (eFee > 0 && eLt > 0) totLtv += eFee * (eLt / 30)
           continue
@@ -1074,6 +1063,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         const cr3v = fs   > 0 ? (fsal / fs)  * 100 : 0
         const cr4v = fsal > 0 ? (fc  / fsal) * 100 : 0
         const mwv  = fm   > 0 ? (fc  / fm)   * 100 : 0
+        const cr5v = t.aql_monetizacao > 0 ? (t.sql_monetizacao / t.aql_monetizacao) * 100 : 0
+        const cr6v = t.sql_monetizacao > 0 ? (t.sal_monetizacao / t.sql_monetizacao) * 100 : 0
+        const cr7v = t.sal_monetizacao > 0 ? (t.commit_monetizacao / t.sal_monetizacao) * 100 : 0
 
         const steps = Object.entries(t.steps).map(([name, s]) => {
           const sInv = s.investimento ?? 0
@@ -1088,6 +1080,10 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             LT_medio: (s.LT_count ?? 0) > 0 ? s.LT_sum / s.LT_count : 0,
             CR_monetizacao: s.CR_monetizacao ?? 0,
             booking_monetizacao: s.booking_monetizacao ?? 0,
+            aql_monetizacao: s.aql_monetizacao ?? 0,
+            sql_monetizacao: s.sql_monetizacao ?? 0,
+            sal_monetizacao: s.sal_monetizacao ?? 0,
+            commit_monetizacao: s.commit_monetizacao ?? 0,
           }
         })
         if (drilldownBy === 'step') {
@@ -1117,8 +1113,13 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           cr3:    { val: cr3v, color: crColor(cr3v, 80, 65) },
           cr4:    { val: cr4v, color: crColor(cr4v, 20, 12) },
           mqlWon: { val: mwv,  color: crColor(mwv,  5,  3)  },
+          cr5:    { val: cr5v, color: crColor(cr5v, 25, 15) },
+          cr6:    { val: cr6v, color: crColor(cr6v, 80, 65) },
+          cr7:    { val: cr7v, color: crColor(cr7v, 20, 12) },
           LT_medio: t.LT_count > 0 ? t.LT_sum / t.LT_count : 0,
           CR_monetizacao: t.CR_monetizacao, booking_monetizacao: t.booking_monetizacao,
+          aql_monetizacao: t.aql_monetizacao, sql_monetizacao: t.sql_monetizacao,
+          sal_monetizacao: t.sal_monetizacao, commit_monetizacao: t.commit_monetizacao,
           steps,
         })
 
@@ -1129,6 +1130,53 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         const tierLt = t.LT_count > 0 ? t.LT_sum / t.LT_count : 0
         if (tierFee > 0 && tierLt > 0) totLtv += tierFee * (tierLt / 30)
         totCrMon   += t.CR_monetizacao; totBkMon += t.booking_monetizacao
+        totAqlMon += t.aql_monetizacao; totSqlMon += t.sql_monetizacao; totSalMon += t.sal_monetizacao; totCommitMon += t.commit_monetizacao
+      }
+
+      // Aggregate steps for Total row
+      const totalStepsMap = {}
+      for (const tierRow of tiers) {
+        if (!tierRow.steps) continue
+        for (const step of tierRow.steps) {
+          if (!totalStepsMap[step.name]) {
+            totalStepsMap[step.name] = { ...step }
+          } else {
+            const ts = totalStepsMap[step.name]
+            ts.leads = (ts.leads ?? 0) + (step.leads ?? 0)
+            ts.mql = (ts.mql ?? 0) + (step.mql ?? 0)
+            ts.sql = (ts.sql ?? 0) + (step.sql ?? 0)
+            ts.sal = (ts.sal ?? 0) + (step.sal ?? 0)
+            ts.commit = (ts.commit ?? 0) + (step.commit ?? 0)
+            ts.booking = (ts.booking ?? 0) + (step.booking ?? 0)
+            ts.investimento = (ts.investimento ?? 0) + (step.investimento ?? 0)
+            ts.fee_total = (ts.fee_total ?? 0) + (step.fee_total ?? 0)
+            ts.CR_monetizacao = (ts.CR_monetizacao ?? 0) + (step.CR_monetizacao ?? 0)
+            ts.booking_monetizacao = (ts.booking_monetizacao ?? 0) + (step.booking_monetizacao ?? 0)
+            ts.aql_monetizacao = (ts.aql_monetizacao ?? 0) + (step.aql_monetizacao ?? 0)
+            ts.sql_monetizacao = (ts.sql_monetizacao ?? 0) + (step.sql_monetizacao ?? 0)
+            ts.sal_monetizacao = (ts.sal_monetizacao ?? 0) + (step.sal_monetizacao ?? 0)
+            ts.commit_monetizacao = (ts.commit_monetizacao ?? 0) + (step.commit_monetizacao ?? 0)
+          }
+        }
+      }
+      const totalSteps = Object.values(totalStepsMap)
+      for (const ts of totalSteps) {
+        const inv = ts.investimento ?? 0
+        ts.roas_booking = inv > 0 ? (ts.booking ?? 0) / inv : 0
+        ts.roas_fee = inv > 0 ? (ts.fee_total ?? 0) / inv : 0
+      }
+      if (drilldownBy === 'step') {
+        totalSteps.sort((a, b) => {
+          const ia = STEP_ORDER.indexOf(a.name)
+          const ib = STEP_ORDER.indexOf(b.name)
+          return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib)
+        })
+      } else {
+        totalSteps.sort((a, b) => {
+          const aLast = /^sem\s/i.test(a.name) ? 1 : 0
+          const bLast = /^sem\s/i.test(b.name) ? 1 : 0
+          return aLast - bLast || a.name.localeCompare(b.name)
+        })
       }
 
       // Add Total row
@@ -1137,6 +1185,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
       const tcr3 = totSql     > 0 ? (totSal    / totSql)     * 100 : 0
       const tcr4 = totSal     > 0 ? (totCommit / totSal)     * 100 : 0
       const tmw  = totMql     > 0 ? (totCommit / totMql)     * 100 : 0
+      const tcr5 = totAqlMon  > 0 ? (totSqlMon    / totAqlMon)  * 100 : 0
+      const tcr6 = totSqlMon  > 0 ? (totSalMon    / totSqlMon)  * 100 : 0
+      const tcr7 = totSalMon  > 0 ? (totCommitMon / totSalMon)  * 100 : 0
       tiers.push({
         tier: 'Total',
         leads: totLeads, mql: totMql, sql: totSql, sal: totSal,
@@ -1151,10 +1202,16 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         cr3:    { val: tcr3, color: crColor(tcr3, 80, 65) },
         cr4:    { val: tcr4, color: crColor(tcr4, 20, 12) },
         mqlWon: { val: tmw,  color: crColor(tmw,  5,  3)  },
+        cr5:    { val: tcr5, color: crColor(tcr5, 25, 15) },
+        cr6:    { val: tcr6, color: crColor(tcr6, 80, 65) },
+        cr7:    { val: tcr7, color: crColor(tcr7, 20, 12) },
         LT_medio: totLtCount > 0 ? totLtSum / totLtCount : 0,
         ltv: totLtv > 0 ? Math.round(totLtv) : null,
         CR_monetizacao: totCrMon, booking_monetizacao: totBkMon,
+        aql_monetizacao: totAqlMon, sql_monetizacao: totSqlMon,
+        sal_monetizacao: totSalMon, commit_monetizacao: totCommitMon,
         isTotal: true,
+        steps: totalSteps,
       })
     } else {
       // No tier data: one aggregated row per canal (canal label as tier name)
@@ -1565,6 +1622,10 @@ const currentTiers = computed(() => {
           ex.investimento = (ex.investimento ?? 0) + (row.investimento ?? 0)
           ex.CR_monetizacao = (ex.CR_monetizacao ?? 0) + (row.CR_monetizacao ?? 0)
           ex.booking_monetizacao = (ex.booking_monetizacao ?? 0) + (row.booking_monetizacao ?? 0)
+          ex.aql_monetizacao = (ex.aql_monetizacao ?? 0) + (row.aql_monetizacao ?? 0)
+          ex.sql_monetizacao = (ex.sql_monetizacao ?? 0) + (row.sql_monetizacao ?? 0)
+          ex.sal_monetizacao = (ex.sal_monetizacao ?? 0) + (row.sal_monetizacao ?? 0)
+          ex.commit_monetizacao = (ex.commit_monetizacao ?? 0) + (row.commit_monetizacao ?? 0)
           continue
         }
         ex.leads   = (ex.leads   ?? 0) + (row.leads   ?? 0)
@@ -1576,6 +1637,10 @@ const currentTiers = computed(() => {
         ex.investimento = (ex.investimento ?? 0) + (row.investimento ?? 0)
         ex.CR_monetizacao = (ex.CR_monetizacao ?? 0) + (row.CR_monetizacao ?? 0)
         ex.booking_monetizacao = (ex.booking_monetizacao ?? 0) + (row.booking_monetizacao ?? 0)
+        ex.aql_monetizacao = (ex.aql_monetizacao ?? 0) + (row.aql_monetizacao ?? 0)
+        ex.sql_monetizacao = (ex.sql_monetizacao ?? 0) + (row.sql_monetizacao ?? 0)
+        ex.sal_monetizacao = (ex.sal_monetizacao ?? 0) + (row.sal_monetizacao ?? 0)
+        ex.commit_monetizacao = (ex.commit_monetizacao ?? 0) + (row.commit_monetizacao ?? 0)
         ex.avgTicket = ex.commit > 0 ? Math.round(ex.booking / ex.commit) : 0
         const cr1v = ex.leads  > 0 ? (ex.mql    / ex.leads)  * 100 : 0
         const cr2v = ex.mql    > 0 ? (ex.sql    / ex.mql)    * 100 : 0
@@ -1587,6 +1652,12 @@ const currentTiers = computed(() => {
         ex.cr3    = { val: cr3v, color: crColor(cr3v, 80, 65) }
         ex.cr4    = { val: cr4v, color: crColor(cr4v, 20, 12) }
         ex.mqlWon = { val: mwv,  color: crColor(mwv,   5,  3) }
+        const cr5v2 = (ex.aql_monetizacao ?? 0) > 0 ? ((ex.sql_monetizacao ?? 0) / ex.aql_monetizacao) * 100 : 0
+        const cr6v2 = (ex.sql_monetizacao ?? 0) > 0 ? ((ex.sal_monetizacao ?? 0) / ex.sql_monetizacao) * 100 : 0
+        const cr7v2 = (ex.sal_monetizacao ?? 0) > 0 ? ((ex.commit_monetizacao ?? 0) / ex.sal_monetizacao) * 100 : 0
+        ex.cr5 = { val: cr5v2, color: crColor(cr5v2, 25, 15) }
+        ex.cr6 = { val: cr6v2, color: crColor(cr6v2, 80, 65) }
+        ex.cr7 = { val: cr7v2, color: crColor(cr7v2, 20, 12) }
         // Merge steps by name
         if (row.steps?.length > 0) {
           if (!ex.steps?.length) {
@@ -1608,6 +1679,10 @@ const currentTiers = computed(() => {
                 exStep.investimento = (exStep.investimento ?? 0) + (step.investimento ?? 0)
                 exStep.CR_monetizacao = (exStep.CR_monetizacao ?? 0) + (step.CR_monetizacao ?? 0)
                 exStep.booking_monetizacao = (exStep.booking_monetizacao ?? 0) + (step.booking_monetizacao ?? 0)
+                exStep.aql_monetizacao = (exStep.aql_monetizacao ?? 0) + (step.aql_monetizacao ?? 0)
+                exStep.sql_monetizacao = (exStep.sql_monetizacao ?? 0) + (step.sql_monetizacao ?? 0)
+                exStep.sal_monetizacao = (exStep.sal_monetizacao ?? 0) + (step.sal_monetizacao ?? 0)
+                exStep.commit_monetizacao = (exStep.commit_monetizacao ?? 0) + (step.commit_monetizacao ?? 0)
               } else {
                 ex.steps.push({ ...step, roas_booking: 0, roas_fee: 0 })
               }
@@ -1684,130 +1759,6 @@ const kpiLtv = computed(() => {
 const tableTitle = computed(() => {
   if (isConsolidado.value) return 'Consolidado — Todos os Canais'
   return CANAIS.find((c) => c.id === selectedChannel.value)?.label ?? selectedChannel.value
-})
-
-// ── Marketing & Vendas data (from GTM Motion webhook) ────────────────────────
-const MV_CANAL_META = {
-  'Lead Broker': { icon: 'users', color: '#14b8a6' },
-  'Black Box':   { icon: 'box',   color: '#888'    },
-  'Eventos':     { icon: 'calendar', color: '#a855f7' },
-  'Outros':      { icon: 'more-horizontal', color: '#666' },
-}
-
-function mvAvgTicketColor(v) {
-  if (v >= 30000) return 'green'
-  if (v >= 15000) return 'yellow'
-  if (v >= 5000)  return 'orange'
-  return 'red'
-}
-
-function mvAddConversions(row) {
-  const cr1 = row.leads     > 0 ? (row.agendadas  / row.leads)     * 100 : 0
-  const cr2 = row.agendadas > 0 ? (row.realizadas / row.agendadas) * 100 : 0
-  const cr3 = row.realizadas > 0 ? (row.contratos / row.realizadas) * 100 : 0
-  const avg = row.contratos > 0 ? Math.round(row.booking / row.contratos) : 0
-  return {
-    ...row,
-    cr1: { val: cr1, color: crColor(cr1, 70, 50) },
-    cr2: { val: cr2, color: crColor(cr2, 50, 30) },
-    cr3: { val: cr3, color: crColor(cr3, 20, 10) },
-    avgTicket: avg,
-    avgTicketColor: mvAvgTicketColor(avg),
-  }
-}
-
-// Read agrupadas fields (keys with accents/spaces from N8N)
-function readAgrupada(r) {
-  return {
-    leads:      Number(r['Leads'] ?? r.leads_value ?? r.Leads ?? 0) || 0,
-    agendadas:  Number(r['Reuniões Agendadas'] ?? r.reunioes_agendadas_value ?? 0) || 0,
-    realizadas: Number(r['Reuniões Realizadas'] ?? r.reunioes_realizadas_value ?? 0) || 0,
-    contratos:  Number(r['Contratos Assinados'] ?? r.contratos_assinados_value ?? 0) || 0,
-    booking:    Number(r['Booking'] ?? r.booking_value ?? 0) || 0,
-    avgTicket:  Number(r['Avg. Ticket'] ?? r.avg_ticket ?? 0) || 0,
-  }
-}
-
-// SDR view: group agrupadas by SDR → leads, agendadas, realizadas
-const mvAnalistaSdrData = computed(() => {
-  const source = resolvedData.value
-  if (!source?.agrupadas?.length) return []
-  const map = new Map()
-  for (const r of source.agrupadas) {
-    const name = r.sdr
-    if (!name || name.toLowerCase() === 'sem sdr') continue
-    if (!map.has(name)) {
-      map.set(name, { name, avatar: name.slice(0, 2).toUpperCase(), leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
-    }
-    const a = map.get(name)
-    const v = readAgrupada(r)
-    a.leads      += v.leads
-    a.agendadas  += v.agendadas
-    a.realizadas += v.realizadas
-  }
-  return [...map.values()].map(mvAddConversions)
-})
-
-// Closer view: group agrupadas by Closer → contratos, booking, avgTicket
-const mvAnalistaCloserData = computed(() => {
-  const source = resolvedData.value
-  if (!source?.agrupadas?.length) return []
-  const map = new Map()
-  for (const r of source.agrupadas) {
-    const name = r.closer
-    if (!name || name.toLowerCase() === 'sem closer') continue
-    if (!map.has(name)) {
-      map.set(name, { name, avatar: name.slice(0, 2).toUpperCase(), leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
-    }
-    const a = map.get(name)
-    const v = readAgrupada(r)
-    a.contratos  += v.contratos
-    a.booking    += v.booking
-  }
-  // Agrupadas may lack booking — supplement from KPIs (same dimensions)
-  for (const kpi of (source.rawKpis ?? [])) {
-    const name = kpi.closer
-    if (!name || name.toLowerCase() === 'sem closer') continue
-    if (!isConsolidado.value && (kpi.canal ?? '').toLowerCase() !== selectedChannel.value.toLowerCase()) continue
-    if (map.has(name)) {
-      map.get(name).booking += Number(kpi.booking_value) || 0
-    }
-  }
-  return [...map.values()].map(mvAddConversions)
-})
-
-const mvAnalistaRows = computed(() =>
-  analistaMode.value === 'sdr' ? mvAnalistaSdrData.value : mvAnalistaCloserData.value
-)
-
-const mvCanalData = computed(() => {
-  const source = resolvedData.value
-  if (!source?.agrupadas?.length) return []
-  const map = new Map()
-  for (const r of source.agrupadas) {
-    const canal = r.canal
-    if (!canal) continue
-    if (!map.has(canal)) {
-      const meta = MV_CANAL_META[canal] ?? { icon: 'radio-tower', color: '#888' }
-      map.set(canal, { name: canal, icon: meta.icon, iconColor: meta.color, leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
-    }
-    const c = map.get(canal)
-    const v = readAgrupada(r)
-    c.leads      += v.leads
-    c.agendadas  += v.agendadas
-    c.realizadas += v.realizadas
-    c.contratos  += v.contratos
-    c.booking    += v.booking
-  }
-  // Agrupadas may lack booking — supplement from KPIs (same dimensions)
-  for (const kpi of (source.rawKpis ?? [])) {
-    const canal = kpi.canal
-    if (!canal) continue
-    if (map.has(canal)) {
-      map.get(canal).booking += Number(kpi.booking_value) || 0
-    }
-  }
-  return [...map.values()].map(mvAddConversions)
 })
 
 const mvListagemData = computed(() => resolvedData.value?.listagem ?? [])
@@ -2233,6 +2184,7 @@ onMounted(async () => {
   border-radius: 6px;
   overflow: hidden;
   max-width: 100%;
+  margin-bottom: 24px;
 }
 
 .table-header {
@@ -2251,18 +2203,5 @@ onMounted(async () => {
   margin: 0;
 }
 
-/* Marketing & Vendas section */
-.mv-toggle-wrapper {
-  display: flex;
-  justify-content: center;
-  margin-top: 24px;
-  margin-bottom: 20px;
-}
-
-.mv-sections {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
 
 </style>

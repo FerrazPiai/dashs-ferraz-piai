@@ -23,13 +23,20 @@
             <th class="col-center">ROAS Fee <span class="th-hint th-hint--right" data-tip="Fee / Investimento">?</span></th>
             <th class="col-num">LT Médio <span class="th-hint th-hint--right" data-tip="Lead Time médio em dias">?</span></th>
             <th class="col-money">LTV <span class="th-hint th-hint--right" data-tip="Lifetime Value (Fee médio × LT em meses)">?</span></th>
+            <th class="col-num">AQL Mon. <span class="th-hint th-hint--right" data-tip="Account Qualified Lead — Oportunidades mapeadas de monetização">?</span></th>
+            <th class="col-cr">CR5% <span class="th-hint th-hint--right" data-tip="Conversão AQL → SQL Monetização">?</span></th>
+            <th class="col-num">SQL Mon. <span class="th-hint th-hint--right" data-tip="Reunião Agendada — Reuniões agendadas de monetização">?</span></th>
+            <th class="col-cr">CR6% <span class="th-hint th-hint--right" data-tip="Conversão SQL → SAL Monetização">?</span></th>
+            <th class="col-num">SAL Mon. <span class="th-hint th-hint--right" data-tip="Reunião Realizada — Reuniões realizadas de monetização">?</span></th>
+            <th class="col-cr">CR7% <span class="th-hint th-hint--right" data-tip="Conversão SAL → Commit Monetização">?</span></th>
+            <th class="col-num">Commit Mon. <span class="th-hint th-hint--right" data-tip="Venda concretizada de monetização">?</span></th>
             <th class="col-num">CR Monet. <span class="th-hint th-hint--right" data-tip="Commits de monetização">?</span></th>
             <th class="col-money">Booking Monet. <span class="th-hint th-hint--right" data-tip="Booking de monetização (TCV)">?</span></th>
           </tr>
         </thead>
         <tbody v-if="loading">
           <tr v-for="i in 6" :key="i" class="skeleton-row">
-            <td v-for="j in 21" :key="j"><div class="skeleton-cell"></div></td>
+            <td v-for="j in 28" :key="j"><div class="skeleton-cell"></div></td>
           </tr>
         </tbody>
         <tbody v-else>
@@ -58,14 +65,38 @@
               <td class="col-center">{{ fmtRoas(row.roas_fee) }}</td>
               <td class="col-num">{{ fmtLt(row.LT_medio) }}</td>
               <td class="col-money">{{ fmtLtv(row) }}</td>
+              <td class="col-num">{{ formatNumber(row.aql_monetizacao) }}</td>
+              <td class="col-cr">—</td>
+              <td class="col-num">{{ formatNumber(row.sql_monetizacao) }}</td>
+              <td class="col-cr">—</td>
+              <td class="col-num">{{ formatNumber(row.sal_monetizacao) }}</td>
+              <td class="col-cr">—</td>
+              <td class="col-num">{{ formatNumber(row.commit_monetizacao) }}</td>
               <td class="col-num">{{ formatNumber(row.CR_monetizacao) }}</td>
               <td class="col-money">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
 
             <!-- Total row -->
-            <tr v-else-if="row.isTotal" class="tier-row total-row">
+            <tr v-else-if="row.isTotal" class="tier-row total-row" :class="{ 'has-steps': hasSteps(row) }">
               <td class="col-tier col-sticky total-label">
-                <span class="expand-placeholder"></span>
+                <button
+                  v-if="hasSteps(row)"
+                  class="expand-btn"
+                  :class="{ expanded: expandedTiers.has(row.tier) }"
+                  @click="toggleTier(row.tier)"
+                  :aria-label="expandedTiers.has(row.tier) ? 'Recolher' : 'Expandir'"
+                >
+                  <svg v-if="expandedTiers.has(row.tier)" width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <line x1="3.5" y1="7" x2="10.5" y2="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                  <svg v-else width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <rect x="1" y="1" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.5"/>
+                    <line x1="7" y1="3.5" x2="7" y2="10.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                    <line x1="3.5" y1="7" x2="10.5" y2="7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                  </svg>
+                </button>
+                <span v-else class="expand-placeholder"></span>
                 {{ row.tier }}
               </td>
               <td class="col-center total-val">{{ fmtMoney(row.investimento) }}</td>
@@ -86,6 +117,13 @@
               <td class="col-center total-val">{{ fmtRoas(row.roas_fee) }}</td>
               <td class="col-num total-val">{{ fmtLt(row.LT_medio) }}</td>
               <td class="col-money total-val">{{ fmtLtv(row) }}</td>
+              <td class="col-num total-val">{{ formatNumber(row.aql_monetizacao) }}</td>
+              <td class="col-cr"><span :class="crClass(row.cr5?.color)">{{ fmtCr(row.cr5?.val) }}</span></td>
+              <td class="col-num total-val">{{ formatNumber(row.sql_monetizacao) }}</td>
+              <td class="col-cr"><span :class="crClass(row.cr6?.color)">{{ fmtCr(row.cr6?.val) }}</span></td>
+              <td class="col-num total-val">{{ formatNumber(row.sal_monetizacao) }}</td>
+              <td class="col-cr"><span :class="crClass(row.cr7?.color)">{{ fmtCr(row.cr7?.val) }}</span></td>
+              <td class="col-num total-val">{{ formatNumber(row.commit_monetizacao) }}</td>
               <td class="col-num total-val">{{ formatNumber(row.CR_monetizacao) }}</td>
               <td class="col-money total-val">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
@@ -131,6 +169,13 @@
               <td class="col-center">{{ fmtRoas(row.roas_fee) }}</td>
               <td class="col-num">{{ fmtLt(row.LT_medio) }}</td>
               <td class="col-money">{{ fmtLtv(row) }}</td>
+              <td class="col-num">{{ formatNumber(row.aql_monetizacao) }}</td>
+              <td class="col-cr"><span :class="crClass(row.cr5?.color)">{{ fmtCr(row.cr5?.val) }}</span></td>
+              <td class="col-num">{{ formatNumber(row.sql_monetizacao) }}</td>
+              <td class="col-cr"><span :class="crClass(row.cr6?.color)">{{ fmtCr(row.cr6?.val) }}</span></td>
+              <td class="col-num">{{ formatNumber(row.sal_monetizacao) }}</td>
+              <td class="col-cr"><span :class="crClass(row.cr7?.color)">{{ fmtCr(row.cr7?.val) }}</span></td>
+              <td class="col-num">{{ formatNumber(row.commit_monetizacao) }}</td>
               <td class="col-num">{{ formatNumber(row.CR_monetizacao) }}</td>
               <td class="col-money">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
@@ -148,12 +193,12 @@
                 </td>
                 <td class="col-center step-val">{{ drilldown === 'sdr' ? fmtMoney(step.investimento) : '' }}</td>
                 <td class="col-center step-val">{{ drilldown === 'sdr' ? fmtCpl(step.investimento, step.leads) : '' }}</td>
-                <td class="col-num step-val">{{ drilldown === 'sdr' ? formatNumber(step.leads) : '' }}</td>
-                <td class="col-cr">{{ drilldown === 'sdr' ? fmtCalcCr(step.mql, step.leads) : '' }}</td>
-                <td class="col-num step-val">{{ drilldown === 'sdr' ? formatNumber(step.mql) : '' }}</td>
-                <td class="col-cr">{{ drilldown === 'sdr' ? fmtCalcCr(step.sql, step.mql) : '' }}</td>
-                <td class="col-num step-val">{{ drilldown === 'sdr' || drilldown === 'closer' ? formatNumber(step.sql) : '' }}</td>
-                <td class="col-cr">{{ drilldown === 'sdr' || drilldown === 'closer' ? fmtCalcCr(step.sal, step.sql) : '' }}</td>
+                <td class="col-num step-val">{{ drilldown === 'sdr' || drilldown === 'canal' ? formatNumber(step.leads) : '' }}</td>
+                <td class="col-cr">{{ drilldown === 'sdr' || drilldown === 'canal' ? fmtCalcCr(step.mql, step.leads) : '' }}</td>
+                <td class="col-num step-val">{{ drilldown === 'sdr' || drilldown === 'canal' ? formatNumber(step.mql) : '' }}</td>
+                <td class="col-cr">{{ drilldown === 'sdr' || drilldown === 'canal' ? fmtCalcCr(step.sql, step.mql) : '' }}</td>
+                <td class="col-num step-val">{{ drilldown === 'sdr' || drilldown === 'closer' || drilldown === 'canal' ? formatNumber(step.sql) : '' }}</td>
+                <td class="col-cr">{{ drilldown === 'sdr' || drilldown === 'closer' || drilldown === 'canal' ? fmtCalcCr(step.sal, step.sql) : '' }}</td>
                 <td class="col-num step-val">{{ formatNumber(step.sal) }}</td>
                 <td class="col-cr"><span :class="crClass(row.cr4?.color)">{{ fmtCalcCr(step.commit, step.sal) }}</span></td>
                 <td class="col-num step-val">{{ formatNumber(step.commit) }}</td>
@@ -164,6 +209,13 @@
                 <td class="col-center step-val">{{ fmtRoas(step.roas_fee) }}</td>
                 <td class="col-num step-val">{{ fmtLt(step.LT_medio) }}</td>
                 <td class="col-money step-val">{{ fmtLtv(step) }}</td>
+                <td class="col-num step-val">{{ formatNumber(step.aql_monetizacao) }}</td>
+                <td class="col-cr step-val"><span :class="crClass(row.cr5?.color)">{{ fmtCalcCr(step.sql_monetizacao, step.aql_monetizacao) }}</span></td>
+                <td class="col-num step-val">{{ formatNumber(step.sql_monetizacao) }}</td>
+                <td class="col-cr step-val"><span :class="crClass(row.cr6?.color)">{{ fmtCalcCr(step.sal_monetizacao, step.sql_monetizacao) }}</span></td>
+                <td class="col-num step-val">{{ formatNumber(step.sal_monetizacao) }}</td>
+                <td class="col-cr step-val"><span :class="crClass(row.cr7?.color)">{{ fmtCalcCr(step.commit_monetizacao, step.sal_monetizacao) }}</span></td>
+                <td class="col-num step-val">{{ formatNumber(step.commit_monetizacao) }}</td>
                 <td class="col-num step-val">{{ formatNumber(step.CR_monetizacao) }}</td>
                 <td class="col-money step-val">{{ fmtMoney(step.booking_monetizacao) }}</td>
               </tr>
