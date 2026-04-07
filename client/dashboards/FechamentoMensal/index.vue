@@ -27,6 +27,29 @@
         <VRefreshButton :loading="loading" @click="handleRefresh" />
       </div>
     </div>
+
+    <!-- Squad Filter -->
+    <div v-if="allSquads.length" class="filters-bar">
+      <div class="filter-group">
+        <label class="filter-label">Squads</label>
+        <button class="filter-toggle" @click="showSquadFilter = !showSquadFilter">
+          {{ selectedSquads.length }} de {{ allSquads.length }}
+          <i :data-lucide="showSquadFilter ? 'chevron-up' : 'chevron-down'" class="filter-chevron"></i>
+        </button>
+      </div>
+      <button v-if="showSquadFilter" class="filter-preset" @click="selectAllSquads">Todas</button>
+      <button v-if="showSquadFilter" class="filter-preset" @click="selectDefaultSquads">Padrão</button>
+    </div>
+    <div v-if="showSquadFilter && allSquads.length" class="squad-chips">
+      <button
+        v-for="squad in allSquads"
+        :key="squad"
+        class="squad-chip"
+        :class="{ 'squad-chip--active': selectedSquads.includes(squad) }"
+        @click="toggleSquad(squad)"
+      >{{ squad }}</button>
+    </div>
+
     <!-- Error State -->
     <div v-if="error && !squadColumns.length" class="error-message">
       <i data-lucide="alert-circle"></i>
@@ -57,7 +80,13 @@
         <tbody>
           <tr v-for="metric in METRICS" :key="metric.key" :class="{ 'row-bold': metric.bold }">
             <td class="col-metric-label" :class="{ 'label-bold': metric.bold }">
-              {{ metric.label }}
+              <span class="metric-label-text">
+                {{ metric.label }}
+                <span v-if="metric.tip" class="metric-tip">
+                  <i data-lucide="info" class="metric-tip-icon"></i>
+                  <span class="metric-tip-tooltip">{{ metric.tip }}</span>
+                </span>
+              </span>
             </td>
             <td
               v-for="squad in squadColumns"
@@ -74,10 +103,55 @@
     </div>
 
     <!-- Legend -->
-    <div v-if="squadColumns.length" class="legend-bar">
-      <span class="legend-item"><span class="legend-dot legend-dot--green"></span>Bom desempenho</span>
-      <span class="legend-item"><span class="legend-dot legend-dot--yellow"></span>Atenção</span>
-      <span class="legend-item"><span class="legend-dot legend-dot--red"></span>Crítico</span>
+    <div v-if="squadColumns.length" class="legend-section">
+      <div class="legend-bar">
+        <span class="legend-item"><span class="legend-dot legend-dot--green"></span>Bom</span>
+        <span class="legend-item"><span class="legend-dot legend-dot--yellow"></span>Atenção</span>
+        <span class="legend-item"><span class="legend-dot legend-dot--red"></span>Crítico</span>
+      </div>
+
+      <table class="legend-table">
+        <thead>
+          <tr>
+            <th class="legend-th">Métrica</th>
+            <th class="legend-th legend-th--green">Bom</th>
+            <th class="legend-th legend-th--yellow">Atenção</th>
+            <th class="legend-th legend-th--red">Crítico</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="legend-td legend-td--label">MRR Médio</td>
+            <td class="legend-td">≥ R$ 150k</td>
+            <td class="legend-td">R$ 120k – R$ 150k</td>
+            <td class="legend-td">&lt; R$ 120k</td>
+          </tr>
+          <tr>
+            <td class="legend-td legend-td--label">Churn / Isenção / Total de Perdas</td>
+            <td class="legend-td" colspan="3">Segue a cor do % Médio de Perdas da squad</td>
+          </tr>
+          <tr>
+            <td class="legend-td legend-td--label">% Médio de Perdas sobre o MRR</td>
+            <td class="legend-td">≤ 6%</td>
+            <td class="legend-td">6% – 9%</td>
+            <td class="legend-td">&gt; 9%</td>
+          </tr>
+          <tr>
+            <td class="legend-td legend-td--label">Monetização Total / % Monetização</td>
+            <td class="legend-td" colspan="3">Mapa de calor relativo entre as squads</td>
+          </tr>
+          <tr>
+            <td class="legend-td legend-td--label">Saldo Final</td>
+            <td class="legend-td" colspan="3">Mapa de calor relativo entre as squads</td>
+          </tr>
+          <tr>
+            <td class="legend-td legend-td--label">NPS</td>
+            <td class="legend-td">≥ 50</td>
+            <td class="legend-td">20 – 50</td>
+            <td class="legend-td">&lt; 20</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </template>
@@ -87,6 +161,7 @@ import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useDashboardData } from '../../composables/useDashboardData.js'
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
 import VToggleGroup from '../../components/ui/VToggleGroup.vue'
+import { HISTORICO_2025 } from './historico-2025.js'
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -108,6 +183,31 @@ const QUARTER_MONTHS = {
 
 const MONTH_NAMES = ['', 'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
+const SQUAD_ALIASES = [
+  { canonical: 'Assemble',     test: s => /assemble/i.test(s) },
+  { canonical: 'Growthx',      test: s => /growthx|growth\s*x/i.test(s) },
+  { canonical: 'V4x',          test: s => /v4\s*x/i.test(s) || /silvania/i.test(s) },
+  { canonical: 'Roi Eagles',   test: s => /roi\s*eagles/i.test(s) },
+  { canonical: 'Data Hawk',    test: s => /data\s*hawk/i.test(s) },
+  { canonical: 'Rev Hunters',  test: s => /rev\s*hunters/i.test(s) },
+  { canonical: 'Army',         test: s => /^army$/i.test(s) },
+  { canonical: 'Mkt Place',    test: s => /mkt\s*place/i.test(s) }
+]
+
+const DEFAULT_SQUADS = ['Assemble', 'Growthx', 'V4x']
+
+// NPS hardcoded — Q1/2026
+const NPS_DATA = {
+  '2026-Q1': {
+    'Growthx': 55.6,
+    'V4x': 100.0,
+    'Sharks': 66.7,
+    'Assemble': 50.0,
+    'Growth Lab': 100.0,
+    'Roi Eagles': -33.3
+  }
+}
+
 function fmtBRL(v) {
   if (v === null || v === undefined || isNaN(v)) return '—'
   const formatted = new Intl.NumberFormat('pt-BR', {
@@ -125,14 +225,15 @@ function fmtPct(v) {
 }
 
 const METRICS = [
-  { key: 'mrr',          label: 'MRR',                                     fmt: fmtBRL, bold: false },
-  { key: 'churn',        label: 'Churn Total',                             fmt: fmtBRL, bold: false },
-  { key: 'isencao',      label: 'Isenção Total',                           fmt: fmtBRL, bold: false },
-  { key: 'totalPerdas',  label: 'Total de Perdas',                         fmt: fmtBRL, bold: true  },
-  { key: 'pctPerdas',    label: '% de Total de Perdas Sobre o MRR',        fmt: fmtPct, bold: false },
-  { key: 'totalMonet',   label: 'Monetização Total',                       fmt: fmtBRL, bold: false },
-  { key: 'pctMonet',     label: '% de Monetização sobre o MRR',             fmt: fmtPct, bold: false },
-  { key: 'saldoFinal',   label: 'Saldo Final',                             fmt: fmtBRL, bold: true  }
+  { key: 'mrr',          label: 'MRR Médio',                               fmt: fmtBRL, bold: false, tip: 'Média da receita recorrente mensal no período selecionado' },
+  { key: 'churn',        label: 'Churn Total',                             fmt: fmtBRL, bold: false, tip: 'Soma da receita recorrente dos clientes com status "Recorrência Cancelada"' },
+  { key: 'isencao',      label: 'Isenção Total',                           fmt: fmtBRL, bold: false, tip: 'Soma de todas as isenções concedidas no período' },
+  { key: 'totalPerdas',  label: 'Total de Perdas',                         fmt: fmtBRL, bold: true,  tip: 'Churn Total + Isenção Total' },
+  { key: 'pctPerdas',    label: '% Médio de Perdas sobre o MRR',           fmt: fmtPct, bold: false, tip: 'Média das % mensais de (Perdas do mês ÷ MRR do mês)' },
+  { key: 'totalMonet',   label: 'Monetização Total',                       fmt: fmtBRL, bold: false, tip: 'Soma de monetização recorrente + one time + variável' },
+  { key: 'pctMonet',     label: '% Médio de Monetização sobre o MRR',      fmt: fmtPct, bold: false, tip: 'Média das % mensais de (Monetização do mês ÷ MRR do mês)' },
+  { key: 'saldoFinal',   label: 'Saldo Final',                             fmt: fmtBRL, bold: true,  tip: 'Monetização Total − Total de Perdas' },
+  { key: 'nps',          label: 'NPS',                                     fmt: v => v != null ? v.toFixed(1) : '—', bold: false, tip: 'Net Promoter Score da squad (dados trimestrais)' }
 ]
 
 // ---------------------------------------------------------------------------
@@ -144,6 +245,8 @@ const selectedQuarter = ref(null)
 const mesInicial = ref(null)
 const mesFinal = ref(null)
 const lastUpdateTime = ref(null)
+const selectedSquads = ref([...DEFAULT_SQUADS])
+const showSquadFilter = ref(false)
 
 const { data, loading, error, fetchData } = useDashboardData(DASHBOARD_ID)
 
@@ -162,7 +265,8 @@ function parseMonth(raw) {
   if (!raw) return null
   const parts = raw.split('/')
   if (parts.length < 3) return null
-  return { month: parseInt(parts[0], 10), year: parseInt(parts[2], 10) }
+  // Formato dd/mm/yyyy — mês é parts[1]
+  return { month: parseInt(parts[1], 10), year: parseInt(parts[2], 10) }
 }
 
 function monthValue(year, month) {
@@ -171,18 +275,12 @@ function monthValue(year, month) {
 
 // ---------------------------------------------------------------------------
 // Squad normalization — case-insensitive, with grouping rules
-// Returns canonical squad name or null (filtered out)
 // ---------------------------------------------------------------------------
 
-const SQUAD_CANONICAL = [
-  { canonical: 'Assemble', test: s => /assemble/i.test(s) },
-  { canonical: 'Growthx',  test: s => /growthx/i.test(s) },
-  { canonical: 'V4x',      test: s => /v4\s*x/i.test(s) || /silvania/i.test(s) }
-]
-
 function normalizeSquad(raw) {
-  const match = SQUAD_CANONICAL.find(e => e.test(raw))
-  return match ? match.canonical : null
+  if (!raw || !raw.trim()) return null
+  const match = SQUAD_ALIASES.find(e => e.test(raw))
+  return match ? match.canonical : raw.trim()
 }
 
 // ---------------------------------------------------------------------------
@@ -190,24 +288,63 @@ function normalizeSquad(raw) {
 // ---------------------------------------------------------------------------
 
 const rawRows = computed(() => {
-  if (!data.value || !Array.isArray(data.value)) return []
-  return data.value.map(row => {
+  if (!data.value) return []
+  // API retorna [{ data: [...rows] }] — extrair o array interno
+  const rows = Array.isArray(data.value?.[0]?.data) ? data.value[0].data
+    : Array.isArray(data.value) ? data.value
+    : []
+  return rows.map(row => {
     const parsed   = parseMonth(row['Mês'])
     const squad    = normalizeSquad(row['Squad'] || '')
+    const isCancelado = row['Status'] === 'Recorrência Cancelada'
+    const receitaRecorrente = parseCurrency(row['Receita Recorrente'])
     return {
       squad,
       coordenador:  row['Coordenador'] || '',
       year:         parsed?.year ?? 0,
       month:        parsed?.month ?? 0,
-      mrr:          parseCurrency(row['Receita Recorrente']),
-      churn:        parseCurrency(row['Revenue Churn']),
+      mrr:          receitaRecorrente,
+      churn:        isCancelado ? receitaRecorrente : 0,
       isencao:      parseCurrency(row['Isenção']),
       monetRec:     parseCurrency(row['Monetização Recorrente']),
       monetOneTime: parseCurrency(row['Atribuição One Time / Bookado']),
-      monetVar:     parseCurrency(row['Monetização Variável'])
+      monetVar:     parseCurrency(row['Monetização Variável']),
+      nps:          row['NPS'] != null && row['NPS'] !== '' ? Number(row['NPS']) : null
     }
   }).filter(r => r.squad && r.year > 0)
 })
+
+// ---------------------------------------------------------------------------
+// Squad filter
+// ---------------------------------------------------------------------------
+
+const allSquads = computed(() => {
+  const squads = new Set()
+  rawRows.value.forEach(r => squads.add(r.squad))
+  // Incluir squads do histórico
+  for (const q of Object.values(HISTORICO_2025)) {
+    for (const s of Object.keys(q.squads)) squads.add(s)
+  }
+  return Array.from(squads).sort((a, b) => a.localeCompare(b, 'pt-BR'))
+})
+
+function toggleSquad(squad) {
+  const arr = selectedSquads.value
+  const idx = arr.indexOf(squad)
+  if (idx >= 0) {
+    if (arr.length > 1) selectedSquads.value = arr.filter(s => s !== squad)
+  } else {
+    selectedSquads.value = [...arr, squad]
+  }
+}
+
+function selectAllSquads() {
+  selectedSquads.value = [...allSquads.value]
+}
+
+function selectDefaultSquads() {
+  selectedSquads.value = [...DEFAULT_SQUADS]
+}
 
 // ---------------------------------------------------------------------------
 // Available periods
@@ -234,6 +371,17 @@ const mesesFinaisDisponiveis = computed(() => {
 const quartersDisponiveis = computed(() => {
   const seen = new Set()
   const result = []
+
+  // Trimestres do histórico 2025
+  for (const key of Object.keys(HISTORICO_2025)) {
+    if (!seen.has(key)) {
+      seen.add(key)
+      const [year, q] = key.split('-')
+      result.push({ value: key, label: `${q}/${year}`, year: parseInt(year), quarter: q })
+    }
+  }
+
+  // Trimestres dos dados da API (2026+)
   rawRows.value.forEach(r => {
     for (const [q, months] of Object.entries(QUARTER_MONTHS)) {
       if (months.includes(r.month)) {
@@ -256,7 +404,15 @@ watch(mesesDisponiveis, (months) => {
 
 watch(quartersDisponiveis, (quarters) => {
   if (!quarters.length) return
-  if (!selectedQuarter.value) selectedQuarter.value = quarters[quarters.length - 1].value
+  if (!selectedQuarter.value) {
+    // Selecionar o trimestre atual
+    const now = new Date()
+    const curYear = now.getFullYear()
+    const curQ = `Q${Math.ceil((now.getMonth() + 1) / 3)}`
+    const curKey = `${curYear}-${curQ}`
+    const match = quarters.find(q => q.value === curKey)
+    selectedQuarter.value = match ? match.value : quarters[quarters.length - 1].value
+  }
 }, { immediate: true })
 
 // ---------------------------------------------------------------------------
@@ -305,6 +461,15 @@ const filteredRows = computed(() => {
 // ---------------------------------------------------------------------------
 
 const squadColumns = computed(() => {
+  // Dados do histórico 2025 (hardcoded)
+  if (periodMode.value === 'trimestre' && selectedQuarter.value && HISTORICO_2025[selectedQuarter.value]) {
+    const historico = HISTORICO_2025[selectedQuarter.value].squads
+    return Object.entries(historico)
+      .filter(([squad]) => selectedSquads.value.includes(squad))
+      .sort(([a], [b]) => a.localeCompare(b, 'pt-BR'))
+      .map(([squad, data]) => ({ squad, ...data }))
+  }
+
   if (!filteredRows.value.length) return []
 
   const map = new Map()
@@ -313,37 +478,81 @@ const squadColumns = computed(() => {
       map.set(r.squad, {
         squad: r.squad,
         coordenador: r.coordenador,
-        mrrByMonth: new Map(), // monthValue → total MRR naquele mês
-        churnSum: 0, isencaoSum: 0,
-        monetRecSum: 0, monetOneTimeSum: 0, monetVarSum: 0
+        mrrByMonth: new Map(),
+        churnByMonth: new Map(),
+        isencaoByMonth: new Map(),
+        monetByMonth: new Map(),
+        npsValues: []
       })
     }
     const g = map.get(r.squad)
     const mv = monthValue(r.year, r.month)
     g.mrrByMonth.set(mv, (g.mrrByMonth.get(mv) ?? 0) + r.mrr)
-    g.churnSum    += r.churn
-    g.isencaoSum  += r.isencao
-    g.monetRecSum     += r.monetRec
-    g.monetOneTimeSum += r.monetOneTime
-    g.monetVarSum     += r.monetVar
+    g.churnByMonth.set(mv, (g.churnByMonth.get(mv) ?? 0) + r.churn)
+    g.isencaoByMonth.set(mv, (g.isencaoByMonth.get(mv) ?? 0) + r.isencao)
+    const monetRow = r.monetRec + r.monetOneTime + r.monetVar
+    g.monetByMonth.set(mv, (g.monetByMonth.get(mv) ?? 0) + monetRow)
+    if (r.nps !== null) g.npsValues.push(r.nps)
   })
 
   return Array.from(map.values())
+    .filter(g => selectedSquads.value.includes(g.squad))
     .sort((a, b) => a.squad.localeCompare(b.squad, 'pt-BR'))
     .map(g => {
-      // MRR Total Médio: soma mensal por mês → média entre os meses
-      const monthlyTotals = Array.from(g.mrrByMonth.values())
-      const mrr = monthlyTotals.length > 0
-        ? monthlyTotals.reduce((acc, v) => acc + v, 0) / monthlyTotals.length
+      // MRR Médio: soma mensal por mês → média entre os meses
+      const monthKeys = Array.from(g.mrrByMonth.keys())
+      const monthlyMrr = Array.from(g.mrrByMonth.values())
+      const mrr = monthlyMrr.length > 0
+        ? monthlyMrr.reduce((acc, v) => acc + v, 0) / monthlyMrr.length
         : 0
-      const churn      = g.churnSum
-      const isencao    = g.isencaoSum
+
+      // Churn e Isenção: soma total
+      const churn   = Array.from(g.churnByMonth.values()).reduce((a, v) => a + v, 0)
+      const isencao = Array.from(g.isencaoByMonth.values()).reduce((a, v) => a + v, 0)
       const totalPerdas = Math.abs(churn) + Math.abs(isencao)
-      const pctPerdas  = mrr > 0 ? (totalPerdas / mrr) * 100 : null
-      const totalMonet = g.monetRecSum + g.monetOneTimeSum + g.monetVarSum
-      const pctMonet   = mrr > 0 ? (totalMonet / mrr) * 100 : null
-      const saldoFinal = mrr - totalPerdas + totalMonet
-      return { squad: g.squad, coordenador: g.coordenador, mrr, churn, isencao, totalPerdas, pctPerdas, totalMonet, pctMonet, saldoFinal }
+
+      // % Perdas: média das % mensais (perdas_mes / mrr_mes)
+      const pctPerdasMensal = monthKeys.map(mv => {
+        const mrrMes = g.mrrByMonth.get(mv) || 0
+        const perdasMes = Math.abs(g.churnByMonth.get(mv) || 0) + Math.abs(g.isencaoByMonth.get(mv) || 0)
+        return mrrMes > 0 ? (perdasMes / mrrMes) * 100 : null
+      }).filter(v => v !== null)
+      const pctPerdas = pctPerdasMensal.length > 0
+        ? pctPerdasMensal.reduce((a, v) => a + v, 0) / pctPerdasMensal.length
+        : null
+
+      // Monetização: soma total
+      const totalMonet = Array.from(g.monetByMonth.values()).reduce((a, v) => a + v, 0)
+
+      // % Monetização: média das % mensais (monet_mes / mrr_mes)
+      const pctMonetMensal = monthKeys.map(mv => {
+        const mrrMes = g.mrrByMonth.get(mv) || 0
+        const monetMes = g.monetByMonth.get(mv) || 0
+        return mrrMes > 0 ? (monetMes / mrrMes) * 100 : null
+      }).filter(v => v !== null)
+      const pctMonet = pctMonetMensal.length > 0
+        ? pctMonetMensal.reduce((a, v) => a + v, 0) / pctMonetMensal.length
+        : null
+      const saldoFinal = totalMonet - totalPerdas
+
+      // NPS: buscar hardcoded pelo período selecionado
+      let nps = null
+      if (periodMode.value === 'trimestre' && selectedQuarter.value) {
+        const npsQuarter = NPS_DATA[selectedQuarter.value]
+        if (npsQuarter && npsQuarter[g.squad] !== undefined) nps = npsQuarter[g.squad]
+      } else {
+        // Modo mensal: verificar se os meses selecionados formam um trimestre completo
+        for (const [key, npsMap] of Object.entries(NPS_DATA)) {
+          const [year, q] = key.split('-')
+          const qMonths = QUARTER_MONTHS[q]
+          const selectedMonths = monthKeys.map(mv => mv % 100)
+          if (parseInt(year) === monthKeys[0] && qMonths && qMonths.every(m => selectedMonths.includes(m))) {
+            if (npsMap[g.squad] !== undefined) nps = npsMap[g.squad]
+            break
+          }
+        }
+      }
+      return { squad: g.squad, coordenador: g.coordenador, mrr, churn, isencao, totalPerdas, pctPerdas, totalMonet, pctMonet, saldoFinal, nps }
     })
 })
 
@@ -363,35 +572,44 @@ function relativeColor(key, value, squads, lowerIsBetter) {
   return 'c-red'
 }
 
+function pctPerdasColor(value) {
+  if (value <= 6) return 'c-green'
+  if (value <= 9) return 'c-yellow'
+  return 'c-red'
+}
+
 function heatClass(key, value, squads) {
   if (value === null || value === undefined || isNaN(value)) return ''
 
   switch (key) {
-    case 'pctPerdas':
-      if (value <= 25) return 'c-green'
-      if (value <= 60) return 'c-yellow'
-      return 'c-red'
-
-    case 'pctMonet':
-      if (value >= 50) return 'c-green'
-      if (value >= 15) return 'c-yellow'
-      return 'c-red'
-
-    case 'saldoFinal':
-      if (value > 0)  return 'c-green'
-      if (value === 0) return 'c-yellow'
-      return 'c-red'
-
     case 'mrr':
-      return relativeColor(key, value, squads, false)
+      if (value >= 150000) return 'c-green'
+      if (value >= 120000) return 'c-yellow'
+      return 'c-red'
+
+    case 'pctPerdas':
+      return pctPerdasColor(value)
 
     case 'churn':
     case 'isencao':
-    case 'totalPerdas':
-      return relativeColor(key, value, squads, true)
+    case 'totalPerdas': {
+      // Mesma cor do % de perdas da squad
+      const squad = squads.find(s => s[key] === value)
+      if (squad?.pctPerdas != null) return pctPerdasColor(squad.pctPerdas)
+      return ''
+    }
 
     case 'totalMonet':
+    case 'pctMonet':
       return relativeColor(key, value, squads, false)
+
+    case 'saldoFinal':
+      return relativeColor(key, value, squads, false)
+
+    case 'nps':
+      if (value >= 50) return 'c-green'
+      if (value >= 20) return 'c-yellow'
+      return 'c-red'
 
     default:
       return ''
@@ -425,22 +643,182 @@ watch(loading, async (val) => {
   }
 })
 
+watch(showSquadFilter, async () => {
+  await nextTick()
+  if (window.lucide) window.lucide.createIcons()
+})
+
 async function handleRefresh() {
   await fetchData(true)
 }
 </script>
 
 <style scoped>
-/* ---- Period controls ---- */
-.period-range {
+/* ---- Header ---- */
+.header-title {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
+}
+
+.main-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.title-sep {
+  font-size: 20px;
+  color: #333;
+  font-weight: 300;
+}
+
+.main-subtitle {
+  font-size: 18px;
+  font-weight: 400;
+  color: #888;
+  margin: 0;
+}
+
+/* ---- Period controls ---- */
+.period-range {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a1a1a;
+  border: 1px solid #222;
+  border-radius: 6px;
+  padding: 8px 14px;
 }
 
 .period-sep {
-  color: #666;
   font-size: 12px;
+  color: #555;
+}
+
+.month-select {
+  background: transparent;
+  border: none;
+  color: #ccc;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  outline: none;
+  padding: 6px 18px 6px 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 2px center;
+}
+
+.month-select option {
+  background: #1a1a1a;
+  color: #ccc;
+  font-family: 'Ubuntu', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  padding: 8px 12px;
+}
+
+/* ---- Filters bar ---- */
+.filters-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1a1a1a;
+  border: 1px solid #222;
+  border-radius: 6px;
+  padding: 8px 14px;
+}
+
+.filter-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.filter-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  color: #ccc;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.filter-chevron {
+  width: 14px;
+  height: 14px;
+  color: #666;
+}
+
+.filter-preset {
+  background: transparent;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #888;
+  font-size: 11px;
+  font-family: inherit;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.filter-preset:hover {
+  color: #ccc;
+  border-color: #555;
+}
+
+/* ---- Squad chips ---- */
+.squad-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.squad-chip {
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #888;
+  font-size: 12px;
+  font-family: inherit;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.squad-chip:hover {
+  border-color: #555;
+  color: #ccc;
+}
+
+.squad-chip--active {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #666;
+  color: #fff;
+  font-weight: 500;
 }
 
 /* ---- Table ---- */
@@ -505,6 +883,52 @@ async function handleRefresh() {
   text-align: left;
 }
 
+.metric-label-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.metric-tip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.metric-tip-icon {
+  width: 13px;
+  height: 13px;
+  color: #444;
+  transition: color 0.15s;
+}
+
+.metric-tip:hover .metric-tip-icon {
+  color: #888;
+}
+
+.metric-tip-tooltip {
+  display: none;
+  position: absolute;
+  left: calc(100% + 8px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #ccc;
+  font-weight: 400;
+  white-space: nowrap;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.metric-tip:hover .metric-tip-tooltip {
+  display: block;
+}
+
 .label-bold {
   color: #fff;
   font-weight: 600;
@@ -554,11 +978,15 @@ async function handleRefresh() {
 }
 
 /* ---- Legend ---- */
+.legend-section {
+  margin-top: 20px;
+}
+
 .legend-bar {
   display: flex;
   align-items: center;
   gap: 20px;
-  margin-top: 16px;
+  margin-bottom: 14px;
   padding: 0 2px;
 }
 
@@ -580,6 +1008,45 @@ async function handleRefresh() {
 .legend-dot--green  { background: #22c55e; }
 .legend-dot--yellow { background: #ca8a04; }
 .legend-dot--red    { background: #ef4444; }
+
+/* Legend table */
+.legend-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.legend-th {
+  padding: 8px 12px;
+  background: #141414;
+  border-bottom: 1px solid #2a2a2a;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 11px;
+  text-align: left;
+}
+
+.legend-th--green  { color: #4ade80; }
+.legend-th--yellow { color: #d4a017; }
+.legend-th--red    { color: #f87171; }
+
+.legend-td {
+  padding: 7px 12px;
+  border-bottom: 1px solid #1a1a1a;
+  color: #888;
+}
+
+.legend-td--label {
+  color: #ccc;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.legend-table tbody tr:last-child .legend-td {
+  border-bottom: none;
+}
 
 /* ---- Skeleton ---- */
 .skeleton-table {
