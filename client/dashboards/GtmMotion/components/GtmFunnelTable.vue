@@ -6,7 +6,7 @@
           <tr>
             <th class="col-tier col-sticky">Tier <span class="th-hint" data-tip="Porte da empresa prospectada">?</span></th>
             <th class="col-center">Investimento <span class="th-hint" data-tip="Investimento no período">?</span></th>
-            <th class="col-center">CPL <span class="th-hint" data-tip="Custo por Lead (Investimento / Prospects)">?</span></th>
+            <th class="col-center">CPL <span class="th-hint" :data-tip="cplTooltip">?</span></th>
             <th class="col-num">Prospects <span class="th-hint" data-tip="Total de leads captados">?</span></th>
             <th class="col-cr">CR1% <span class="th-hint" data-tip="Conversão de Prospect para MQL">?</span></th>
             <th class="col-num">MQL <span class="th-hint" data-tip="Leads qualificados pelo marketing">?</span></th>
@@ -191,8 +191,8 @@
                   <span class="step-indent">↳</span>
                   {{ step.name }}
                 </td>
-                <td class="col-center step-val">{{ drilldown === 'sdr' ? fmtMoney(step.investimento) : '' }}</td>
-                <td class="col-center step-val">{{ drilldown === 'sdr' ? fmtCpl(step.investimento, step.leads) : '' }}</td>
+                <td class="col-center step-val">{{ fmtMoney(step.investimento) }}</td>
+                <td class="col-center step-val">{{ fmtCpl(step.investimento, stepCplDenominator(step)) }}</td>
                 <td class="col-num step-val">{{ drilldown === 'sdr' || drilldown === 'canal' ? formatNumber(step.leads) : '' }}</td>
                 <td class="col-cr">{{ drilldown === 'sdr' || drilldown === 'canal' ? fmtCalcCr(step.mql, step.leads) : '' }}</td>
                 <td class="col-num step-val">{{ drilldown === 'sdr' || drilldown === 'canal' ? formatNumber(step.mql) : '' }}</td>
@@ -228,7 +228,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { formatNumber, formatCurrency } from '../../../composables/useFormatters.js'
 
 const props = defineProps({
@@ -245,6 +245,22 @@ const props = defineProps({
     default: 'step'
   }
 })
+
+const cplTooltip = computed(() => {
+  const map = {
+    step: 'Investimento / SAL (distribuído proporcionalmente por SAL)',
+    closer: 'Investimento / SQL (distribuído proporcionalmente por SQL)',
+    canal: 'Custo por Lead (Investimento / Prospects)',
+    sdr: 'Custo por Lead (Investimento / Prospects)',
+  }
+  return map[props.drilldown] ?? map.canal
+})
+
+function stepCplDenominator(step) {
+  if (props.drilldown === 'step') return step.sal
+  if (props.drilldown === 'closer') return step.sql
+  return step.leads
+}
 
 const expandedTiers = ref(new Set())
 
