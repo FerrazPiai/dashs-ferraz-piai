@@ -116,8 +116,10 @@ router.get('/data/:dashboardId', async (req, res, next) => {
     let fromCache = false
 
     // Try to get from cache (unless force refresh)
+    // On normal page load: always serve cache if it exists (ignore TTL)
+    // Only bypass cache when explicitly requesting refresh
     if (!forceRefresh) {
-      const cachedData = await getCachedData(cacheKey, dashboard.cacheTTL)
+      const cachedData = await getCachedData(cacheKey, Infinity)
 
       if (cachedData) {
         data = cachedData
