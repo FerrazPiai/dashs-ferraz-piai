@@ -1,6 +1,7 @@
 <template>
   <div class="dashboard-container">
-    <!-- Header -->
+    <!-- Header (sticky) -->
+    <div class="sticky-header-wrap">
     <div class="main-header">
       <div class="header-title">
         <h1 class="main-title">Produção Comercial</h1>
@@ -26,9 +27,9 @@
             <option v-for="q in quartersDisponiveis" :key="q.value" :value="q.value">{{ q.label }}</option>
           </select>
         </div>
-        <div class="legend-wrapper">
+        <div class="legend-wrapper" @click="legendOpen = !legendOpen">
           <i data-lucide="info" class="legend-icon"></i>
-          <div class="legend-tooltip">
+          <div v-if="!legendOpen" class="legend-tooltip">
             <div class="legend-title">Legenda de Cores</div>
             <div class="legend-item">
               <span class="legend-dot legend-dot--green"></span>
@@ -43,16 +44,111 @@
               {{ legendRedText }}
             </div>
           </div>
+          <div v-if="legendOpen" class="legend-popup" @click.stop>
+            <button class="legend-popup-close" @click="legendOpen = false" aria-label="Fechar">&times;</button>
+            <div class="legend-section">
+              <div class="legend-section-title">Cores nos KPIs (cards)</div>
+              <div class="legend-section-desc">As cores nos cards indicam o quanto o valor realizado está próximo da meta:</div>
+              <div class="legend-item">
+                <span class="legend-dot legend-dot--green"></span>
+                <span><strong>Verde</strong> — {{ legendGreenText }}</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot legend-dot--yellow"></span>
+                <span><strong>Amarelo</strong> — {{ legendYellowText }}</span>
+              </div>
+              <div class="legend-item">
+                <span class="legend-dot legend-dot--red"></span>
+                <span><strong>Vermelho</strong> — {{ legendRedText }}</span>
+              </div>
+            </div>
+            <div class="legend-divider"></div>
+            <div class="legend-section">
+              <div class="legend-section-title">Cores nas Taxas de Conversão (tabela)</div>
+              <div class="legend-section-desc">Cada coluna de % na tabela tem faixas próprias. A cor indica se a conversão está boa, razoável ou baixa:</div>
+              <table class="legend-cr-table">
+                <thead>
+                  <tr>
+                    <th>Coluna</th>
+                    <th>O que mede</th>
+                    <th><span class="legend-dot legend-dot--green"></span>Verde</th>
+                    <th><span class="legend-dot legend-dot--yellow"></span>Amarelo</th>
+                    <th><span class="legend-dot legend-dot--red"></span>Vermelho</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>CR1%</td>
+                    <td>Prospect → MQL</td>
+                    <td>≥ 70%</td>
+                    <td>≥ 50%</td>
+                    <td>&lt; 50%</td>
+                  </tr>
+                  <tr>
+                    <td>CR2%</td>
+                    <td>MQL → SQL</td>
+                    <td>≥ 25%</td>
+                    <td>≥ 15%</td>
+                    <td>&lt; 15%</td>
+                  </tr>
+                  <tr>
+                    <td>CR3%</td>
+                    <td>SQL → SAL</td>
+                    <td>≥ 80%</td>
+                    <td>≥ 65%</td>
+                    <td>&lt; 65%</td>
+                  </tr>
+                  <tr>
+                    <td>CR4%</td>
+                    <td>SAL → Commit</td>
+                    <td>≥ 20%</td>
+                    <td>≥ 12%</td>
+                    <td>&lt; 12%</td>
+                  </tr>
+                  <tr>
+                    <td>Hit Rate</td>
+                    <td>MQL → Commit (direto)</td>
+                    <td>≥ 5%</td>
+                    <td>≥ 3%</td>
+                    <td>&lt; 3%</td>
+                  </tr>
+                  <tr>
+                    <td>CR5%</td>
+                    <td>AQL → SQL Mon.</td>
+                    <td>≥ 25%</td>
+                    <td>≥ 15%</td>
+                    <td>&lt; 15%</td>
+                  </tr>
+                  <tr>
+                    <td>CR6%</td>
+                    <td>SQL → SAL Mon.</td>
+                    <td>≥ 80%</td>
+                    <td>≥ 65%</td>
+                    <td>&lt; 65%</td>
+                  </tr>
+                  <tr>
+                    <td>CR7%</td>
+                    <td>SAL → Commit Mon.</td>
+                    <td>≥ 20%</td>
+                    <td>≥ 12%</td>
+                    <td>&lt; 12%</td>
+                  </tr>
+                  <tr>
+                    <td>Hit Rate Mon.</td>
+                    <td>AQL → Commit Mon. (direto)</td>
+                    <td>≥ 5%</td>
+                    <td>≥ 3%</td>
+                    <td>&lt; 3%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
         <VRefreshButton :loading="loading || refreshing" @click="handleRefresh" />
       </div>
     </div>
-
-    <!-- Error State -->
-    <div v-if="error && !resolvedData" class="error-message">
-      <i data-lucide="alert-circle"></i>
-      <span>{{ error }}</span>
-    </div>
+    </div><!-- /sticky-header-wrap -->
 
     <!-- Filters + KPI Layout Toggle -->
     <div class="filters-bar">
@@ -130,6 +226,12 @@
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="0" y="1" width="14" height="4" rx="1" fill="currentColor"/><rect x="0" y="9" width="14" height="4" rx="1" fill="currentColor"/></svg>
         </button>
       </div>
+    </div>
+
+    <!-- Error State -->
+    <div v-if="error && !resolvedData" class="error-message">
+      <i data-lucide="alert-circle"></i>
+      <span>{{ error }}</span>
     </div>
 
     <!-- KPI Grid -->
@@ -353,6 +455,9 @@ const { data, loading, error, fetchData } = useDashboardData('gtm-motion')
 
 // ── Refreshing state (button only, keeps data visible) ─────────────────────
 const refreshing = ref(false)
+
+// ── Legend popup state ──────────────────────────────────────────────────────
+const legendOpen = ref(false)
 
 // ── KPI Layout Toggle ───────────────────────────────────────────────────────
 const kpiLayout = ref('expanded')
@@ -1037,6 +1142,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         const cr5v = t.aql_monetizacao > 0 ? (t.sql_monetizacao / t.aql_monetizacao) * 100 : 0
         const cr6v = t.sql_monetizacao > 0 ? (t.sal_monetizacao / t.sql_monetizacao) * 100 : 0
         const cr7v = t.sal_monetizacao > 0 ? (t.commit_monetizacao / t.sal_monetizacao) * 100 : 0
+        const mwvMon = t.aql_monetizacao > 0 ? (t.commit_monetizacao / t.aql_monetizacao) * 100 : 0
 
         // Distribute investimento proportionally based on drilldown type:
         // step→SAL, closer→SQL, canal→leads, sdr→leads
@@ -1095,6 +1201,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           cr5:    { val: cr5v, color: crColor(cr5v, 25, 15) },
           cr6:    { val: cr6v, color: crColor(cr6v, 80, 65) },
           cr7:    { val: cr7v, color: crColor(cr7v, 20, 12) },
+          mqlWonMon: { val: mwvMon, color: crColor(mwvMon, 5, 3) },
           LT_medio: t.LT_count > 0 ? t.LT_sum / t.LT_count : 0,
           CR_monetizacao: t.CR_monetizacao, booking_monetizacao: t.booking_monetizacao,
           aql_monetizacao: t.aql_monetizacao, sql_monetizacao: t.sql_monetizacao,
@@ -1167,6 +1274,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
       const tcr5 = totAqlMon  > 0 ? (totSqlMon    / totAqlMon)  * 100 : 0
       const tcr6 = totSqlMon  > 0 ? (totSalMon    / totSqlMon)  * 100 : 0
       const tcr7 = totSalMon  > 0 ? (totCommitMon / totSalMon)  * 100 : 0
+      const tmwMon = totAqlMon > 0 ? (totCommitMon / totAqlMon) * 100 : 0
       tiers.push({
         tier: 'Total',
         leads: totLeads, mql: totMql, sql: totSql, sal: totSal,
@@ -1184,6 +1292,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         cr5:    { val: tcr5, color: crColor(tcr5, 25, 15) },
         cr6:    { val: tcr6, color: crColor(tcr6, 80, 65) },
         cr7:    { val: tcr7, color: crColor(tcr7, 20, 12) },
+        mqlWonMon: { val: tmwMon, color: crColor(tmwMon, 5, 3) },
         LT_medio: totLtCount > 0 ? totLtSum / totLtCount : 0,
         ltv: totLtv > 0 ? Math.round(totLtv) : null,
         CR_monetizacao: totCrMon, booking_monetizacao: totBkMon,
@@ -1217,6 +1326,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         cr3:    { val: cr3v, color: crColor(cr3v, 80, 65) },
         cr4:    { val: cr4v, color: crColor(cr4v, 20, 12) },
         mqlWon: { val: mwv,  color: crColor(mwv,  5,  3)  },
+        mqlWonMon: { val: 0, color: crColor(0, 5, 3) },
         isTotal: true,
         investimento: 0, roas_booking: 0, roas_fee: 0,
         LT_medio: 0, CR_monetizacao: 0, booking_monetizacao: 0,
@@ -1633,9 +1743,11 @@ const currentTiers = computed(() => {
         const cr5v2 = (ex.aql_monetizacao ?? 0) > 0 ? ((ex.sql_monetizacao ?? 0) / ex.aql_monetizacao) * 100 : 0
         const cr6v2 = (ex.sql_monetizacao ?? 0) > 0 ? ((ex.sal_monetizacao ?? 0) / ex.sql_monetizacao) * 100 : 0
         const cr7v2 = (ex.sal_monetizacao ?? 0) > 0 ? ((ex.commit_monetizacao ?? 0) / ex.sal_monetizacao) * 100 : 0
+        const mwvMon = (ex.aql_monetizacao ?? 0) > 0 ? ((ex.commit_monetizacao ?? 0) / ex.aql_monetizacao) * 100 : 0
         ex.cr5 = { val: cr5v2, color: crColor(cr5v2, 25, 15) }
         ex.cr6 = { val: cr6v2, color: crColor(cr6v2, 80, 65) }
         ex.cr7 = { val: cr7v2, color: crColor(cr7v2, 20, 12) }
+        ex.mqlWonMon = { val: mwvMon, color: crColor(mwvMon, 5, 3) }
         // Merge steps by name
         if (row.steps?.length > 0) {
           if (!ex.steps?.length) {
@@ -1838,7 +1950,29 @@ onMounted(async () => {
   margin: 0;
 }
 
-/* Legend tooltip */
+/* Sticky header */
+.sticky-header-wrap {
+  position: sticky;
+  top: -1px;
+  z-index: 20;
+  background: #0d0d0d;
+  padding: 14px 0 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.sticky-header-wrap .main-header {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.last-update {
+  font-size: 12px;
+  color: #555;
+  white-space: nowrap;
+}
+
+/* Legend tooltip + popup */
 .legend-wrapper {
   position: relative;
   display: inline-flex;
@@ -1890,7 +2024,10 @@ onMounted(async () => {
   font-size: 12px;
   color: #ccc;
   padding: 3px 0;
-  white-space: nowrap;
+}
+
+.legend-item strong {
+  color: #fff;
 }
 
 .legend-dot {
@@ -1916,6 +2053,104 @@ onMounted(async () => {
   background: #ef4444;
   box-shadow: 0 0 6px rgba(239, 68, 68, 0.4);
 }
+
+/* Legend popup (click to open) */
+.legend-popup {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #141414;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 20px 22px 18px;
+  min-width: 520px;
+  max-width: 600px;
+  z-index: 200;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+  cursor: default;
+}
+
+.legend-popup-close {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  background: none;
+  border: none;
+  color: #666;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+
+.legend-popup-close:hover {
+  color: #fff;
+  background: #222;
+}
+
+.legend-section {
+  margin-bottom: 4px;
+}
+
+.legend-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.legend-section-desc {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.legend-divider {
+  height: 1px;
+  background: #222;
+  margin: 14px 0;
+}
+
+.legend-cr-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.legend-cr-table th {
+  padding: 6px 8px;
+  text-align: left;
+  font-weight: 600;
+  color: #888;
+  border-bottom: 1px solid #222;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.legend-cr-table td {
+  padding: 5px 8px;
+  color: #ccc;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.legend-cr-table tr:last-child td {
+  border-bottom: none;
+}
+
+.legend-cr-table td:first-child {
+  font-weight: 600;
+  color: #fff;
+}
+
+.legend-cr-table td:nth-child(3) { color: #22c55e; }
+.legend-cr-table td:nth-child(4) { color: #fbbf24; }
+.legend-cr-table td:nth-child(5) { color: #ef4444; }
 
 /* Period range */
 .period-range {
@@ -1957,7 +2192,8 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  margin-bottom: 10px;
+  gap: 8px;
+  margin-bottom: 14px;
 }
 
 .filter-group {
@@ -1969,7 +2205,6 @@ onMounted(async () => {
   border-radius: 6px;
   padding: 8px 14px;
   min-width: 160px;
-  margin: 0 16px 4px 0;
   max-width: 300px;
   transition: max-width 0.3s ease, min-width 0.3s ease, opacity 0.25s ease,
               padding 0.3s ease, margin 0.3s ease, border-color 0.3s ease;
@@ -2040,7 +2275,6 @@ onMounted(async () => {
   background: #1a1a1a;
   border-radius: 4px;
   padding: 3px;
-  margin-left: 6px;
 }
 
 .layout-btn {

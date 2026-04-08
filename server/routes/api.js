@@ -11,14 +11,18 @@ const __dirname = dirname(__filename)
 const router = Router()
 
 /**
- * N8N-based execution check for GTM Motion.
- * Called ONLY when user clicks "Atualizar" (not on polling).
+ * N8N-based execution check — shared across all dashboards.
+ * Sends workflowId in POST body so N8N can check the specific workflow.
  */
 const N8N_CHECK_STATUS_URL = process.env.N8N_CHECK_STATUS_URL || 'https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/check-execution-status'
 
-async function isN8nWorkflowRunning() {
+async function isN8nWorkflowRunning(workflowId) {
+  if (!workflowId) return false
   try {
     const res = await globalThis.fetch(N8N_CHECK_STATUS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ workflowId }),
       signal: AbortSignal.timeout(8000)
     })
     if (!res.ok) return false
@@ -252,11 +256,13 @@ router.get('/cache/status/:dashboardId', async (req, res, next) => {
 /**
  * GET /api/update-status/:dashboardId
  * Check if an update is currently in progress for the given dashboard.
+ * Checks file lock first (fast), then N8N workflow status (authoritative).
  */
 router.get('/update-status/:dashboardId', async (req, res) => {
   const { dashboardId } = req.params
-  const lock = await isUpdateLocked(dashboardId)
 
+  // Check file lock (fast)
+  const lock = await isUpdateLocked(dashboardId)
   if (lock) {
     const elapsed = Date.now() - lock.lockedAt
     return res.json({
@@ -266,63 +272,30 @@ router.get('/update-status/:dashboardId', async (req, res) => {
     })
   }
 
+  // Check N8N workflow (authoritative)
+  const dashboard = await findDashboard(dashboardId)
+  if (dashboard?.workflowId && await isN8nWorkflowRunning(dashboard.workflowId)) {
+    return res.json({ updating: true })
+  }
+
   res.json({ updating: false })
 })
 
 /**
- * GET /api/marketing-vendas/trigger-update
- * Trigger N8N data extraction webhook before refreshing Marketing & Vendas data.
+ * GET /api/:dashboardId/trigger-update
+ * Generic trigger-update route for all dashboards.
+ * Checks file lock + N8N workflow, then POSTs to the dashboard's webhook.
+ * Caches response data if available.
  */
-router.get('/marketing-vendas/trigger-update', async (req, res, next) => {
-  const dashboardId = 'marketing-vendas'
+router.get('/:dashboardId/trigger-update', async (req, res, next) => {
+  const { dashboardId } = req.params
 
-  if (await isUpdateLocked(dashboardId)) {
-    return res.status(409).json({
-      error: { message: 'Já existe uma atualização em andamento para este dashboard.', status: 409, updating: true }
+  const dashboard = await findDashboard(dashboardId)
+  if (!dashboard) {
+    return res.status(404).json({
+      error: { message: `Dashboard '${dashboardId}' não encontrado`, status: 404 }
     })
   }
-
-  const webhookUrl = process.env.WEBHOOK_POST_MARKETING_VENDAS
-
-  if (!webhookUrl) {
-    return res.status(500).json({ error: { message: 'WEBHOOK_POST_MARKETING_VENDAS não configurado no .env', status: 500 } })
-  }
-
-  await setUpdateLock(dashboardId)
-  try {
-    console.log(`[${new Date().toISOString()}] Triggering Marketing & Vendas update webhook`)
-
-    const response = await globalThis.fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '{}',
-      signal: AbortSignal.timeout(300000)
-    })
-
-    if (!response.ok) {
-      throw new Error(`Webhook retornou HTTP ${response.status}`)
-    }
-
-    console.log(`[${new Date().toISOString()}] Marketing & Vendas webhook executado com sucesso`)
-    res.json({ ok: true, timestamp: new Date().toISOString() })
-  } catch (error) {
-    console.error(`[${new Date().toISOString()}] Marketing & Vendas webhook error:`, error.message)
-    res.status(502).json({
-      error: { message: 'Falha ao executar webhook de atualização', status: 502 }
-    })
-  } finally {
-    await clearUpdateLock(dashboardId)
-  }
-})
-
-/**
- * GET /api/gtm-motion/trigger-update
- * Trigger N8N data extraction webhook before refreshing dashboard data.
- * The webhook may return the refreshed data in its response body — if so,
- * we cache it so the subsequent GET /api/data/gtm-motion finds it.
- */
-router.get('/gtm-motion/trigger-update', async (req, res, next) => {
-  const dashboardId = 'gtm-motion'
 
   // Check file lock first (fast), then N8N workflow (authoritative)
   if (await isUpdateLocked(dashboardId)) {
@@ -330,21 +303,22 @@ router.get('/gtm-motion/trigger-update', async (req, res, next) => {
       error: { message: 'Já existe uma atualização em andamento para este dashboard.', status: 409, updating: true }
     })
   }
-  if (await isN8nWorkflowRunning()) {
+  if (dashboard.workflowId && await isN8nWorkflowRunning(dashboard.workflowId)) {
     return res.status(409).json({
       error: { message: 'O workflow de atualização já está em execução no N8N.', status: 409, updating: true }
     })
   }
 
-  const webhookUrl = process.env.WEBHOOK_POST_GTM_MOTION
-
+  const webhookUrl = process.env[dashboard.webhookEndpoint]
   if (!webhookUrl) {
-    return res.status(500).json({ error: { message: 'WEBHOOK_POST_GTM_MOTION não configurado no .env', status: 500 } })
+    return res.status(500).json({
+      error: { message: `${dashboard.webhookEndpoint} não configurado no .env`, status: 500 }
+    })
   }
 
   await setUpdateLock(dashboardId)
   try {
-    console.log(`[${new Date().toISOString()}] Triggering GTM Motion update webhook`)
+    console.log(`[${new Date().toISOString()}] Triggering ${dashboard.title} update webhook`)
 
     const response = await globalThis.fetch(webhookUrl, {
       method: 'POST',
@@ -361,76 +335,17 @@ router.get('/gtm-motion/trigger-update', async (req, res, next) => {
     try {
       const responseData = await response.json()
       if (responseData && (Array.isArray(responseData) ? responseData.length > 0 : Object.keys(responseData).length > 0)) {
-        await setCachedData('gtm-motion', responseData)
-        console.log(`[${new Date().toISOString()}] GTM Motion webhook data cached successfully`)
+        await setCachedData(dashboardId, responseData)
+        console.log(`[${new Date().toISOString()}] ${dashboard.title} webhook data cached successfully`)
       }
     } catch {
-      // Webhook may return empty body — that's ok
-      console.log(`[${new Date().toISOString()}] GTM Motion webhook returned no parseable body`)
+      console.log(`[${new Date().toISOString()}] ${dashboard.title} webhook returned no parseable body`)
     }
 
-    console.log(`[${new Date().toISOString()}] GTM Motion webhook executado com sucesso`)
+    console.log(`[${new Date().toISOString()}] ${dashboard.title} webhook executado com sucesso`)
     res.json({ ok: true, timestamp: new Date().toISOString() })
   } catch (error) {
-    console.error(`[${new Date().toISOString()}] GTM Motion webhook error:`, error.message, error.stack)
-    res.status(502).json({
-      error: { message: 'Falha ao executar webhook de atualização', status: 502 }
-    })
-  } finally {
-    await clearUpdateLock(dashboardId)
-  }
-})
-
-/**
- * GET /api/tx-conv-saber-monetizacao/trigger-update
- * Trigger N8N data extraction webhook before refreshing dashboard data.
- * Same pattern as GTM Motion: POST to update webhook, cache response if available.
- */
-router.get('/tx-conv-saber-monetizacao/trigger-update', async (req, res, next) => {
-  const dashboardId = 'tx-conv-saber-monetizacao'
-
-  if (await isUpdateLocked(dashboardId)) {
-    return res.status(409).json({
-      error: { message: 'Já existe uma atualização em andamento para este dashboard.', status: 409, updating: true }
-    })
-  }
-
-  const webhookUrl = process.env.WEBHOOK_POST_TX_CONV_SABER_MONETIZACAO
-
-  if (!webhookUrl) {
-    return res.status(500).json({ error: { message: 'WEBHOOK_POST_TX_CONV_SABER_MONETIZACAO não configurado no .env', status: 500 } })
-  }
-
-  await setUpdateLock(dashboardId)
-  try {
-    console.log(`[${new Date().toISOString()}] Triggering Tx Conv Saber Monetização update webhook`)
-
-    const response = await globalThis.fetch(webhookUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: '{}',
-      signal: AbortSignal.timeout(300000)
-    })
-
-    if (!response.ok) {
-      throw new Error(`Webhook retornou HTTP ${response.status}`)
-    }
-
-    // Try to capture response data and cache it for the subsequent GET
-    try {
-      const responseData = await response.json()
-      if (responseData && (Array.isArray(responseData) ? responseData.length > 0 : Object.keys(responseData).length > 0)) {
-        await setCachedData('tx-conv-saber-monetizacao', responseData)
-        console.log(`[${new Date().toISOString()}] Tx Conv Saber Monetização webhook data cached successfully`)
-      }
-    } catch {
-      console.log(`[${new Date().toISOString()}] Tx Conv Saber Monetização webhook returned no parseable body`)
-    }
-
-    console.log(`[${new Date().toISOString()}] Tx Conv Saber Monetização webhook executado com sucesso`)
-    res.json({ ok: true, timestamp: new Date().toISOString() })
-  } catch (error) {
-    console.error(`[${new Date().toISOString()}] Tx Conv Saber Monetização webhook error:`, error.message, error.stack)
+    console.error(`[${new Date().toISOString()}] ${dashboard.title} webhook error:`, error.message, error.stack)
     res.status(502).json({
       error: { message: 'Falha ao executar webhook de atualização', status: 502 }
     })

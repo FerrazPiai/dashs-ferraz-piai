@@ -136,7 +136,7 @@
   margin-left: 60px;
   padding: var(--spacing-lg);
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   max-width: calc(100vw - 60px);
 }
 
