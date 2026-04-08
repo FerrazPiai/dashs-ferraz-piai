@@ -24,7 +24,7 @@
             <option v-for="q in quartersDisponiveis" :key="q.value" :value="q.value">{{ q.label }}</option>
           </select>
         </div>
-        <VRefreshButton :loading="loading" @click="handleRefresh" />
+        <VRefreshButton :loading="loading || refreshing" @click="handleRefresh" />
       </div>
     </div>
 
@@ -154,12 +154,36 @@
       </table>
     </div>
   </div>
+
+  <!-- Modal: Confirmação de atualização -->
+  <VConfirmModal
+    :visible="showConfirmModal"
+    title="Atualizar dados"
+    message="Deseja atualizar os dados do Comparativo Squads? A atualização leva poucos segundos."
+    confirmText="Sim, atualizar"
+    cancelText="Cancelar"
+    type="warning"
+    @confirm="confirmRefresh"
+    @cancel="cancelRefresh"
+  />
+
+  <!-- Modal: Atualização já em andamento -->
+  <VConfirmModal
+    :visible="showUpdatingModal"
+    title="Atualização em andamento"
+    message="Já existe uma atualização dos dados em andamento. Aguarde a conclusão antes de solicitar uma nova atualização."
+    confirmText="Entendido"
+    type="info"
+    @confirm="showUpdatingModal = false"
+    @cancel="showUpdatingModal = false"
+  />
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useDashboardData } from '../../composables/useDashboardData.js'
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
+import VConfirmModal from '../../components/ui/VConfirmModal.vue'
 import VToggleGroup from '../../components/ui/VToggleGroup.vue'
 import { HISTORICO_2025 } from './historico-2025.js'
 
@@ -651,7 +675,52 @@ watch(showSquadFilter, async () => {
   if (window.lucide) window.lucide.createIcons()
 })
 
+// ── Update confirmation modal state ──────────────────────────────────────────
+const refreshing = ref(false)
+const showConfirmModal = ref(false)
+const showUpdatingModal = ref(false)
+
 async function handleRefresh() {
+  // Check if another update is already in progress
+  try {
+    const statusRes = await fetch(`/api/update-status/${DASHBOARD_ID}`)
+    const statusData = await statusRes.json()
+    if (statusData.updating) {
+      showUpdatingModal.value = true
+      return
+    }
+  } catch {
+    // If status check fails, proceed with confirmation anyway
+  }
+
+  showConfirmModal.value = true
+}
+
+function cancelRefresh() {
+  showConfirmModal.value = false
+}
+
+async function confirmRefresh() {
+  showConfirmModal.value = false
+  refreshing.value = true
+
+  // Step 1: POST trigger webhook para N8N regenerar os dados
+  try {
+    const res = await fetch(`/api/${DASHBOARD_ID}/trigger-update`)
+    if (!res.ok) {
+      if (res.status === 409) {
+        refreshing.value = false
+        showUpdatingModal.value = true
+        return
+      }
+      console.warn('[Comparativo Squads] Webhook de atualização retornou', res.status)
+    }
+  } catch (err) {
+    console.warn('[Comparativo Squads] Falha ao chamar webhook de atualização:', err.message)
+  }
+
+  // Step 2: GET dados atualizados (bypassa cache)
+  refreshing.value = false
   await fetchData(true)
 }
 </script>

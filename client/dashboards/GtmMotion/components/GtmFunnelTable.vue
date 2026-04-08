@@ -20,7 +20,7 @@
             <th class="col-money">Avg Ticket <span class="th-hint th-hint--right" data-tip="Valor médio por contrato">?</span></th>
             <th class="col-money">TCV <span class="th-hint th-hint--right" data-tip="Receita total contratada">?</span></th>
             <th class="col-center">ROAS Booking <span class="th-hint th-hint--right" data-tip="TCV / Investimento">?</span></th>
-            <th class="col-center">ROAS Fee <span class="th-hint th-hint--right" data-tip="Fee / Investimento">?</span></th>
+            <th class="col-center">ROAS Direto <span class="th-hint th-hint--right" data-tip="Fee / Investimento">?</span></th>
             <th class="col-num">LT Médio <span class="th-hint th-hint--right" data-tip="Lead Time médio em dias">?</span></th>
             <th class="col-money">LTV <span class="th-hint th-hint--right" data-tip="Lifetime Value (Fee médio × LT em meses)">?</span></th>
             <th class="col-num">AQL Mon. <span class="th-hint th-hint--right" data-tip="Account Qualified Lead — Oportunidades mapeadas de monetização">?</span></th>
@@ -30,13 +30,14 @@
             <th class="col-num">SAL Mon. <span class="th-hint th-hint--right" data-tip="Reunião Realizada — Reuniões realizadas de monetização">?</span></th>
             <th class="col-cr">CR7% <span class="th-hint th-hint--right" data-tip="Conversão SAL → Commit Monetização">?</span></th>
             <th class="col-num">Commit Mon. <span class="th-hint th-hint--right" data-tip="Venda concretizada de monetização">?</span></th>
+            <th class="col-cr">Hit Rate Mon. <span class="th-hint th-hint--right" data-tip="Conversão direta de AQL para venda concretizada de monetização">?</span></th>
             <th class="col-num">CR Monet. <span class="th-hint th-hint--right" data-tip="Commits de monetização">?</span></th>
             <th class="col-money">Booking Monet. <span class="th-hint th-hint--right" data-tip="Booking de monetização (TCV)">?</span></th>
           </tr>
         </thead>
         <tbody v-if="loading">
           <tr v-for="i in 6" :key="i" class="skeleton-row">
-            <td v-for="j in 28" :key="j"><div class="skeleton-cell"></div></td>
+            <td v-for="j in 29" :key="j"><div class="skeleton-cell"></div></td>
           </tr>
         </tbody>
         <tbody v-else>
@@ -72,6 +73,7 @@
               <td class="col-num">{{ formatNumber(row.sal_monetizacao) }}</td>
               <td class="col-cr">—</td>
               <td class="col-num">{{ formatNumber(row.commit_monetizacao) }}</td>
+              <td class="col-cr">—</td>
               <td class="col-num">{{ formatNumber(row.CR_monetizacao) }}</td>
               <td class="col-money">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
@@ -124,6 +126,7 @@
               <td class="col-num total-val">{{ formatNumber(row.sal_monetizacao) }}</td>
               <td class="col-cr"><span :class="crClass(row.cr7?.color)">{{ fmtCr(row.cr7?.val) }}</span></td>
               <td class="col-num total-val">{{ formatNumber(row.commit_monetizacao) }}</td>
+              <td class="col-cr"><span :class="crClass(row.mqlWonMon?.color)">{{ fmtCr(row.mqlWonMon?.val) }}</span></td>
               <td class="col-num total-val">{{ formatNumber(row.CR_monetizacao) }}</td>
               <td class="col-money total-val">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
@@ -176,6 +179,7 @@
               <td class="col-num">{{ formatNumber(row.sal_monetizacao) }}</td>
               <td class="col-cr"><span :class="crClass(row.cr7?.color)">{{ fmtCr(row.cr7?.val) }}</span></td>
               <td class="col-num">{{ formatNumber(row.commit_monetizacao) }}</td>
+              <td class="col-cr"><span :class="crClass(row.mqlWonMon?.color)">{{ fmtCr(row.mqlWonMon?.val) }}</span></td>
               <td class="col-num">{{ formatNumber(row.CR_monetizacao) }}</td>
               <td class="col-money">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
@@ -216,6 +220,7 @@
                 <td class="col-num step-val">{{ formatNumber(step.sal_monetizacao) }}</td>
                 <td class="col-cr step-val"><span :class="crClass(row.cr7?.color)">{{ fmtCalcCr(step.commit_monetizacao, step.sal_monetizacao) }}</span></td>
                 <td class="col-num step-val">{{ formatNumber(step.commit_monetizacao) }}</td>
+                <td class="col-cr step-val"><span :class="crClass(row.mqlWonMon?.color)">{{ fmtCalcCr(step.commit_monetizacao, step.aql_monetizacao) }}</span></td>
                 <td class="col-num step-val">{{ formatNumber(step.CR_monetizacao) }}</td>
                 <td class="col-money step-val">{{ fmtMoney(step.booking_monetizacao) }}</td>
               </tr>
