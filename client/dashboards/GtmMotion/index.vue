@@ -338,7 +338,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useDashboardData } from '../../composables/useDashboardData.js'
 import { formatNumber, formatCurrency, formatCurrencyAbbrev, formatDateTime } from '../../composables/useFormatters.js'
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
@@ -353,35 +353,6 @@ const { data, loading, error, fetchData } = useDashboardData('gtm-motion')
 
 // ── Refreshing state (button only, keeps data visible) ─────────────────────
 const refreshing = ref(false)
-let updatePollTimer = null
-
-async function pollUpdateStatus() {
-  try {
-    const res = await fetch('/api/update-status/gtm-motion')
-    const status = await res.json()
-    if (status.updating) {
-      refreshing.value = true
-    } else if (refreshing.value) {
-      // Update just finished — reload data from cache silently
-      refreshing.value = false
-      await fetchAllData()
-      lastUpdateTime.value = formatDateTime(new Date().toISOString())
-      await nextTick()
-      if (window.lucide) window.lucide.createIcons()
-    }
-  } catch { /* ignore */ }
-}
-
-function startUpdatePolling() {
-  stopUpdatePolling()
-  updatePollTimer = setInterval(pollUpdateStatus, 5000)
-}
-
-function stopUpdatePolling() {
-  if (updatePollTimer) { clearInterval(updatePollTimer); updatePollTimer = null }
-}
-
-onBeforeUnmount(() => stopUpdatePolling())
 
 // ── KPI Layout Toggle ───────────────────────────────────────────────────────
 const kpiLayout = ref('expanded')
@@ -1330,7 +1301,6 @@ const resolvedData = computed(() => {
     }
     return transformApiData(data.value, mesInicial.value, mesFinal.value, selectedCloser.value, selectedSdr.value, null, selectedStep.value, tableDrilldown.value, selectedChannel.value)
   }
-  if (import.meta.env.DEV) return MOCK_DATA
   return null
 })
 
@@ -1838,10 +1808,6 @@ onMounted(async () => {
   lastUpdateTime.value = formatDateTime(new Date().toISOString())
   await nextTick()
   if (window.lucide) window.lucide.createIcons()
-
-  // Check if another user is already updating, and start polling
-  await pollUpdateStatus()
-  startUpdatePolling()
 })
 </script>
 

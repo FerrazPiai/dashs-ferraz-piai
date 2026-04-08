@@ -11,8 +11,27 @@ const __dirname = dirname(__filename)
 const router = Router()
 
 /**
- * File-based update lock — prevents concurrent webhook triggers across users.
- * Survives server restarts (unlike in-memory Map).
+ * N8N-based execution check for GTM Motion.
+ * Called ONLY when user clicks "Atualizar" (not on polling).
+ */
+const N8N_CHECK_STATUS_URL = process.env.N8N_CHECK_STATUS_URL || 'https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/check-execution-status'
+
+async function isN8nWorkflowRunning() {
+  try {
+    const res = await globalThis.fetch(N8N_CHECK_STATUS_URL, {
+      signal: AbortSignal.timeout(8000)
+    })
+    if (!res.ok) return false
+    const data = await res.json()
+    return !!data.updating
+  } catch (err) {
+    console.warn(`[${new Date().toISOString()}] N8N status check failed:`, err.message)
+    return false
+  }
+}
+
+/**
+ * File-based update lock — fast local check for all dashboards.
  * Auto-expires after LOCK_TTL_MS (10 minutes).
  */
 const LOCK_TTL_MS = 10 * 60 * 1000 // 10 minutos
@@ -129,10 +148,8 @@ router.get('/data/:dashboardId', async (req, res, next) => {
     let fromCache = false
 
     // Try to get from cache (unless force refresh)
-    // On normal page load: always serve cache if it exists (ignore TTL)
-    // Only bypass cache when explicitly requesting refresh
     if (!forceRefresh) {
-      const cachedData = await getCachedData(cacheKey, Infinity)
+      const cachedData = await getCachedData(cacheKey, dashboard.cacheTTL)
 
       if (cachedData) {
         data = cachedData
@@ -265,7 +282,11 @@ router.get('/marketing-vendas/trigger-update', async (req, res, next) => {
     })
   }
 
-  const webhookUrl = 'https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/82892823-713e-4652-a4d2-137402cfe280'
+  const webhookUrl = process.env.WEBHOOK_POST_MARKETING_VENDAS
+
+  if (!webhookUrl) {
+    return res.status(500).json({ error: { message: 'WEBHOOK_POST_MARKETING_VENDAS não configurado no .env', status: 500 } })
+  }
 
   await setUpdateLock(dashboardId)
   try {
@@ -303,13 +324,23 @@ router.get('/marketing-vendas/trigger-update', async (req, res, next) => {
 router.get('/gtm-motion/trigger-update', async (req, res, next) => {
   const dashboardId = 'gtm-motion'
 
+  // Check file lock first (fast), then N8N workflow (authoritative)
   if (await isUpdateLocked(dashboardId)) {
     return res.status(409).json({
       error: { message: 'Já existe uma atualização em andamento para este dashboard.', status: 409, updating: true }
     })
   }
+  if (await isN8nWorkflowRunning()) {
+    return res.status(409).json({
+      error: { message: 'O workflow de atualização já está em execução no N8N.', status: 409, updating: true }
+    })
+  }
 
-  const webhookUrl = 'https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/82892823-713e-4652-a4d2-137402cfe280'
+  const webhookUrl = process.env.WEBHOOK_POST_GTM_MOTION
+
+  if (!webhookUrl) {
+    return res.status(500).json({ error: { message: 'WEBHOOK_POST_GTM_MOTION não configurado no .env', status: 500 } })
+  }
 
   await setUpdateLock(dashboardId)
   try {
@@ -364,7 +395,11 @@ router.get('/tx-conv-saber-monetizacao/trigger-update', async (req, res, next) =
     })
   }
 
-  const webhookUrl = 'https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/atualizar-cache-dash-conv-saber-para-monetizacao'
+  const webhookUrl = process.env.WEBHOOK_POST_TX_CONV_SABER_MONETIZACAO
+
+  if (!webhookUrl) {
+    return res.status(500).json({ error: { message: 'WEBHOOK_POST_TX_CONV_SABER_MONETIZACAO não configurado no .env', status: 500 } })
+  }
 
   await setUpdateLock(dashboardId)
   try {
