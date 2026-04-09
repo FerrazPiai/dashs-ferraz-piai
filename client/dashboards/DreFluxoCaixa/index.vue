@@ -8,13 +8,19 @@
       </div>
       <div class="main-actions">
         <VToggleGroup :options="VISUALIZACOES" v-model="currentView" />
-        <div class="period-range">
+        <VToggleGroup :options="periodModeOptions" v-model="periodMode" />
+        <div v-if="periodMode === 'mes'" class="period-range">
           <select class="month-select" v-model="mesInicial">
             <option v-for="m in MESES" :key="m.value" :value="m.value">{{ m.label }}</option>
           </select>
           <span class="period-sep">até</span>
           <select class="month-select" v-model="mesFinal">
             <option v-for="m in mesesFinalDisponiveis" :key="m.value" :value="m.value">{{ m.label }}</option>
+          </select>
+        </div>
+        <div v-else class="period-range">
+          <select class="month-select" v-model="selectedQuarter">
+            <option v-for="q in quartersDisponiveis" :key="q.value" :value="q.value">{{ q.label }}</option>
           </select>
         </div>
         <VRefreshButton :loading="loading || refreshing" @click="handleRefresh" />
@@ -27,28 +33,87 @@
       <span>{{ error }}</span>
     </div>
 
-    <!-- Executive KPI Cards -->
-    <div class="exec-kpi-grid">
-      <div v-for="kpi in mainKpis" :key="kpi.label" class="exec-kpi-card">
-        <div class="exec-kpi-label">{{ kpi.label }}</div>
-        <div v-if="loading" class="exec-kpi-value"><span class="spinner"></span></div>
-        <div v-else class="exec-kpi-value" :class="{ 'value-negative': kpi.value < 0 }">
-          {{ formatCurrency(kpi.value) }}
-        </div>
-        <div v-if="!loading && kpi.pctLabel" class="exec-kpi-badge" :class="kpi.badgeClass">
-          {{ kpi.pctLabel }}
-        </div>
+    <!-- KPI Controls -->
+    <div class="kpi-controls">
+      <div class="kpi-value-toggle">
+        <button
+          class="layout-btn"
+          :class="{ active: kpiValueMode === 'abbrev' }"
+          @click="kpiValueMode = 'abbrev'"
+          aria-label="Valores abreviados"
+        >
+          <span class="toggle-hint" data-tip="Valores abreviados (ex: R$ 25k)">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <text x="1" y="12" font-size="13" font-weight="700" fill="currentColor">K</text>
+            </svg>
+          </span>
+        </button>
+        <button
+          class="layout-btn"
+          :class="{ active: kpiValueMode === 'full' }"
+          @click="kpiValueMode = 'full'"
+          aria-label="Valores completos"
+        >
+          <span class="toggle-hint" data-tip="Valores completos (ex: R$ 25.000,00)">
+            <svg width="22" height="14" viewBox="0 0 22 14" fill="none">
+              <text x="1" y="12" font-size="13" font-weight="700" fill="currentColor">0,0</text>
+            </svg>
+          </span>
+        </button>
+      </div>
+      <div class="kpi-layout-toggle">
+        <button
+          class="layout-btn"
+          :class="{ active: kpiLayout === 'compact' }"
+          @click="kpiLayout = 'compact'"
+          aria-label="1 linha"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="0" y="5" width="14" height="4" rx="1" fill="currentColor"/></svg>
+        </button>
+        <button
+          class="layout-btn"
+          :class="{ active: kpiLayout === 'expanded' }"
+          @click="kpiLayout = 'expanded'"
+          aria-label="2 linhas"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="0" y="1" width="14" height="4" rx="1" fill="currentColor"/><rect x="0" y="9" width="14" height="4" rx="1" fill="currentColor"/></svg>
+        </button>
       </div>
     </div>
 
-    <!-- Expense Breakdown Pills -->
-    <div class="expense-row">
-      <div v-for="item in expenseItems" :key="item.label" class="expense-pill">
-        <div class="expense-label">{{ item.label }}</div>
-        <div v-if="loading" class="expense-pct">—</div>
+    <!-- KPI Cards -->
+    <div class="kpi-all-grid" :class="{ 'kpi-all-grid--compact': kpiLayout === 'compact' }">
+      <!-- Executive KPIs -->
+      <div v-for="kpi in mainKpis" :key="kpi.label" class="kpi-card">
+        <div class="kpi-label">
+          <span class="kpi-label-text">{{ kpi.label }}</span>
+          <span v-if="kpi.tooltip" class="info-hint" :data-tip="kpi.tooltip">?</span>
+        </div>
+        <div v-if="loading" class="kpi-value"><span class="spinner"></span></div>
+        <div v-else class="kpi-value" :class="{ 'value-negative': kpi.value < 0 }">
+          {{ kpiCurrencyFormatter(kpi.value) }}
+        </div>
+        <div v-if="!loading && kpi.pctLabel" class="kpi-badge" :class="kpi.badgeClass">
+          {{ kpi.pctLabel }}
+        </div>
+        <div v-if="!loading && kpi.delta !== null && kpi.delta !== undefined" class="kpi-delta" :class="kpi.deltaClass">
+          Δ Período Anterior {{ kpi.deltaLabel }}
+        </div>
+      </div>
+
+      <!-- Expense KPIs -->
+      <div v-for="item in expenseItems" :key="item.label" class="kpi-card">
+        <div class="kpi-label">
+          <span class="kpi-label-text">{{ item.label }}</span>
+          <span v-if="item.tooltip" class="info-hint" :data-tip="item.tooltip">?</span>
+        </div>
+        <div v-if="loading" class="kpi-value">—</div>
         <template v-else>
-          <div class="expense-pct">{{ item.pct }}</div>
-          <div class="expense-abs">{{ item.abs }}</div>
+          <div class="kpi-value">{{ item.pct }}</div>
+          <div class="kpi-sub-value">{{ item.abs }}</div>
+          <div v-if="item.delta !== null && item.delta !== undefined" class="kpi-delta" :class="item.deltaClass">
+            Δ Período Anterior {{ item.deltaLabel }}
+          </div>
         </template>
       </div>
     </div>
@@ -98,15 +163,33 @@
 <script setup>
 import { ref, computed, watch, onMounted, nextTick } from 'vue'
 import { useDashboardData } from '../../composables/useDashboardData.js'
-import { formatCurrency } from '../../composables/useFormatters.js'
+import { formatCurrency, formatCurrencyAbbrev } from '../../composables/useFormatters.js'
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
 import VConfirmModal from '../../components/ui/VConfirmModal.vue'
 import VChartCard from '../../components/charts/VChartCard.vue'
 import VToggleGroup from '../../components/ui/VToggleGroup.vue'
 import DreSankeyChart from './components/DreSankeyChart.vue'
-import { MOCK_DATA, VISUALIZACOES, MESES } from './mock-data.js'
+import { MOCK_DATA, VISUALIZACOES, MESES, QUARTERS } from './mock-data.js'
 
 const currentView = ref('caixa-realizado')
+
+// ── KPI Layout Toggle ───────────────────────────────────────────────────────
+const kpiLayout = ref('expanded')
+
+// ── KPI Value Mode (abbreviated / full) ────────────────────────────────────
+const kpiValueMode = ref('abbrev')
+const kpiCurrencyFormatter = computed(() =>
+  kpiValueMode.value === 'full' ? formatCurrency : formatCurrencyAbbrev
+)
+
+// ── Period Mode (Quarter / Mês) ─────────────────────────────────────────────
+const periodMode = ref('mes')
+const periodModeOptions = [
+  { value: 'quarter', label: 'Quarter' },
+  { value: 'mes', label: 'Mês' },
+]
+
+const pad = (n) => String(n).padStart(2, '0')
 
 function getCurrentQuarterRange() {
   const now = new Date()
@@ -114,7 +197,6 @@ function getCurrentQuarterRange() {
   const month = now.getMonth() + 1
   const qStart = Math.floor((month - 1) / 3) * 3 + 1
   const qEnd = qStart + 2
-  const pad = (n) => String(n).padStart(2, '0')
   const start = `${year}-${pad(qStart)}`
   const end = `${year}-${pad(qEnd)}`
   const valores = MESES.map((m) => m.value)
@@ -136,11 +218,88 @@ watch(mesInicial, (val) => {
   if (mesFinal.value < val) mesFinal.value = val
 })
 
+// ── Quarter selection ───────────────────────────────────────────────────────
+function getCurrentQuarterValue() {
+  const now = new Date()
+  const q = Math.ceil((now.getMonth() + 1) / 3)
+  return `${now.getFullYear()}-Q${q}`
+}
+
+function getPreviousQuarter(q) {
+  const [year, qNum] = [parseInt(q.split('-Q')[0]), parseInt(q.split('-Q')[1])]
+  if (qNum === 1) return `${year - 1}-Q4`
+  return `${year}-Q${qNum - 1}`
+}
+
+function quarterToMonthRange(q) {
+  const [year, qNum] = [parseInt(q.split('-Q')[0]), parseInt(q.split('-Q')[1])]
+  const qStart = (qNum - 1) * 3 + 1
+  const qEnd = qStart + 2
+  return { start: `${year}-${pad(qStart)}`, end: `${year}-${pad(qEnd)}` }
+}
+
+const selectedQuarter = ref(getCurrentQuarterValue())
+
+const quartersDisponiveis = computed(() => {
+  const mesesValues = MESES.map((m) => m.value)
+  return QUARTERS.filter((q) => {
+    const { start } = quarterToMonthRange(q.value)
+    return mesesValues.includes(start)
+  })
+})
+
+watch(selectedQuarter, () => {
+  // Sync month range when quarter changes
+  const { start, end } = quarterToMonthRange(selectedQuarter.value)
+  mesInicial.value = start
+  mesFinal.value = end
+})
+
+// ── Period mode sync ────────────────────────────────────────────────────────
+watch(periodMode, (mode) => {
+  if (mode === 'quarter') {
+    const [y, m] = mesInicial.value.split('-').map(Number)
+    const q = Math.ceil(m / 3)
+    selectedQuarter.value = `${y}-Q${q}`
+  } else {
+    const { start, end } = quarterToMonthRange(selectedQuarter.value)
+    mesInicial.value = start
+    mesFinal.value = end
+  }
+})
+
+// ── Comparison period (for MoM deltas) ──────────────────────────────────────
+function shiftMonth(ym, months) {
+  const [y, m] = ym.split('-').map(Number)
+  const total = y * 12 + (m - 1) - months
+  const newY = Math.floor(total / 12)
+  const newM = (total % 12) + 1
+  return `${newY}-${pad(newM)}`
+}
+
+const compPeriod = computed(() => {
+  if (periodMode.value === 'quarter') {
+    const prev = getPreviousQuarter(selectedQuarter.value)
+    return quarterToMonthRange(prev)
+  }
+  // Month mode: shift back by the same range size
+  const [y1, m1] = mesInicial.value.split('-').map(Number)
+  const [y2, m2] = mesFinal.value.split('-').map(Number)
+  const rangeSize = (y2 * 12 + m2) - (y1 * 12 + m1) + 1
+  return {
+    start: shiftMonth(mesInicial.value, rangeSize),
+    end: shiftMonth(mesFinal.value, rangeSize),
+  }
+})
+
 const currentViewLabel = computed(
   () => VISUALIZACOES.find((v) => v.value === currentView.value)?.label ?? ''
 )
 
 const periodoLabel = computed(() => {
+  if (periodMode.value === 'quarter') {
+    return QUARTERS.find((q) => q.value === selectedQuarter.value)?.label ?? selectedQuarter.value
+  }
   if (mesInicial.value === mesFinal.value) {
     return MESES.find((m) => m.value === mesInicial.value)?.label ?? ''
   }
@@ -149,7 +308,11 @@ const periodoLabel = computed(() => {
   return `${ini} – ${fim}`
 })
 
-const chartKey = computed(() => `${currentView.value}-${mesInicial.value}-${mesFinal.value}`)
+const chartKey = computed(() =>
+  periodMode.value === 'quarter'
+    ? `${currentView.value}-${selectedQuarter.value}`
+    : `${currentView.value}-${mesInicial.value}-${mesFinal.value}`
+)
 
 const { data, loading, error, fetchData } = useDashboardData('raio-x-financeiro')
 
@@ -161,7 +324,7 @@ function parseApiResponse(apiData) {
   const rows = apiData?.data ?? apiData?.[0]?.data ?? []
   const parsed = {}
   for (const row of rows) {
-    const { ano, mes, visualizacao, row_number, ...fields } = row
+    const { ano, mes, visualizacao, row_number, quarter, ...fields } = row
     const yearMonth = `${ano}-${String(mes).padStart(2, '0')}`
     if (!parsed[visualizacao]) parsed[visualizacao] = {}
     const normalized = {}
@@ -186,13 +349,69 @@ function agregaMeses(source, viewKey, de, ate) {
   }, {})
 }
 
-const resolvedData = computed(() => {
-  const source = data.value
+function getParsedSource() {
+  return data.value
     ? parseApiResponse(data.value)
     : (import.meta.env.DEV ? MOCK_DATA : null)
+}
+
+const resolvedData = computed(() => {
+  const source = getParsedSource()
   if (!source) return null
+  if (periodMode.value === 'quarter') {
+    const { start, end } = quarterToMonthRange(selectedQuarter.value)
+    return agregaMeses(source, currentView.value, start, end)
+  }
   return agregaMeses(source, currentView.value, mesInicial.value, mesFinal.value)
 })
+
+const comparisonData = computed(() => {
+  const source = getParsedSource()
+  if (!source) return null
+  return agregaMeses(source, currentView.value, compPeriod.value.start, compPeriod.value.end)
+})
+
+// ── MoM Deltas ──────────────────────────────────────────────────────────────
+const KPI_FIELDS = [
+  'receitaLiquida', 'lucroBruto', 'ebitda', 'lucroLiquido',
+  'custosOperacionais', 'despesasComerciais', 'despesasAdministrativas',
+  'despesasGerais', 'despesaFinanceira',
+]
+
+const previousDeltas = computed(() => {
+  const cur = resolvedData.value
+  const prev = comparisonData.value
+  if (!cur || !prev) return {}
+
+  const hasAnyPrev = KPI_FIELDS.some((k) => prev[k])
+  if (!hasAnyPrev) return {}
+
+  const result = {}
+  for (const key of KPI_FIELDS) {
+    const curVal = cur[key] ?? 0
+    const prevVal = prev[key] ?? 0
+    if (prevVal !== 0) {
+      const pct = ((curVal - prevVal) / Math.abs(prevVal)) * 100
+      result[key] = Math.abs(pct) > 1500 ? 0 : pct
+    } else {
+      result[key] = null
+    }
+  }
+  return result
+})
+
+function formatDelta(pct) {
+  if (pct == null) return null
+  const sign = pct > 0 ? '+' : ''
+  return sign + pct.toFixed(1).replace('.', ',') + '%'
+}
+
+function deltaClass(pct) {
+  if (pct == null) return 'delta-neutral'
+  if (pct > 0) return 'delta-green'
+  if (pct < 0) return 'delta-red'
+  return 'delta-neutral'
+}
 
 // --- Semaphore helpers ---
 function pctBadgeClass(pct, thresholds) {
@@ -213,41 +432,61 @@ function safePct(numerator, denominator) {
 // --- Main KPI cards ---
 const mainKpis = computed(() => {
   const d = resolvedData.value
+  const deltas = previousDeltas.value
+
   if (!d) return [
-    { label: 'Receita Líquida', value: 0, pctLabel: '—', badgeClass: 'badge-neutral' },
-    { label: 'Lucro Bruto',     value: 0, pctLabel: '—', badgeClass: 'badge-neutral' },
-    { label: 'EBITDA',          value: 0, pctLabel: '—', badgeClass: 'badge-neutral' },
-    { label: 'Lucro Líquido',   value: 0, pctLabel: '—', badgeClass: 'badge-neutral' },
+    { label: 'Receita Líquida', tooltip: 'Receita total após deduções (impostos, devoluções)', value: 0, pctLabel: '—', badgeClass: 'badge-neutral', delta: null, deltaLabel: null, deltaClass: '' },
+    { label: 'Lucro Bruto',     tooltip: 'Receita Líquida menos CSP', value: 0, pctLabel: '—', badgeClass: 'badge-neutral', delta: null, deltaLabel: null, deltaClass: '' },
+    { label: 'EBITDA',          tooltip: 'Lucro antes de juros, impostos, depreciação e amortização', value: 0, pctLabel: '—', badgeClass: 'badge-neutral', delta: null, deltaLabel: null, deltaClass: '' },
+    { label: 'Lucro Líquido',   tooltip: 'Resultado final após todas as deduções e despesas', value: 0, pctLabel: '—', badgeClass: 'badge-neutral', delta: null, deltaLabel: null, deltaClass: '' },
   ]
 
   const lbPct = safePct(d.lucroBruto, d.receitaLiquida)
   const ebitdaPct = safePct(d.ebitda, d.receitaLiquida)
   const llPct = safePct(d.lucroLiquido, d.receitaLiquida)
 
+  const fields = ['receitaLiquida', 'lucroBruto', 'ebitda', 'lucroLiquido']
+
   return [
     {
       label: 'Receita Líquida',
+      tooltip: 'Receita total após deduções (impostos, devoluções)',
       value: d.receitaLiquida,
       pctLabel: null,
       badgeClass: null,
+      delta: deltas.receitaLiquida ?? null,
+      deltaLabel: formatDelta(deltas.receitaLiquida),
+      deltaClass: deltaClass(deltas.receitaLiquida),
     },
     {
       label: 'Lucro Bruto',
+      tooltip: 'Receita Líquida menos CSP',
       value: d.lucroBruto,
       pctLabel: `${formatPct(lbPct)} da Rec. Líquida`,
       badgeClass: d.lucroBruto < 0 ? 'badge-red' : pctBadgeClass(lbPct, { red: 50, yellow: 60 }),
+      delta: deltas.lucroBruto ?? null,
+      deltaLabel: formatDelta(deltas.lucroBruto),
+      deltaClass: deltaClass(deltas.lucroBruto),
     },
     {
       label: 'EBITDA',
+      tooltip: 'Lucro antes de juros, impostos, depreciação e amortização',
       value: d.ebitda,
       pctLabel: `${formatPct(ebitdaPct)} da Rec. Líquida`,
       badgeClass: d.ebitda < 0 ? 'badge-red' : pctBadgeClass(ebitdaPct, { red: 20, yellow: 25 }),
+      delta: deltas.ebitda ?? null,
+      deltaLabel: formatDelta(deltas.ebitda),
+      deltaClass: deltaClass(deltas.ebitda),
     },
     {
       label: 'Lucro Líquido',
+      tooltip: 'Resultado final após todas as deduções e despesas',
       value: d.lucroLiquido,
       pctLabel: `${formatPct(llPct)} da Rec. Líquida`,
       badgeClass: d.lucroLiquido < 0 ? 'badge-red' : pctBadgeClass(llPct, { red: 10, yellow: 15 }),
+      delta: deltas.lucroLiquido ?? null,
+      deltaLabel: formatDelta(deltas.lucroLiquido),
+      deltaClass: deltaClass(deltas.lucroLiquido),
     },
   ]
 })
@@ -267,17 +506,23 @@ const expenseItems = computed(() => {
   const rl = d?.receitaLiquida || 0
 
   const items = [
-    { label: '% Custo Operacional',       key: 'custosOperacionais',      value: d?.custosOperacionais ?? 0 },
-    { label: '% Desp. Comerciais',        key: 'despesasComerciais',       value: d?.despesasComerciais ?? 0 },
-    { label: '% Desp. Administrativas',   key: 'despesasAdministrativas',  value: d?.despesasAdministrativas ?? 0 },
-    { label: '% Desp. Gerais',            key: 'despesasGerais',           value: d?.despesasGerais ?? 0 },
-    { label: '% Despesa Financeira',      key: 'despesaFinanceira',        value: d?.despesaFinanceira ?? 0 },
+    { label: '% CSP',       key: 'custosOperacionais',      value: d?.custosOperacionais ?? 0, tooltip: 'Percentual de CSP sobre a Receita Líquida' },
+    { label: '% Desp. Comerciais',        key: 'despesasComerciais',       value: d?.despesasComerciais ?? 0, tooltip: 'Percentual de despesas comerciais sobre a Receita Líquida' },
+    { label: '% Desp. Administrativas',   key: 'despesasAdministrativas',  value: d?.despesasAdministrativas ?? 0, tooltip: 'Percentual de despesas administrativas sobre a Receita Líquida' },
+    { label: '% Desp. Gerais',            key: 'despesasGerais',           value: d?.despesasGerais ?? 0, tooltip: 'Percentual de despesas gerais sobre a Receita Líquida' },
+    { label: '% Despesa Financeira',      key: 'despesaFinanceira',        value: d?.despesaFinanceira ?? 0, tooltip: 'Percentual de despesas financeiras sobre a Receita Líquida' },
   ]
+
+  const deltas = previousDeltas.value
 
   return items.map((item) => ({
     label: item.label,
+    tooltip: item.tooltip,
     pct: rl ? formatPct(safePct(item.value, rl)) : '—',
-    abs: formatCurrency(item.value),
+    abs: kpiCurrencyFormatter.value(item.value),
+    delta: deltas[item.key] ?? null,
+    deltaLabel: formatDelta(deltas[item.key]),
+    deltaClass: deltaClass(deltas[item.key]),
   }))
 })
 
@@ -413,44 +658,189 @@ onMounted(async () => {
   color: #ccc;
 }
 
-/* ── Executive KPI cards ── */
-.exec-kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 10px;
+/* ── KPI Controls bar ── */
+.kpi-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
-.exec-kpi-card {
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 6px;
-  padding: 18px 20px 16px;
+/* ── KPI Value Toggle ── */
+.kpi-value-toggle {
+  display: inline-flex;
+  gap: 0;
+  background: #1a1a1a;
+  border-radius: 4px;
+  padding: 3px;
+}
+
+.kpi-layout-toggle {
+  display: inline-flex;
+  gap: 0;
+  background: #1a1a1a;
+  border-radius: 4px;
+  padding: 3px;
+}
+
+.layout-btn {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: #444;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.layout-btn:hover {
+  color: #777;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.layout-btn.active {
+  color: #aaa;
+  background: #252525;
+}
+
+.toggle-hint {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-hint:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #ccc;
+  font-size: 11px;
+  font-weight: 400;
+  padding: 6px 10px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 50;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Unified KPI Grid — expanded (2 rows: 4 + 5) ── */
+.kpi-all-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* First 4 items (exec KPIs) span first row as 4 cols */
+.kpi-all-grid > .kpi-card:nth-child(-n+4) {
+  grid-column: span 1;
+}
+
+/* Force first 4 into a 4-col row, last 5 into a 5-col row */
+.kpi-all-grid:not(.kpi-all-grid--compact) {
+  grid-template-columns: repeat(20, 1fr);
+}
+
+.kpi-all-grid:not(.kpi-all-grid--compact) > .kpi-card:nth-child(-n+4) {
+  grid-column: span 5;
+}
+
+.kpi-all-grid:not(.kpi-all-grid--compact) > .kpi-card:nth-child(n+5) {
+  grid-column: span 4;
+}
+
+/* ── KPI Grid — compact (all 9 in 1 row) ── */
+.kpi-all-grid--compact {
+  grid-template-columns: repeat(9, 1fr);
   gap: 6px;
 }
 
-.exec-kpi-label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #666;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
+.kpi-all-grid--compact > .kpi-card:nth-child(-n+4),
+.kpi-all-grid--compact > .kpi-card:nth-child(n+5) {
+  grid-column: span 1;
 }
 
-.exec-kpi-value {
-  font-size: 22px;
+.kpi-all-grid--compact .kpi-card {
+  padding: 10px 10px;
+}
+
+.kpi-all-grid--compact .kpi-value {
+  font-size: 16px;
+}
+
+.kpi-all-grid--compact .kpi-label {
+  font-size: 10px;
+}
+
+.kpi-all-grid--compact .kpi-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+}
+
+.kpi-all-grid--compact .kpi-sub-value {
+  font-size: 10px;
+}
+
+/* ── Unified KPI Card ── */
+.kpi-card {
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 6px;
+  padding: 14px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: visible;
+  min-width: 0;
+}
+
+.kpi-label-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.kpi-value {
+  font-size: 20px;
   font-weight: 700;
   color: #fff;
   line-height: 1.1;
+  min-height: 22px;
 }
 
-.exec-kpi-value.value-negative {
+.kpi-value.value-negative {
   color: #ef4444;
 }
 
-.exec-kpi-badge {
+.kpi-sub-value {
+  font-size: 11px;
+  font-weight: 500;
+  color: #888;
+  margin-top: -2px;
+}
+
+.kpi-badge {
   display: inline-flex;
   align-items: center;
   font-size: 11px;
@@ -467,53 +857,107 @@ onMounted(async () => {
 .badge-red    { color: #ef4444; background: rgba(239, 68, 68, 0.12); }
 .badge-neutral { color: #888; background: rgba(255, 255, 255, 0.06); }
 
-/* ── Expense breakdown row ── */
-.expense-row {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
-  margin-bottom: 20px;
-}
-
-.expense-pill {
-  background: #141414;
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 6px;
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.expense-pct {
-  font-size: 16px;
-  font-weight: 700;
-  color: #ccc;
-}
-
-.expense-abs {
-  font-size: 11px;
-  font-weight: 500;
-  color: #666;
-}
-
-.expense-label {
+/* ── MoM Delta ── */
+.kpi-delta {
   font-size: 10px;
-  color: #555;
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+  margin-top: 2px;
+}
+
+.delta-green { color: #22c55e; }
+.delta-red { color: #ef4444; }
+.delta-neutral { color: #888; }
+
+/* ── Info hint tooltip (?) ── */
+.info-hint {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  font-size: 9px;
+  font-weight: 700;
+  color: #555;
+  border: 1px solid #333;
+  cursor: help;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.info-hint:hover {
+  color: #ccc;
+  border-color: #555;
+  background: #1a1a1a;
+}
+
+.info-hint:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1a1a;
+  border: 1px solid #333;
+  color: #ccc;
+  font-size: 11px;
+  font-weight: 400;
+  padding: 6px 10px;
+  border-radius: 4px;
+  white-space: normal;
+  width: max-content;
+  max-width: 220px;
+  line-height: 1.4;
+  z-index: 50;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.info-hint:hover::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: #333;
+  z-index: 51;
 }
 
 /* ── Responsive ── */
+@media (max-width: 1400px) {
+  .kpi-all-grid--compact {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .kpi-all-grid--compact > .kpi-card:nth-child(-n+4),
+  .kpi-all-grid--compact > .kpi-card:nth-child(n+5) {
+    grid-column: span 1;
+  }
+}
+
 @media (max-width: 1024px) {
-  .exec-kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .expense-row   { grid-template-columns: repeat(3, 1fr); }
+  .kpi-all-grid:not(.kpi-all-grid--compact) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .kpi-all-grid:not(.kpi-all-grid--compact) > .kpi-card:nth-child(-n+4),
+  .kpi-all-grid:not(.kpi-all-grid--compact) > .kpi-card:nth-child(n+5) {
+    grid-column: span 1;
+  }
+  .kpi-all-grid--compact {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 
 @media (max-width: 640px) {
-  .exec-kpi-grid { grid-template-columns: 1fr; }
-  .expense-row   { grid-template-columns: repeat(2, 1fr); }
+  .kpi-all-grid:not(.kpi-all-grid--compact),
+  .kpi-all-grid--compact {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .kpi-all-grid:not(.kpi-all-grid--compact) > .kpi-card:nth-child(-n+4),
+  .kpi-all-grid:not(.kpi-all-grid--compact) > .kpi-card:nth-child(n+5) {
+    grid-column: span 1;
+  }
 }
 
 /* ── Chart legend ── */

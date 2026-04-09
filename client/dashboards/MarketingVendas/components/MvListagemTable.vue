@@ -367,6 +367,7 @@ watch(() => props.loading, (val) => { if (!val) initIcons() })
 
 .mv-table {
   width: 100%;
+  min-width: 900px;
   border-collapse: collapse;
   white-space: nowrap;
 }
