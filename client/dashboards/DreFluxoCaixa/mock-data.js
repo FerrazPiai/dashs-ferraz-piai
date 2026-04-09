@@ -5,6 +5,13 @@ export const VISUALIZACOES = [
   { value: 'caixa-previsto',  label: 'Caixa Previsto'   },
 ]
 
+export const QUARTERS = [
+  { value: '2026-Q1', label: 'Q1 2026' },
+  { value: '2026-Q2', label: 'Q2 2026' },
+  { value: '2026-Q3', label: 'Q3 2026' },
+  { value: '2026-Q4', label: 'Q4 2026' },
+]
+
 export const MESES = [
   { value: '2026-01', label: 'Jan 2026' },
   { value: '2026-02', label: 'Fev 2026' },
