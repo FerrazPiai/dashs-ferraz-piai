@@ -2120,7 +2120,7 @@ onMounted(async () => {
   background: #0d0d0d;
   padding: 14px 0 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .sticky-header-wrap .main-header {
