@@ -1,9 +1,16 @@
 export const VISUALIZACOES = [
-  { value: 'planejado',       label: 'Planejado'        },
-  { value: 'dre',             label: 'Competência'      },
-  { value: 'caixa-realizado', label: 'Caixa Realizado'  },
-  { value: 'caixa-previsto',  label: 'Caixa Previsto'   },
+  { value: 'competencia', label: 'Competência' },
+  { value: 'caixa',       label: 'Caixa'       },
 ]
+
+export const CAIXA_MODES = [
+  { value: 'planejado',  label: 'Planejado'  },
+  { value: 'realizado',  label: 'Realizado'  },
+]
+
+// Aliases para compatibilidade
+export const MASTER_VIEWS = VISUALIZACOES
+export const SUB_VIEWS = CAIXA_MODES
 
 export const QUARTERS = [
   { value: '2026-Q1', label: 'Q1 2026' },

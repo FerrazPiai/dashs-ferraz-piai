@@ -630,6 +630,9 @@ watch(error, () => {
 .dashboard-container {
   max-width: 1400px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
 }
 
 .error-message {
@@ -641,7 +644,6 @@ watch(error, () => {
   border: 1px solid var(--color-danger);
   border-radius: var(--radius-md);
   color: var(--color-danger);
-  margin-bottom: var(--spacing-lg);
 }
 
 .error-message i {
@@ -666,7 +668,10 @@ watch(error, () => {
   background-color: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: var(--radius-md);
-  margin-bottom: var(--spacing-lg);
+}
+
+.scorecards {
+  margin-bottom: 0;
 }
 
 .loading-message p {

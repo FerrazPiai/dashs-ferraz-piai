@@ -17,11 +17,13 @@
             <th class="col-cr">CR4% <span class="th-hint" data-tip="Conversão de SAL para Commit">?</span></th>
             <th class="col-num">Commit <span class="th-hint" data-tip="Contratos assinados">?</span></th>
             <th class="col-cr">Hit Rate <span class="th-hint" data-tip="Conversão direta de MQL para contrato fechado">?</span></th>
-            <th class="col-money">Avg Ticket <span class="th-hint th-hint--right" data-tip="Valor médio por contrato">?</span></th>
-            <th class="col-money">TCV <span class="th-hint th-hint--right" data-tip="Receita total contratada">?</span></th>
+            <th class="col-money">Avg Ticket <span class="th-hint th-hint--right" data-tip="Valor médio por contrato (Fee Rec + Fee OT) / Commits">?</span></th>
+            <th class="col-money">Fee <span class="th-hint th-hint--right" data-tip="Fee Recorrente + Fee One Time">?</span></th>
+            <th class="col-money">Avg Booking <span class="th-hint th-hint--right" data-tip="Booking médio por contrato (TCV / Commits)">?</span></th>
+            <th class="col-money">Booking <span class="th-hint th-hint--right" data-tip="Receita total contratada (TCV)">?</span></th>
             <th class="col-center">ROAS Booking <span class="th-hint th-hint--right" data-tip="TCV / Investimento">?</span></th>
             <th class="col-center">ROAS Direto <span class="th-hint th-hint--right" data-tip="Fee / Investimento">?</span></th>
-            <th class="col-num">LT Médio <span class="th-hint th-hint--right" data-tip="Lead Time médio em dias">?</span></th>
+            <th class="col-num">LT Médio <span class="th-hint th-hint--right" data-tip="Lead Time médio em meses">?</span></th>
             <th class="col-money">LTV <span class="th-hint th-hint--right" data-tip="Lifetime Value (Fee médio × LT em meses)">?</span></th>
             <th class="col-num">AQL Mon. <span class="th-hint th-hint--right" data-tip="Account Qualified Lead — Oportunidades mapeadas de monetização">?</span></th>
             <th class="col-cr">CR5% <span class="th-hint th-hint--right" data-tip="Conversão AQL → SQL Monetização">?</span></th>
@@ -31,13 +33,15 @@
             <th class="col-cr">CR7% <span class="th-hint th-hint--right" data-tip="Conversão SAL → Commit Monetização">?</span></th>
             <th class="col-num">Commit Mon. <span class="th-hint th-hint--right" data-tip="Venda concretizada de monetização">?</span></th>
             <th class="col-cr">Hit Rate Mon. <span class="th-hint th-hint--right" data-tip="Conversão direta de AQL para venda concretizada de monetização">?</span></th>
-
+            <th class="col-money">Avg Ticket Mon. <span class="th-hint th-hint--right" data-tip="Ticket médio de monetização (Fee Rec Mon + Fee OT Mon) / Commits Mon">?</span></th>
+            <th class="col-money">Fee Mon. <span class="th-hint th-hint--right" data-tip="Fee Recorrente Mon + Fee One Time Mon">?</span></th>
+            <th class="col-money">Avg Booking Mon. <span class="th-hint th-hint--right" data-tip="Booking médio monetização (Booking Monet. / Commits Mon.)">?</span></th>
             <th class="col-money">Booking Monet. <span class="th-hint th-hint--right" data-tip="Booking de monetização (TCV)">?</span></th>
           </tr>
         </thead>
         <tbody v-if="loading">
           <tr v-for="i in 6" :key="i" class="skeleton-row">
-            <td v-for="j in 28" :key="j"><div class="skeleton-cell"></div></td>
+            <td v-for="j in 33" :key="j"><div class="skeleton-cell"></div></td>
           </tr>
         </tbody>
         <tbody v-else>
@@ -62,6 +66,8 @@
               <td class="col-cr">—</td>
               <td class="col-money">—</td>
               <td class="col-money">—</td>
+              <td class="col-money">—</td>
+              <td class="col-money">—</td>
               <td class="col-center">{{ fmtRoas(row.roas_booking) }}</td>
               <td class="col-center">{{ fmtRoas(row.roas_fee) }}</td>
               <td class="col-num">{{ fmtLt(row.LT_medio) }}</td>
@@ -74,6 +80,9 @@
               <td class="col-cr">—</td>
               <td class="col-num">{{ formatNumber(row.commit_monetizacao) }}</td>
               <td class="col-cr">—</td>
+              <td class="col-money">—</td>
+              <td class="col-money">—</td>
+              <td class="col-money">—</td>
               <td class="col-money">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
 
@@ -113,6 +122,8 @@
               <td class="col-num total-val">{{ formatNumber(row.commit) }}</td>
               <td class="col-cr"><span :class="crClass(row.mqlWon?.color)">{{ fmtCr(row.mqlWon?.val) }}</span></td>
               <td class="col-money total-val">{{ formatCurrency(row.avgTicket) }}</td>
+              <td class="col-money total-val fee-hover" @mouseenter="showFeePopup($event, row)" @mouseleave="hideFeePopup">{{ fmtMoney((row.fee_rec ?? 0) + (row.fee_ot ?? 0)) }}</td>
+              <td class="col-money total-val">{{ formatCurrency(row.avgBooking) }}</td>
               <td class="col-money total-val">{{ formatCurrency(row.booking) }}</td>
               <td class="col-center total-val">{{ fmtRoas(row.roas_booking) }}</td>
               <td class="col-center total-val">{{ fmtRoas(row.roas_fee) }}</td>
@@ -126,6 +137,9 @@
               <td class="col-cr"><span :class="crClass(row.cr7?.color)">{{ fmtCr(row.cr7?.val) }}</span></td>
               <td class="col-num total-val">{{ formatNumber(row.commit_monetizacao) }}</td>
               <td class="col-cr"><span :class="crClass(row.mqlWonMon?.color)">{{ fmtCr(row.mqlWonMon?.val) }}</span></td>
+              <td class="col-money total-val">{{ fmtMoney(row.avgTicketMon) }}</td>
+              <td class="col-money total-val fee-hover" @mouseenter="showFeeMonPopup($event, row)" @mouseleave="hideFeePopup">{{ fmtMoney((row.fee_rec_mon ?? 0) + (row.fee_ot_mon ?? 0)) }}</td>
+              <td class="col-money total-val">{{ fmtMoney(row.avgBookingMon) }}</td>
               <td class="col-money total-val">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
 
@@ -165,6 +179,8 @@
               <td class="col-num">{{ formatNumber(row.commit) }}</td>
               <td class="col-cr"><span :class="crClass(row.mqlWon?.color)">{{ fmtCr(row.mqlWon?.val) }}</span></td>
               <td class="col-money">{{ formatCurrency(row.avgTicket) }}</td>
+              <td class="col-money fee-hover" @mouseenter="showFeePopup($event, row)" @mouseleave="hideFeePopup">{{ fmtMoney((row.fee_rec ?? 0) + (row.fee_ot ?? 0)) }}</td>
+              <td class="col-money">{{ formatCurrency(row.avgBooking) }}</td>
               <td class="col-money booking-val">{{ formatCurrency(row.booking) }}</td>
               <td class="col-center">{{ fmtRoas(row.roas_booking) }}</td>
               <td class="col-center">{{ fmtRoas(row.roas_fee) }}</td>
@@ -178,6 +194,9 @@
               <td class="col-cr"><span :class="crClass(row.cr7?.color)">{{ fmtCr(row.cr7?.val) }}</span></td>
               <td class="col-num">{{ formatNumber(row.commit_monetizacao) }}</td>
               <td class="col-cr"><span :class="crClass(row.mqlWonMon?.color)">{{ fmtCr(row.mqlWonMon?.val) }}</span></td>
+              <td class="col-money">{{ fmtMoney(row.avgTicketMon) }}</td>
+              <td class="col-money fee-hover" @mouseenter="showFeeMonPopup($event, row)" @mouseleave="hideFeePopup">{{ fmtMoney((row.fee_rec_mon ?? 0) + (row.fee_ot_mon ?? 0)) }}</td>
+              <td class="col-money">{{ fmtMoney(row.avgBookingMon) }}</td>
               <td class="col-money">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
 
@@ -204,7 +223,9 @@
                 <td class="col-cr"><span :class="crClass(row.cr4?.color)">{{ fmtCalcCr(step.commit, step.sal) }}</span></td>
                 <td class="col-num step-val">{{ formatNumber(step.commit) }}</td>
                 <td class="col-cr"><span :class="crClass(row.mqlWon?.color)">{{ fmtCalcCr(step.commit, step.mql) }}</span></td>
-                <td class="col-money step-val">{{ step.commit > 0 ? formatCurrency(Math.round(step.booking / step.commit)) : '—' }}</td>
+                <td class="col-money step-val">{{ fmtMoney(step.avgTicket) }}</td>
+                <td class="col-money step-val fee-hover" @mouseenter="showFeePopup($event, step)" @mouseleave="hideFeePopup">{{ fmtMoney((step.fee_rec ?? 0) + (step.fee_ot ?? 0)) }}</td>
+                <td class="col-money step-val">{{ fmtMoney(step.avgBooking) }}</td>
                 <td class="col-money step-val">{{ step.booking > 0 ? formatCurrency(step.booking) : '—' }}</td>
                 <td class="col-center step-val">{{ fmtRoas(step.roas_booking) }}</td>
                 <td class="col-center step-val">{{ fmtRoas(step.roas_fee) }}</td>
@@ -218,12 +239,26 @@
                 <td class="col-cr step-val"><span :class="crClass(row.cr7?.color)">{{ fmtCalcCr(step.commit_monetizacao, step.sal_monetizacao) }}</span></td>
                 <td class="col-num step-val">{{ formatNumber(step.commit_monetizacao) }}</td>
                 <td class="col-cr step-val"><span :class="crClass(row.mqlWonMon?.color)">{{ fmtCalcCr(step.commit_monetizacao, step.aql_monetizacao) }}</span></td>
+                <td class="col-money step-val">{{ fmtMoney(step.avgTicketMon) }}</td>
+                <td class="col-money step-val fee-hover" @mouseenter="showFeeMonPopup($event, step)" @mouseleave="hideFeePopup">{{ fmtMoney((step.fee_rec_mon ?? 0) + (step.fee_ot_mon ?? 0)) }}</td>
+                <td class="col-money step-val">{{ fmtMoney(step.avgBookingMon) }}</td>
                 <td class="col-money step-val">{{ fmtMoney(step.booking_monetizacao) }}</td>
               </tr>
             </template>
           </template>
         </tbody>
       </table>
+    </div>
+    <!-- Fee breakdown popup -->
+    <div v-if="feePopup.visible" class="fee-popup" :style="{ top: feePopup.y + 'px', left: feePopup.x + 'px' }">
+      <div class="fee-popup-item">
+        <span class="fee-popup-label">Fee Recorrente</span>
+        <span class="fee-popup-value">{{ feePopup.rec }}</span>
+      </div>
+      <div class="fee-popup-item">
+        <span class="fee-popup-label">Fee One Time</span>
+        <span class="fee-popup-value">{{ feePopup.ot }}</span>
+      </div>
     </div>
   </div>
 </template>
@@ -246,6 +281,37 @@ const props = defineProps({
     default: 'step'
   }
 })
+
+// Fee popup state
+const feePopup = ref({ visible: false, x: 0, y: 0, rec: '—', ot: '—' })
+
+function showFeePopup(event, item) {
+  const rect = event.target.getBoundingClientRect()
+  const wrap = event.target.closest('.funnel-table-wrap')?.getBoundingClientRect() ?? { top: 0, left: 0 }
+  feePopup.value = {
+    visible: true,
+    x: rect.left - wrap.left,
+    y: rect.bottom - wrap.top + 4,
+    rec: fmtMoney(item.fee_rec ?? 0),
+    ot: fmtMoney(item.fee_ot ?? 0),
+  }
+}
+
+function showFeeMonPopup(event, item) {
+  const rect = event.target.getBoundingClientRect()
+  const wrap = event.target.closest('.funnel-table-wrap')?.getBoundingClientRect() ?? { top: 0, left: 0 }
+  feePopup.value = {
+    visible: true,
+    x: rect.left - wrap.left,
+    y: rect.bottom - wrap.top + 4,
+    rec: fmtMoney(item.fee_rec_mon ?? 0),
+    ot: fmtMoney(item.fee_ot_mon ?? 0),
+  }
+}
+
+function hideFeePopup() {
+  feePopup.value.visible = false
+}
 
 const cplTooltip = computed(() => {
   const map = {
@@ -316,7 +382,8 @@ function fmtRoas(val) {
 
 function fmtLt(val) {
   if (val == null || isNaN(val) || val === 0) return '—'
-  return Math.round(val) + 'd'
+  const meses = val / 30
+  return meses.toFixed(2).replace('.', ',') + ' mês'
 }
 
 function fmtLtv(row) {
@@ -331,6 +398,7 @@ function fmtLtv(row) {
 
 <style scoped>
 .funnel-table-wrap {
+  position: relative;
   background: #141414;
   border: 1px solid #222;
   border-radius: 6px;
@@ -619,5 +687,46 @@ tbody td.col-tier {
 .table-scroll::-webkit-scrollbar-thumb {
   background: #333;
   border-radius: 4px;
+}
+
+/* Fee hover + popup */
+.fee-hover {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.fee-hover:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+.fee-popup {
+  position: absolute;
+  z-index: 100;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 10px 14px;
+  min-width: 180px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  pointer-events: none;
+}
+.fee-popup-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 4px 0;
+}
+.fee-popup-item + .fee-popup-item {
+  border-top: 1px solid #2a2a2a;
+}
+.fee-popup-label {
+  color: #999;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+.fee-popup-value {
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
 }
 </style>

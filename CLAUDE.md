@@ -215,6 +215,24 @@ O `transformApiData` detecta automaticamente se o campo `tier` está presente no
 
 **Seleção de canais:** Single-select — Consolidado (todos) ou um canal específico por vez.
 
+## N8N — Workflows e Webhooks de Atualização
+
+Cada dashboard possui um `workflowId` e `webhookEndpoint` em `config/dashboards.json`. O `N8N_CHECK_STATUS_URL` (`.env`) é compartilhado — recebe `{ workflowId }` via POST para verificar se o workflow está em execução.
+
+| Dashboard | workflowId | Env Webhook POST | Tempo estimado |
+|---|---|---|---|
+| GTM Motion | `TIeM6pFS2XKAoXS6dRIRu` | `WEBHOOK_POST_GTM_MOTION` | 9–12 min |
+| GTM Motion Dev | `2sVzeUPxpwI6lsK2` | — (não configurado) | — |
+| Tx. Conversão Saber → Monetização | `rwnQ8GfuDdSuVZv-h4PR2` | `WEBHOOK_POST_TX_CONV_SABER_MONETIZACAO` | 2–5 min |
+| Raio-X Financeiro | `SdLdkXrCmlm0VL1zWp668` | `WEBHOOK_POST_DIAGRAMA_SANKEY` | ~1 seg |
+| Comparativo Entre Squads | `k13lPwqDqCfQoD8p` | `WEBHOOK_POST_COMPARATIVO_SQUADS` | ~1 seg |
+
+**Fluxo de atualização (todos os dashboards):**
+1. Frontend chama `GET /api/update-status/:dashboardId` (verifica file lock + N8N workflow)
+2. Se livre → modal de confirmação
+3. Usuário confirma → `GET /api/:dashboardId/trigger-update` (rota genérica em `api.js`)
+4. Backend verifica lock + N8N, faz POST no webhook, cacheia resposta se houver dados
+
 ## Gotchas
 
 - **Vite HMR:** Funciona para Vue/CSS, mas mudanças em `dashboards.json` requerem restart do servidor Express
