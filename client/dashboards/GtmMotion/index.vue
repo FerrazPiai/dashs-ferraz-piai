@@ -942,36 +942,36 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         acc.commit_monetizacao += fCommitMon
 
         // Step drilldown: distribute row metrics to each subcategoria in the array
+        // Divide by subcategorias count so step totals add up to tier totals
         if (drilldownBy === 'step') {
           const subs = row.subcategorias ?? []
+          const n = subs.length || 1
           for (const subKey of subs) {
             if (!subKey) continue
             if (!acc.steps[subKey]) {
-              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, fee_rec: 0, fee_ot: 0, commit_for_fee: 0, fee_mon: 0, fee_rec_mon: 0, fee_ot_mon: 0, commit_for_fee_mon: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, fee_rec: 0, fee_ot: 0, fee_mon: 0, fee_rec_mon: 0, fee_ot_mon: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
             }
             const sa = acc.steps[subKey]
-            sa.leads   += fLeads
-            sa.mql     += fMql
-            sa.sql     += fSql
-            sa.sal     += fSal
-            sa.commit  += fCommit
-            sa.booking += fBooking
-            sa.investimento  += fInvest
-            sa.fee_value     += fFee
-            sa.fee_rec       += fFeeRec
-            sa.fee_ot        += fFeeOt
-            if (fFee > 0) sa.commit_for_fee += fCommit
-            sa.fee_mon       += fFeeMon
-            sa.fee_rec_mon   += fFeeRecMon
-            sa.fee_ot_mon    += fFeeOtMon
-            if (fFeeMon > 0) sa.commit_for_fee_mon += fCommitMon
-            if (fLt > 0) { sa.LT_sum += fLt; sa.LT_count++ }
-            sa.CR_monetizacao += fCrMon
-            sa.booking_monetizacao += fBkMon
-            sa.aql_monetizacao += fAqlMon
-            sa.sql_monetizacao += fSqlMon
-            sa.sal_monetizacao += fSalMon
-            sa.commit_monetizacao += fCommitMon
+            sa.leads   += fLeads / n
+            sa.mql     += fMql / n
+            sa.sql     += fSql / n
+            sa.sal     += fSal / n
+            sa.commit  += fCommit / n
+            sa.booking += fBooking / n
+            sa.investimento    += fInvest / n
+            sa.fee_value       += fFee / n
+            sa.fee_rec         += fFeeRec / n
+            sa.fee_ot          += fFeeOt / n
+            sa.fee_mon         += fFeeMon / n
+            sa.fee_rec_mon     += fFeeRecMon / n
+            sa.fee_ot_mon      += fFeeOtMon / n
+            if (fLt > 0) { sa.LT_sum += fLt / n; sa.LT_count += 1 / n }
+            sa.CR_monetizacao  += fCrMon / n
+            sa.booking_monetizacao += fBkMon / n
+            sa.aql_monetizacao += fAqlMon / n
+            sa.sql_monetizacao += fSqlMon / n
+            sa.sal_monetizacao += fSalMon / n
+            sa.commit_monetizacao += fCommitMon / n
           }
         } else {
           // Closer/SDR/Canal drilldown
@@ -1338,6 +1338,11 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             ts.booking = (ts.booking ?? 0) + (step.booking ?? 0)
             ts.investimento = (ts.investimento ?? 0) + (step.investimento ?? 0)
             ts.fee_total = (ts.fee_total ?? 0) + (step.fee_total ?? 0)
+            ts.fee_rec = (ts.fee_rec ?? 0) + (step.fee_rec ?? 0)
+            ts.fee_ot = (ts.fee_ot ?? 0) + (step.fee_ot ?? 0)
+            ts.fee_mon = (ts.fee_mon ?? 0) + (step.fee_mon ?? 0)
+            ts.fee_rec_mon = (ts.fee_rec_mon ?? 0) + (step.fee_rec_mon ?? 0)
+            ts.fee_ot_mon = (ts.fee_ot_mon ?? 0) + (step.fee_ot_mon ?? 0)
             ts.CR_monetizacao = (ts.CR_monetizacao ?? 0) + (step.CR_monetizacao ?? 0)
             ts.booking_monetizacao = (ts.booking_monetizacao ?? 0) + (step.booking_monetizacao ?? 0)
             ts.aql_monetizacao = (ts.aql_monetizacao ?? 0) + (step.aql_monetizacao ?? 0)
