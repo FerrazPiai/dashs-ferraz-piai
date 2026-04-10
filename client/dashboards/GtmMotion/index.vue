@@ -811,7 +811,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
     acc.fee_sum     += rowFee
     acc.fee_rec_sum += rowFeeRec
     acc.fee_ot_sum  += rowFeeOt
-    if (rowFee > 0) acc.commit_for_fee += toNum(row.commit_value) ?? 0
+    if (rowFee > 0) acc.commit_for_fee += (toNum(row.commit_value) ?? 0) + (toNum(row.commit_monetizacao) ?? 0)
     // fee monetização
     const rowFeeRecMon = toNum(row.fee_rec_mon) ?? 0
     const rowFeeOtMon  = toNum(row.fee_ot_mon)  ?? 0
@@ -927,7 +927,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         acc.fee_value          += fFee
         acc.fee_rec            += fFeeRec
         acc.fee_ot             += fFeeOt
-        if (fFee > 0) acc.commit_for_fee += fCommit
+        if (fFee > 0) acc.commit_for_fee += fCommit + fCommitMon
         acc.fee_mon            += fFeeMon
         acc.fee_rec_mon        += fFeeRecMon
         acc.fee_ot_mon         += fFeeOtMon
@@ -993,7 +993,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             sa.fee_value     += fFee
             sa.fee_rec       += fFeeRec
             sa.fee_ot        += fFeeOt
-            if (fFee > 0) sa.commit_for_fee += fCommit
+            if (fFee > 0) sa.commit_for_fee += fCommit + fCommitMon
             sa.fee_mon       += fFeeMon
             sa.fee_rec_mon   += fFeeRecMon
             sa.fee_ot_mon    += fFeeOtMon
@@ -1024,7 +1024,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           acc.fee_value          += fFee
         acc.fee_rec            += fFeeRec
         acc.fee_ot             += fFeeOt
-        if (fFee > 0) acc.commit_for_fee += fCommit
+        if (fFee > 0) acc.commit_for_fee += fCommit + fCommitMon
         acc.fee_mon            += fFeeMon
         acc.fee_rec_mon        += fFeeRecMon
         acc.fee_ot_mon         += fFeeOtMon
@@ -1077,7 +1077,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             sa.fee_value     += fFee
             sa.fee_rec       += fFeeRec
             sa.fee_ot        += fFeeOt
-            if (fFee > 0) sa.commit_for_fee += fCommit
+            if (fFee > 0) sa.commit_for_fee += fCommit + fCommitMon
             sa.fee_mon       += fFeeMon
             sa.fee_rec_mon   += fFeeRecMon
             sa.fee_ot_mon    += fFeeOtMon
@@ -1702,7 +1702,6 @@ const previousDeltas = computed(() => {
   compSum.ltv = { value: compLtvSum > 0 ? Math.round(compLtvSum) : null }
 
   // Calculate % change: (current - previous) / previous * 100
-  // When no previous data exists, return 0 to avoid nonsensical numbers
   const current = kpis.value
   const hasAnyPrevData = Object.values(compSum).some(v => v.value > 0)
   if (!hasAnyPrevData) {
@@ -1715,13 +1714,22 @@ const previousDeltas = computed(() => {
   for (const key of Object.keys(current)) {
     const curVal = current[key]?.value
     const prevVal = compSum[key]?.value
-    if (curVal != null && prevVal != null && prevVal > 0) {
-      const pct = ((curVal - prevVal) / prevVal) * 100
-      result[key] = Math.abs(pct) > 1500 ? 0 : pct
+    if (curVal != null && prevVal != null && prevVal !== 0) {
+      result[key] = ((curVal - prevVal) / prevVal) * 100
     } else {
       result[key] = 0
     }
   }
+
+  // LTV: valor atual vem de kpiLtv (não de kpis.ltv que é null)
+  const curLtv = kpiLtv.value
+  const prevLtv = compSum.ltv?.value
+  if (curLtv != null && prevLtv != null && prevLtv !== 0) {
+    result.ltv = ((curLtv - prevLtv) / prevLtv) * 100
+  } else {
+    result.ltv = 0
+  }
+
   return result
 })
 
