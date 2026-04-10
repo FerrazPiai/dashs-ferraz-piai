@@ -313,7 +313,7 @@
       />
       <GtmScorecard
         label="Avg Ticket"
-        tooltip="Valor médio por contrato (TCV / Commits)"
+        tooltip="Valor médio por contrato (Fee Rec + Fee OT) / Commits"
         :value="kpis.avgTicket?.value ?? null"
         :formatter="kpiCurrencyFormatter"
         :fullFormatter="formatCurrency"
@@ -359,7 +359,7 @@
       />
       <GtmScorecard
         label="LT Médio"
-        tooltip="Lead Time médio em dias (da criação ao fechamento)"
+        tooltip="Lead Time médio em meses (da criação ao fechamento)"
         :value="kpis.lt_medio?.value ?? null"
         :formatter="formatLt"
         :previousDelta="previousDeltas.lt_medio"
@@ -690,12 +690,17 @@ const formatRoas = (v) => {
 
 const formatLt = (v) => {
   if (v == null || isNaN(v) || v === 0) return '-'
-  return Math.round(v) + ' dias'
+  const meses = v / 30
+  return meses.toFixed(2).replace('.', ',') + ' meses'
 }
 
 const STEP_ORDER = ['Saber', 'Ter', 'Executar', 'Sem Mapeamento']
 const TIER_ORDER = ['Tiny', 'Small', 'Medium', 'Large', 'Enterprise', 'Non-ICP', 'Sem mapeamento', 'Total']
-const toNum = (v) => (v === '' || v == null) ? null : Number(v)
+const toNum = (v) => {
+  if (v === '' || v == null) return null
+  const n = Number(v)
+  return isNaN(n) ? null : n
+}
 
 function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, step = null, drilldownBy = 'step', channel = 'consolidado') {
   // API retorna { data: { kpis, funil } } ou [{ data: { kpis, funil } }]
@@ -780,7 +785,8 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         sal_value: 0,   sal_meta: cm.sal_meta ?? 0,
         commit_value: 0, commit_meta: cm.commit_meta ?? 0,
         booking_value: 0, booking_meta: cm.booking_meta ?? 0,
-        investimento_value: 0, fee_sum: 0,
+        investimento_value: 0, fee_sum: 0, fee_rec_sum: 0, fee_ot_sum: 0, commit_for_fee: 0,
+        fee_mon_sum: 0, fee_rec_mon_sum: 0, fee_ot_mon_sum: 0, commit_for_fee_mon: 0,
         LT_sum: 0, LT_count: 0,
         CR_monetizacao: 0, booking_monetizacao: 0,
       }
@@ -798,11 +804,31 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
     acc.booking_value += toNum(row.booking_value) ?? 0
     const rowInvest = toNum(row.investimento_value ?? row.investimento) ?? 0
     acc.investimento_value += rowInvest
-    // fee_sum = sum of fee_value (fee recorrente) for ROAS Fee and LTV
-    acc.fee_sum += toNum(row.fee_value) ?? 0
+    // fee = fee_rec + fee_ot
+    const rowFeeRec = toNum(row.fee_rec) ?? 0
+    const rowFeeOt  = toNum(row.fee_ot)  ?? 0
+    const rowFee    = rowFeeRec + rowFeeOt
+    acc.fee_sum     += rowFee
+    acc.fee_rec_sum += rowFeeRec
+    acc.fee_ot_sum  += rowFeeOt
+    if (rowFee > 0) acc.commit_for_fee += toNum(row.commit_value) ?? 0
+    // fee monetização
+    const rowFeeRecMon = toNum(row.fee_rec_mon) ?? 0
+    const rowFeeOtMon  = toNum(row.fee_ot_mon)  ?? 0
+    const rowFeeMon    = rowFeeRecMon + rowFeeOtMon
+    acc.fee_mon_sum     += rowFeeMon
+    acc.fee_rec_mon_sum += rowFeeRecMon
+    acc.fee_ot_mon_sum  += rowFeeOtMon
+    // commit_for_fee_mon: usar commit_monetizacao (Monetização) quando disponível,
+    // senão fallback para commit_value (Aquisição) — será corrigido quando n8n exportar commit_monetizacao
+    const rowCommitMon = toNum(row.commit_monetizacao) ?? null
+    if (rowCommitMon != null) {
+      acc.commit_for_fee_mon += rowCommitMon
+    } else if (rowFeeMon > 0) {
+      acc.commit_for_fee_mon += toNum(row.commit_value) ?? 0
+    }
     // LT_medio, CR_monetizacao, booking_monetizacao
     const rowLt = toNum(row.LT_medio) ?? 0
-    const rowLeads = toNum(row.leads_value) ?? 0
     if (rowLt > 0) {
       acc.LT_sum += rowLt
       acc.LT_count++
@@ -822,7 +848,8 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         sal_value: 0,   sal_meta: cm.sal_meta ?? 0,
         commit_value: 0, commit_meta: cm.commit_meta ?? 0,
         booking_value: 0, booking_meta: cm.booking_meta ?? 0,
-        investimento_value: 0, fee_sum: 0,
+        investimento_value: 0, fee_sum: 0, fee_rec_sum: 0, fee_ot_sum: 0, commit_for_fee: 0,
+        fee_mon_sum: 0, fee_rec_mon_sum: 0, fee_ot_mon_sum: 0, commit_for_fee_mon: 0,
         LT_sum: 0, LT_count: 0,
         CR_monetizacao: 0, booking_monetizacao: 0,
       }
@@ -855,7 +882,8 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         funilByCanal[canal][tier] = {
           leads_value: 0, mql_value: 0, sql_value: 0,
           sal_value: 0, commit_value: 0, booking_value: 0,
-          investimento_value: 0, fee_value: 0,
+          investimento_value: 0, fee_value: 0, fee_rec: 0, fee_ot: 0, commit_for_fee: 0,
+          fee_mon: 0, fee_rec_mon: 0, fee_ot_mon: 0, commit_for_fee_mon: 0,
           LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0,
           aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0,
           isEmptyRow: isEmpty,
@@ -864,6 +892,8 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         }
       }
       const acc = funilByCanal[canal][tier]
+      // Se qualquer row do tier não for empty, o tier deixa de ser empty
+      if (!isEmpty) acc.isEmptyRow = false
       const fLeads   = toNum(row.leads   ?? row.leads_value)   ?? 0
       const fMql     = toNum(row.mql     ?? row.mql_value)     ?? 0
       const fSql     = toNum(row.sql     ?? row.sql_value)     ?? 0
@@ -871,7 +901,12 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
       const fCommit  = toNum(row.commit  ?? row.commit_value)  ?? 0
       const fBooking = toNum(row.booking ?? row.booking_value) ?? 0
       const fInvest  = toNum(row.investimento ?? row.investimento_value) ?? 0
-      const fFee     = toNum(row.fee_value) ?? 0
+      const fFeeRec  = toNum(row.fee_rec) ?? 0
+      const fFeeOt   = toNum(row.fee_ot)  ?? 0
+      const fFee     = fFeeRec + fFeeOt
+      const fFeeRecMon = toNum(row.fee_rec_mon) ?? 0
+      const fFeeOtMon  = toNum(row.fee_ot_mon)  ?? 0
+      const fFeeMon    = fFeeRecMon + fFeeOtMon
       const fLt      = toNum(row.LT_medio) ?? 0
       const fCrMon   = toNum(row.CR_monetizacao) ?? 0
       const fBkMon   = toNum(row.booking_monetizacao) ?? 0
@@ -890,6 +925,13 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         acc.booking_value += fBooking
         acc.investimento_value += fInvest
         acc.fee_value          += fFee
+        acc.fee_rec            += fFeeRec
+        acc.fee_ot             += fFeeOt
+        if (fFee > 0) acc.commit_for_fee += fCommit
+        acc.fee_mon            += fFeeMon
+        acc.fee_rec_mon        += fFeeRecMon
+        acc.fee_ot_mon         += fFeeOtMon
+        if (fFeeMon > 0) acc.commit_for_fee_mon += fCommitMon
         // LT_medio (simple avg), CR/booking monetizacao (sum)
         if (fLt > 0) { acc.LT_sum += fLt; acc.LT_count++ }
         acc.CR_monetizacao += fCrMon
@@ -905,7 +947,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           for (const subKey of subs) {
             if (!subKey) continue
             if (!acc.steps[subKey]) {
-              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, fee_rec: 0, fee_ot: 0, commit_for_fee: 0, fee_mon: 0, fee_rec_mon: 0, fee_ot_mon: 0, commit_for_fee_mon: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
             }
             const sa = acc.steps[subKey]
             sa.leads   += fLeads
@@ -916,6 +958,13 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             sa.booking += fBooking
             sa.investimento  += fInvest
             sa.fee_value     += fFee
+            sa.fee_rec       += fFeeRec
+            sa.fee_ot        += fFeeOt
+            if (fFee > 0) sa.commit_for_fee += fCommit
+            sa.fee_mon       += fFeeMon
+            sa.fee_rec_mon   += fFeeRecMon
+            sa.fee_ot_mon    += fFeeOtMon
+            if (fFeeMon > 0) sa.commit_for_fee_mon += fCommitMon
             if (fLt > 0) { sa.LT_sum += fLt; sa.LT_count++ }
             sa.CR_monetizacao += fCrMon
             sa.booking_monetizacao += fBkMon
@@ -931,7 +980,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             : drilldownBy === 'canal' ? row.canal : null
           if (subKey) {
             if (!acc.steps[subKey]) {
-              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, fee_rec: 0, fee_ot: 0, commit_for_fee: 0, fee_mon: 0, fee_rec_mon: 0, fee_ot_mon: 0, commit_for_fee_mon: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
             }
             const sa = acc.steps[subKey]
             sa.leads   += fLeads
@@ -942,6 +991,13 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             sa.booking += fBooking
             sa.investimento  += fInvest
             sa.fee_value     += fFee
+            sa.fee_rec       += fFeeRec
+            sa.fee_ot        += fFeeOt
+            if (fFee > 0) sa.commit_for_fee += fCommit
+            sa.fee_mon       += fFeeMon
+            sa.fee_rec_mon   += fFeeRecMon
+            sa.fee_ot_mon    += fFeeOtMon
+            if (fFeeMon > 0) sa.commit_for_fee_mon += fCommitMon
             if (fLt > 0) { sa.LT_sum += fLt; sa.LT_count++ }
             sa.CR_monetizacao += fCrMon
             sa.booking_monetizacao += fBkMon
@@ -966,6 +1022,13 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           acc.booking_value += fBooking
           acc.investimento_value += fInvest
           acc.fee_value          += fFee
+        acc.fee_rec            += fFeeRec
+        acc.fee_ot             += fFeeOt
+        if (fFee > 0) acc.commit_for_fee += fCommit
+        acc.fee_mon            += fFeeMon
+        acc.fee_rec_mon        += fFeeRecMon
+        acc.fee_ot_mon         += fFeeOtMon
+        if (fFeeMon > 0) acc.commit_for_fee_mon += fCommitMon
           if (fLt > 0) { acc.LT_sum += fLt; acc.LT_count++ }
           acc.CR_monetizacao += fCrMon
           acc.booking_monetizacao += fBkMon
@@ -977,7 +1040,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
 
         if (drilldownBy === 'step' && !isSummaryRow) {
           if (!acc.steps[subVal]) {
-            acc.steps[subVal] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
+            acc.steps[subVal] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, fee_rec: 0, fee_ot: 0, commit_for_fee: 0, fee_mon: 0, fee_rec_mon: 0, fee_ot_mon: 0, commit_for_fee_mon: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
           }
           const sa = acc.steps[subVal]
           sa.leads   += fLeads
@@ -1001,7 +1064,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             : drilldownBy === 'canal' ? row.canal : null
           if (subKey) {
             if (!acc.steps[subKey]) {
-              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, fee_rec: 0, fee_ot: 0, commit_for_fee: 0, fee_mon: 0, fee_rec_mon: 0, fee_ot_mon: 0, commit_for_fee_mon: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
             }
             const sa = acc.steps[subKey]
             sa.leads   += fLeads
@@ -1012,6 +1075,13 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             sa.booking += fBooking
             sa.investimento  += fInvest
             sa.fee_value     += fFee
+            sa.fee_rec       += fFeeRec
+            sa.fee_ot        += fFeeOt
+            if (fFee > 0) sa.commit_for_fee += fCommit
+            sa.fee_mon       += fFeeMon
+            sa.fee_rec_mon   += fFeeRecMon
+            sa.fee_ot_mon    += fFeeOtMon
+            if (fFeeMon > 0) sa.commit_for_fee_mon += fCommitMon
             if (fLt > 0) { sa.LT_sum += fLt; sa.LT_count++ }
             sa.CR_monetizacao += fCrMon
             sa.booking_monetizacao += fBkMon
@@ -1059,9 +1129,9 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
       sal:     { value: k.sal_value   ?? 0, provisionado: null, meta: k.sal_meta   ?? 0, delta: null },
       commit:  { value: commitVal,          provisionado: null, meta: commitMeta,         delta: null },
       avgTicket: {
-        value:        commitVal  > 0 ? Math.round(bookingVal  / commitVal)  : null,
+        value:        (k.commit_for_fee ?? 0) > 0 ? Math.round((k.fee_sum ?? 0) / k.commit_for_fee) : null,
         provisionado: null,
-        meta:         commitMeta > 0 ? Math.round(bookingMeta / commitMeta) : null,
+        meta:         null,
         delta: null,
       },
       booking: { value: bookingVal, provisionado: null, meta: bookingMeta, delta: null },
@@ -1071,8 +1141,15 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
       lt_medio:     { value: (k.LT_count ?? 0) > 0 ? k.LT_sum / k.LT_count : 0 },
       CR_monetizacao: { value: k.CR_monetizacao ?? 0 },
       booking_monetizacao: { value: k.booking_monetizacao ?? 0 },
-      avgTicketMonetizacao: { value: (k.CR_monetizacao ?? 0) > 0 ? Math.round((k.booking_monetizacao ?? 0) / k.CR_monetizacao) : null },
+      avgTicketMonetizacao: { value: (k.commit_for_fee_mon ?? 0) > 0 ? Math.round((k.fee_mon_sum ?? 0) / k.commit_for_fee_mon) : null },
       fee_total: { value: k.fee_sum ?? 0 },
+      fee_rec: { value: k.fee_rec_sum ?? 0 },
+      fee_ot: { value: k.fee_ot_sum ?? 0 },
+      fee_mon_total: { value: k.fee_mon_sum ?? 0 },
+      fee_rec_mon: { value: k.fee_rec_mon_sum ?? 0 },
+      fee_ot_mon: { value: k.fee_ot_mon_sum ?? 0 },
+      commit_for_fee: { value: k.commit_for_fee ?? 0 },
+      commit_for_fee_mon: { value: k.commit_for_fee_mon ?? 0 },
     }
 
     let tiers
@@ -1081,7 +1158,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
     if (hasTierData) {
       // Build tier rows — include ALL tiers from data (not just hardcoded)
       tiers = []
-      let totLeads = 0, totMql = 0, totSql = 0, totSal = 0, totCommit = 0, totBooking = 0, totInvest = 0, totFeeProd = 0, totLtSum = 0, totLtCount = 0, totCrMon = 0, totBkMon = 0, totLtv = 0, totAqlMon = 0, totSqlMon = 0, totSalMon = 0, totCommitMon = 0
+      let totLeads = 0, totMql = 0, totSql = 0, totSal = 0, totCommit = 0, totBooking = 0, totInvest = 0, totFeeProd = 0, totFeeRec = 0, totFeeOt = 0, totCommitForFee = 0, totFeeMon = 0, totFeeRecMon = 0, totFeeOtMon = 0, totCommitForFeeMon = 0, totLtSum = 0, totLtCount = 0, totCrMon = 0, totBkMon = 0, totLtv = 0, totAqlMon = 0, totSqlMon = 0, totSalMon = 0, totCommitMon = 0
 
       // Collect all tier names from data, sort by TIER_ORDER (unknown tiers go before Total)
       const allTierNames = Object.keys(canalFunil).filter(t => t !== 'Total' && !canalFunil[t]?.isTotal)
@@ -1117,6 +1194,10 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           totBooking += t.booking_value
           totInvest  += eInv
           totFeeProd += eFee
+          totFeeRec  += t.fee_rec ?? 0; totFeeOt += t.fee_ot ?? 0
+          totCommitForFee += t.commit_for_fee ?? 0
+          totFeeMon  += t.fee_mon ?? 0; totFeeRecMon += t.fee_rec_mon ?? 0; totFeeOtMon += t.fee_ot_mon ?? 0
+          totCommitForFeeMon += t.commit_for_fee_mon ?? 0
           totLtSum   += t.LT_sum; totLtCount += t.LT_count
           totCrMon   += t.CR_monetizacao; totBkMon += t.booking_monetizacao
           totAqlMon += t.aql_monetizacao; totSqlMon += t.sql_monetizacao; totSalMon += t.sal_monetizacao; totCommitMon += t.commit_monetizacao
@@ -1169,6 +1250,15 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             sql_monetizacao: s.sql_monetizacao ?? 0,
             sal_monetizacao: s.sal_monetizacao ?? 0,
             commit_monetizacao: s.commit_monetizacao ?? 0,
+            avgTicket: (s.commit_for_fee ?? 0) > 0 ? Math.round(sFee / s.commit_for_fee) : 0,
+            avgBooking: (s.commit ?? 0) > 0 ? Math.round((s.booking ?? 0) / s.commit) : 0,
+            fee_rec: s.fee_rec ?? 0,
+            fee_ot: s.fee_ot ?? 0,
+            fee_mon: s.fee_mon ?? 0,
+            fee_rec_mon: s.fee_rec_mon ?? 0,
+            fee_ot_mon: s.fee_ot_mon ?? 0,
+            avgTicketMon: (s.commit_for_fee_mon ?? 0) > 0 ? Math.round((s.fee_mon ?? 0) / s.commit_for_fee_mon) : 0,
+            avgBookingMon: (s.commit_monetizacao ?? 0) > 0 ? Math.round((s.booking_monetizacao ?? 0) / s.commit_monetizacao) : 0,
           }
         })
         if (drilldownBy === 'step') {
@@ -1192,7 +1282,15 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           fee_total: tierFee,
           roas_booking: fi > 0 ? fb / fi : 0,
           roas_fee: fi > 0 ? tierFee / fi : 0,
-          avgTicket: fc > 0 ? Math.round(fb / fc) : 0,
+          avgTicket: (t.commit_for_fee ?? 0) > 0 ? Math.round(tierFee / t.commit_for_fee) : 0,
+          avgBooking: fc > 0 ? Math.round(fb / fc) : 0,
+          fee_rec: t.fee_rec ?? 0,
+          fee_ot: t.fee_ot ?? 0,
+          fee_mon: t.fee_mon ?? 0,
+          fee_rec_mon: t.fee_rec_mon ?? 0,
+          fee_ot_mon: t.fee_ot_mon ?? 0,
+          avgTicketMon: (t.commit_for_fee_mon ?? 0) > 0 ? Math.round((t.fee_mon ?? 0) / t.commit_for_fee_mon) : 0,
+          avgBookingMon: t.commit_monetizacao > 0 ? Math.round(t.booking_monetizacao / t.commit_monetizacao) : 0,
           cr1:    { val: cr1v, color: crColor(cr1v, 70, 50) },
           cr2:    { val: cr2v, color: crColor(cr2v, 25, 15) },
           cr3:    { val: cr3v, color: crColor(cr3v, 80, 65) },
@@ -1212,6 +1310,10 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         totLeads   += fl;   totMql    += fm;   totSql  += fs
         totSal     += fsal; totCommit += fc;   totBooking += fb
         totInvest  += fi;   totFeeProd += tierFee
+        totFeeRec  += t.fee_rec ?? 0; totFeeOt += t.fee_ot ?? 0
+        totCommitForFee += t.commit_for_fee ?? 0
+        totFeeMon  += t.fee_mon ?? 0; totFeeRecMon += t.fee_rec_mon ?? 0; totFeeOtMon += t.fee_ot_mon ?? 0
+        totCommitForFeeMon += t.commit_for_fee_mon ?? 0
         totLtSum   += t.LT_sum; totLtCount += t.LT_count
         const tierLt = t.LT_count > 0 ? t.LT_sum / t.LT_count : 0
         if (tierFee > 0 && tierLt > 0) totLtv += tierFee * (tierLt / 30)
@@ -1250,6 +1352,10 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         const inv = ts.investimento ?? 0
         ts.roas_booking = inv > 0 ? (ts.booking ?? 0) / inv : 0
         ts.roas_fee = inv > 0 ? (ts.fee_total ?? 0) / inv : 0
+        ts.avgTicket = (ts.commit_for_fee ?? 0) > 0 ? Math.round((ts.fee_total ?? 0) / ts.commit_for_fee) : 0
+        ts.avgBooking = (ts.commit ?? 0) > 0 ? Math.round((ts.booking ?? 0) / ts.commit) : 0
+        ts.avgTicketMon = (ts.commit_for_fee_mon ?? 0) > 0 ? Math.round((ts.fee_mon ?? 0) / ts.commit_for_fee_mon) : 0
+        ts.avgBookingMon = (ts.commit_monetizacao ?? 0) > 0 ? Math.round((ts.booking_monetizacao ?? 0) / ts.commit_monetizacao) : 0
       }
       if (drilldownBy === 'step') {
         totalSteps.sort((a, b) => {
@@ -1283,7 +1389,12 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         fee_total: totFeeProd,
         roas_booking: totInvest > 0 ? totBooking / totInvest : 0,
         roas_fee: totInvest > 0 ? totFeeProd / totInvest : 0,
-        avgTicket: totCommit > 0 ? Math.round(totBooking / totCommit) : 0,
+        avgTicket: totCommitForFee > 0 ? Math.round(totFeeProd / totCommitForFee) : 0,
+        avgBooking: totCommit > 0 ? Math.round(totBooking / totCommit) : 0,
+        fee_rec: totFeeRec, fee_ot: totFeeOt,
+        fee_mon: totFeeMon, fee_rec_mon: totFeeRecMon, fee_ot_mon: totFeeOtMon,
+        avgTicketMon: totCommitForFeeMon > 0 ? Math.round(totFeeMon / totCommitForFeeMon) : 0,
+        avgBookingMon: totCommitMon > 0 ? Math.round(totBkMon / totCommitMon) : 0,
         cr1:    { val: tcr1, color: crColor(tcr1, 70, 50) },
         cr2:    { val: tcr2, color: crColor(tcr2, 25, 15) },
         cr3:    { val: tcr3, color: crColor(tcr3, 80, 65) },
@@ -1320,7 +1431,12 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
       tiers = [{
         tier:      CANAL_LABEL[canal] ?? canal,
         leads: fl, mql: fm, sql: fs, sal: fsal, commit: fc, booking: fb,
-        avgTicket: fc > 0 ? Math.round(fb / fc) : 0,
+        avgTicket: 0,
+        avgBooking: fc > 0 ? Math.round(fb / fc) : 0,
+        fee_rec: 0, fee_ot: 0,
+        fee_mon: 0, fee_rec_mon: 0, fee_ot_mon: 0,
+        avgTicketMon: 0,
+        avgBookingMon: 0,
         cr1:    { val: cr1v, color: crColor(cr1v, 70, 50) },
         cr2:    { val: cr2v, color: crColor(cr2v, 25, 15) },
         cr3:    { val: cr3v, color: crColor(cr3v, 80, 65) },
@@ -1441,7 +1557,7 @@ function crColor(val, green, yellow) {
 }
 
 // Keys that are derived ratios (not summed across channels)
-const DERIVED_KEYS = new Set(['roas_booking', 'roas_fee', 'lt_medio', 'avgTicketMonetizacao', 'fee_total', 'ltv'])
+const DERIVED_KEYS = new Set(['roas_booking', 'roas_fee', 'lt_medio', 'avgTicketMonetizacao', 'fee_total', 'fee_rec', 'fee_ot', 'fee_mon_total', 'fee_rec_mon', 'fee_ot_mon', 'commit_for_fee', 'commit_for_fee_mon', 'ltv'])
 
 // Aggregate KPIs from active channels
 const kpis = computed(() => {
@@ -1470,15 +1586,32 @@ const kpis = computed(() => {
     totalFee += chRoasFee * chInvest
   }
   sum.roas_fee = { value: totalInvest > 0 ? totalFee / totalInvest : 0, provisionado: null, meta: null, delta: null }
-  // avgTicket = booking / commit (weighted average)
-  const commitVal  = sum.commit?.value ?? 0
-  const commitMeta = sum.commit?.meta  ?? 0
-  const bookingVal = sum.booking?.value ?? 0
-  const bookingMeta = sum.booking?.meta ?? 0
+  // Fee totals (summed from channels)
+  let totalFeeVal = 0, totalFeeRec = 0, totalFeeOt = 0, totalCommitForFee = 0
+  let totalFeeMonVal = 0, totalFeeRecMon = 0, totalFeeOtMon = 0, totalCommitForFeeMon = 0
+  for (const channelId of activeChannelIds.value) {
+    const chKpis = source.channels?.[channelId]?.kpis ?? {}
+    totalFeeVal += chKpis.fee_total?.value ?? 0
+    totalFeeRec += chKpis.fee_rec?.value ?? 0
+    totalFeeOt  += chKpis.fee_ot?.value ?? 0
+    totalFeeMonVal += chKpis.fee_mon_total?.value ?? 0
+    totalFeeRecMon += chKpis.fee_rec_mon?.value ?? 0
+    totalFeeOtMon  += chKpis.fee_ot_mon?.value ?? 0
+    // commit_for_fee: soma real por canal (somente commits de rows com fee > 0)
+    totalCommitForFee += chKpis.commit_for_fee?.value ?? 0
+    totalCommitForFeeMon += chKpis.commit_for_fee_mon?.value ?? 0
+  }
+  sum.fee_total = { value: totalFeeVal }
+  sum.fee_rec = { value: totalFeeRec }
+  sum.fee_ot = { value: totalFeeOt }
+  sum.fee_mon_total = { value: totalFeeMonVal }
+  sum.fee_rec_mon = { value: totalFeeRecMon }
+  sum.fee_ot_mon = { value: totalFeeOtMon }
+  // avgTicket = (fee_rec + fee_ot) / commit_for_fee
   sum.avgTicket = {
-    value:       commitVal  > 0 ? Math.round(bookingVal  / commitVal)  : null,
+    value:       totalCommitForFee > 0 ? Math.round(totalFeeVal / totalCommitForFee) : null,
     provisionado: null,
-    meta:        commitMeta > 0 ? Math.round(bookingMeta / commitMeta) : null,
+    meta:        null,
     delta: null,
   }
   // LT Médio: weighted average across channels (by leads with non-zero LT)
@@ -1488,16 +1621,8 @@ const kpis = computed(() => {
     if (chLt > 0) { ltSum += chLt; ltCount++ }
   }
   sum.lt_medio = { value: ltCount > 0 ? ltSum / ltCount : 0 }
-  // CR Monetização & Booking Monetização (already summed above), derive Avg Ticket Monetização
-  const totalCrMon = sum.CR_monetizacao?.value ?? 0
-  const totalBkMon = sum.booking_monetizacao?.value ?? 0
-  sum.avgTicketMonetizacao = { value: totalCrMon > 0 ? Math.round(totalBkMon / totalCrMon) : null }
-  // Fee total (summed from channels — not derived, but tracked for LTV)
-  let totalFeeVal = 0
-  for (const channelId of activeChannelIds.value) {
-    totalFeeVal += source.channels?.[channelId]?.kpis?.fee_total?.value ?? 0
-  }
-  sum.fee_total = { value: totalFeeVal }
+  // Avg Ticket Monetização = (fee_rec_mon + fee_ot_mon) / commit_for_fee_mon
+  sum.avgTicketMonetizacao = { value: totalCommitForFeeMon > 0 ? Math.round(totalFeeMonVal / totalCommitForFeeMon) : null }
   // LTV = soma dos LTVs por tier (para consistência com a tabela)
   // Calculado depois em kpiLtv computed (depende de currentTiers)
   sum.ltv = { value: null }
@@ -1540,25 +1665,15 @@ const previousDeltas = computed(() => {
     compFee += chRoasFee * chInvest
   }
   compSum.roas_fee = { value: compInvest > 0 ? compFee / compInvest : 0 }
-  // avgTicket = booking / commit
-  const compCommitVal = compSum.commit?.value ?? 0
-  const compBookingVal = compSum.booking?.value ?? 0
-  compSum.avgTicket = { value: compCommitVal > 0 ? Math.round(compBookingVal / compCommitVal) : null }
-  // LT Médio (weighted avg)
-  let compLtSum = 0, compLtCount = 0
-  for (const channelId of activeChannelIds.value) {
-    const chLt = compData.channels?.[channelId]?.kpis?.lt_medio?.value ?? 0
-    if (chLt > 0) { compLtSum += chLt; compLtCount++ }
-  }
-  compSum.lt_medio = { value: compLtCount > 0 ? compLtSum / compLtCount : 0 }
-  const compCrMon = compSum.CR_monetizacao?.value ?? 0
-  const compBkMon = compSum.booking_monetizacao?.value ?? 0
-  compSum.avgTicketMonetizacao = { value: compCrMon > 0 ? Math.round(compBkMon / compCrMon) : null }
   // Fee total & LTV for comparison (sum of per-tier LTVs)
-  let compFeeTotal = 0
+  let compFeeTotal = 0, compFeeMonTotal = 0, compCommitForFee = 0, compCommitForFeeMon = 0
   let compLtvSum = 0
   for (const channelId of activeChannelIds.value) {
-    compFeeTotal += compData.channels?.[channelId]?.kpis?.fee_total?.value ?? 0
+    const chKpis = compData.channels?.[channelId]?.kpis ?? {}
+    compFeeTotal += chKpis.fee_total?.value ?? 0
+    compFeeMonTotal += chKpis.fee_mon_total?.value ?? 0
+    compCommitForFee += chKpis.commit_for_fee?.value ?? 0
+    compCommitForFeeMon += chKpis.commit_for_fee_mon?.value ?? 0
     const tiers = compData.channels?.[channelId]?.tiers ?? []
     for (const t of tiers) {
       if (t.isTotal) continue
@@ -1568,6 +1683,17 @@ const previousDeltas = computed(() => {
     }
   }
   compSum.fee_total = { value: compFeeTotal }
+  // avgTicket = (fee_rec + fee_ot) / commit_for_fee
+  compSum.avgTicket = { value: compCommitForFee > 0 ? Math.round(compFeeTotal / compCommitForFee) : null }
+  // LT Médio (weighted avg)
+  let compLtSum = 0, compLtCount = 0
+  for (const channelId of activeChannelIds.value) {
+    const chLt = compData.channels?.[channelId]?.kpis?.lt_medio?.value ?? 0
+    if (chLt > 0) { compLtSum += chLt; compLtCount++ }
+  }
+  compSum.lt_medio = { value: compLtCount > 0 ? compLtSum / compLtCount : 0 }
+  // Avg Ticket Monetização = fee_mon / commit_for_fee_mon
+  compSum.avgTicketMonetizacao = { value: compCommitForFeeMon > 0 ? Math.round(compFeeMonTotal / compCommitForFeeMon) : null }
   compSum.ltv = { value: compLtvSum > 0 ? Math.round(compLtvSum) : null }
 
   // Calculate % change: (current - previous) / previous * 100
@@ -1708,6 +1834,12 @@ const currentTiers = computed(() => {
           ex.commit  = (ex.commit  ?? 0) + (row.commit  ?? 0)
           ex.booking = (ex.booking ?? 0) + (row.booking ?? 0)
           ex.investimento = (ex.investimento ?? 0) + (row.investimento ?? 0)
+          ex.fee_total = (ex.fee_total ?? 0) + (row.fee_total ?? 0)
+          ex.fee_rec   = (ex.fee_rec   ?? 0) + (row.fee_rec   ?? 0)
+          ex.fee_ot    = (ex.fee_ot    ?? 0) + (row.fee_ot    ?? 0)
+          ex.fee_mon   = (ex.fee_mon   ?? 0) + (row.fee_mon   ?? 0)
+          ex.fee_rec_mon = (ex.fee_rec_mon ?? 0) + (row.fee_rec_mon ?? 0)
+          ex.fee_ot_mon  = (ex.fee_ot_mon  ?? 0) + (row.fee_ot_mon  ?? 0)
           ex.CR_monetizacao = (ex.CR_monetizacao ?? 0) + (row.CR_monetizacao ?? 0)
           ex.booking_monetizacao = (ex.booking_monetizacao ?? 0) + (row.booking_monetizacao ?? 0)
           ex.aql_monetizacao = (ex.aql_monetizacao ?? 0) + (row.aql_monetizacao ?? 0)
@@ -1723,13 +1855,24 @@ const currentTiers = computed(() => {
         ex.commit  = (ex.commit  ?? 0) + (row.commit  ?? 0)
         ex.booking = (ex.booking ?? 0) + (row.booking ?? 0)
         ex.investimento = (ex.investimento ?? 0) + (row.investimento ?? 0)
+        // Acumular fee fields across channels
+        ex.fee_total = (ex.fee_total ?? 0) + (row.fee_total ?? 0)
+        ex.fee_rec   = (ex.fee_rec   ?? 0) + (row.fee_rec   ?? 0)
+        ex.fee_ot    = (ex.fee_ot    ?? 0) + (row.fee_ot    ?? 0)
+        ex.fee_mon   = (ex.fee_mon   ?? 0) + (row.fee_mon   ?? 0)
+        ex.fee_rec_mon = (ex.fee_rec_mon ?? 0) + (row.fee_rec_mon ?? 0)
+        ex.fee_ot_mon  = (ex.fee_ot_mon  ?? 0) + (row.fee_ot_mon  ?? 0)
         ex.CR_monetizacao = (ex.CR_monetizacao ?? 0) + (row.CR_monetizacao ?? 0)
         ex.booking_monetizacao = (ex.booking_monetizacao ?? 0) + (row.booking_monetizacao ?? 0)
         ex.aql_monetizacao = (ex.aql_monetizacao ?? 0) + (row.aql_monetizacao ?? 0)
         ex.sql_monetizacao = (ex.sql_monetizacao ?? 0) + (row.sql_monetizacao ?? 0)
         ex.sal_monetizacao = (ex.sal_monetizacao ?? 0) + (row.sal_monetizacao ?? 0)
         ex.commit_monetizacao = (ex.commit_monetizacao ?? 0) + (row.commit_monetizacao ?? 0)
-        ex.avgTicket = ex.commit > 0 ? Math.round(ex.booking / ex.commit) : 0
+        // Recalcular avgTicket/avgBooking com fee_total acumulado
+        ex.avgTicket = ex.commit > 0 ? Math.round((ex.fee_total ?? 0) / ex.commit) : 0
+        ex.avgBooking = ex.commit > 0 ? Math.round(ex.booking / ex.commit) : 0
+        ex.avgTicketMon = (ex.commit_monetizacao ?? 0) > 0 ? Math.round((ex.fee_mon ?? 0) / ex.commit_monetizacao) : 0
+        ex.avgBookingMon = (ex.commit_monetizacao ?? 0) > 0 ? Math.round((ex.booking_monetizacao ?? 0) / ex.commit_monetizacao) : 0
         const cr1v = ex.leads  > 0 ? (ex.mql    / ex.leads)  * 100 : 0
         const cr2v = ex.mql    > 0 ? (ex.sql    / ex.mql)    * 100 : 0
         const cr3v = ex.sql    > 0 ? (ex.sal    / ex.sql)    * 100 : 0
@@ -1767,6 +1910,12 @@ const currentTiers = computed(() => {
                 exStep.commit  = (exStep.commit  ?? 0) + (step.commit  ?? 0)
                 exStep.booking = (exStep.booking ?? 0) + (step.booking ?? 0)
                 exStep.investimento = (exStep.investimento ?? 0) + (step.investimento ?? 0)
+                exStep.fee_total = (exStep.fee_total ?? 0) + (step.fee_total ?? 0)
+                exStep.fee_rec   = (exStep.fee_rec   ?? 0) + (step.fee_rec   ?? 0)
+                exStep.fee_ot    = (exStep.fee_ot    ?? 0) + (step.fee_ot    ?? 0)
+                exStep.fee_mon   = (exStep.fee_mon   ?? 0) + (step.fee_mon   ?? 0)
+                exStep.fee_rec_mon = (exStep.fee_rec_mon ?? 0) + (step.fee_rec_mon ?? 0)
+                exStep.fee_ot_mon  = (exStep.fee_ot_mon  ?? 0) + (step.fee_ot_mon  ?? 0)
                 exStep.CR_monetizacao = (exStep.CR_monetizacao ?? 0) + (step.CR_monetizacao ?? 0)
                 exStep.booking_monetizacao = (exStep.booking_monetizacao ?? 0) + (step.booking_monetizacao ?? 0)
                 exStep.aql_monetizacao = (exStep.aql_monetizacao ?? 0) + (step.aql_monetizacao ?? 0)

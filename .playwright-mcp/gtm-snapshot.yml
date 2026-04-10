@@ -1,0 +1,136 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e15]
+        - generic: Dashboards V4
+      - button "Toggle sidebar" [ref=e9] [cursor=pointer]:
+        - img [ref=e17]
+    - navigation [ref=e13]:
+      - list [ref=e20]:
+        - listitem [ref=e21]:
+          - link "Conversão Saber → Ter/Executar" [ref=e22] [cursor=pointer]:
+            - /url: /tx-conv-saber-monetizacao
+        - listitem [ref=e26]:
+          - link "GTM Motion" [ref=e27] [cursor=pointer]:
+            - /url: /gtm-motion
+        - listitem [ref=e30]:
+          - link "Raio-X Financeiro" [ref=e31] [cursor=pointer]:
+            - /url: /raio-x-financeiro
+        - listitem [ref=e36]:
+          - link "Comparativo Squads" [ref=e37] [cursor=pointer]:
+            - /url: /comparativo-squads
+  - main [ref=e14]:
+    - generic [ref=e43]:
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - heading "Produção Comercial" [level=1] [ref=e47]
+          - generic [ref=e48]: "|"
+          - heading "GTM Motion" [level=2] [ref=e49]
+        - generic [ref=e50]:
+          - generic [ref=e51]: "Última atualização: 10/04/2026 14:40"
+          - generic [ref=e52]
+          - generic [ref=e55]
+          - img [ref=e60] [cursor=pointer]
+          - button "Atualizar" [ref=e62] [cursor=pointer]
+      - generic [ref=e69]:
+        - generic [ref=e70]:
+          - generic [ref=e71]: Canal
+          - combobox [ref=e72] [cursor=pointer]
+        - generic [ref=e73]:
+          - generic [ref=e74]: Closer
+          - combobox [ref=e75] [cursor=pointer]
+        - generic [ref=e76]:
+          - generic [ref=e77]: SDR
+          - combobox [ref=e78] [cursor=pointer]
+        - generic:
+          - generic: Step
+          - combobox
+        - generic [ref=e79]:
+          - button "Valores abreviados" [ref=e80] [cursor=pointer]
+          - button "Valores completos" [ref=e84] [cursor=pointer]
+        - generic [ref=e88]:
+          - button "1 linha" [ref=e89] [cursor=pointer]
+          - button "2 linhas" [ref=e92] [cursor=pointer]
+      - generic [ref=e96]:
+        - generic [ref=e97]:
+          - generic [ref=e98]
+          - generic "R$ 653.870,00" [ref=e102]: R$ 653,9k
+          - generic [ref=e104]
+        - generic [ref=e107]:
+          - generic [ref=e108]
+          - generic [ref=e112]: "1.756"
+          - generic [ref=e113]
+        - generic [ref=e123]:
+          - generic [ref=e124]
+          - generic [ref=e128]: "1.756"
+          - generic [ref=e129]
+        - generic [ref=e139]:
+          - generic [ref=e140]
+          - generic [ref=e144]: "296"
+          - generic [ref=e145]
+        - generic [ref=e155]:
+          - generic [ref=e156]
+          - generic [ref=e160]: "248"
+          - generic [ref=e161]
+        - generic [ref=e171]:
+          - generic [ref=e172]
+          - generic [ref=e176]: "56"
+          - generic [ref=e177]
+        - generic [ref=e187]:
+          - generic [ref=e188]
+          - generic "R$ 8.422,00" [ref=e192]: R$ 8,4k
+          - generic [ref=e193]
+        - generic [ref=e203]:
+          - generic [ref=e204]
+          - generic "R$ 1.256.091,00" [ref=e208]: R$ 1,3M
+          - generic [ref=e209]
+        - generic [ref=e219]:
+          - generic [ref=e220]
+          - generic [ref=e224]: 1,92x
+          - generic [ref=e226]
+        - generic [ref=e229]:
+          - generic [ref=e230]
+          - generic [ref=e234]: 0,21x
+          - generic [ref=e236]
+        - generic [ref=e239]:
+          - generic [ref=e240]
+          - generic [ref=e244]: 1,21 meses
+          - generic [ref=e246]
+        - generic [ref=e249]:
+          - generic [ref=e250]
+          - generic "R$ 191.918,00" [ref=e254]: R$ 191,9k
+          - generic [ref=e256]
+        - generic [ref=e259]:
+          - generic [ref=e260]
+          - generic "R$ 32.655,00" [ref=e264]: R$ 32,7k
+          - generic [ref=e266]
+        - generic [ref=e269]:
+          - generic [ref=e270]
+          - generic "R$ 175.388,00" [ref=e274]: R$ 175,4k
+          - generic [ref=e276]
+      - generic [ref=e279]:
+        - generic [ref=e280]:
+          - heading "Consolidado — Todos os Canais" [level=3] [ref=e281]
+          - generic [ref=e282]
+        - table [ref=e289]:
+          - rowgroup [ref=e290]
+          - rowgroup [ref=e358]
+      - generic [ref=e652]:
+        - generic [ref=e653]:
+          - img [ref=e654]
+          - heading "Listagem de Prospects" [level=3] [ref=e655]
+          - generic [ref=e656]: 1757 prospects
+        - generic [ref=e657]:
+          - generic [ref=e658]
+          - generic [ref=e660]
+        - table [ref=e664]:
+          - rowgroup [ref=e665]
+          - rowgroup [ref=e681]
+        - generic [ref=e832]:
+          - button "Primeira página" [disabled] [ref=e833]
+          - button "Página anterior" [disabled] [ref=e837]
+          - generic [ref=e840]
+          - button "Próxima página" [ref=e843] [cursor=pointer]
+          - button "Última página" [ref=e846] [cursor=pointer]
+          - generic [ref=e850]: 1–10 de 1757
