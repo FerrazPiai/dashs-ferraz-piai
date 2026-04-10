@@ -121,9 +121,9 @@
               <td class="col-cr"><span :class="crClass(row.cr4?.color)">{{ fmtCr(row.cr4?.val) }}</span></td>
               <td class="col-num total-val">{{ formatNumber(row.commit) }}</td>
               <td class="col-cr"><span :class="crClass(row.mqlWon?.color)">{{ fmtCr(row.mqlWon?.val) }}</span></td>
-              <td class="col-money total-val">{{ formatCurrency(row.avgTicket) }}</td>
+              <td class="col-money total-val">{{ fmtMoney(calcAvgTicket(row)) }}</td>
               <td class="col-money total-val fee-hover" @mouseenter="showFeePopup($event, row)" @mouseleave="hideFeePopup">{{ fmtMoney((row.fee_rec ?? 0) + (row.fee_ot ?? 0)) }}</td>
-              <td class="col-money total-val">{{ formatCurrency(row.avgBooking) }}</td>
+              <td class="col-money total-val">{{ fmtMoney(calcAvgBooking(row)) }}</td>
               <td class="col-money total-val">{{ formatCurrency(row.booking) }}</td>
               <td class="col-center total-val">{{ fmtRoas(row.roas_booking) }}</td>
               <td class="col-center total-val">{{ fmtRoas(row.roas_fee) }}</td>
@@ -137,9 +137,9 @@
               <td class="col-cr"><span :class="crClass(row.cr7?.color)">{{ fmtCr(row.cr7?.val) }}</span></td>
               <td class="col-num total-val">{{ formatNumber(row.commit_monetizacao) }}</td>
               <td class="col-cr"><span :class="crClass(row.mqlWonMon?.color)">{{ fmtCr(row.mqlWonMon?.val) }}</span></td>
-              <td class="col-money total-val">{{ fmtMoney(row.avgTicketMon) }}</td>
+              <td class="col-money total-val">{{ fmtMoney(calcAvgTicketMon(row)) }}</td>
               <td class="col-money total-val fee-hover" @mouseenter="showFeeMonPopup($event, row)" @mouseleave="hideFeePopup">{{ fmtMoney((row.fee_rec_mon ?? 0) + (row.fee_ot_mon ?? 0)) }}</td>
-              <td class="col-money total-val">{{ fmtMoney(row.avgBookingMon) }}</td>
+              <td class="col-money total-val">{{ fmtMoney(calcAvgBookingMon(row)) }}</td>
               <td class="col-money total-val">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
 
@@ -178,9 +178,9 @@
               <td class="col-cr"><span :class="crClass(row.cr4?.color)">{{ fmtCr(row.cr4?.val) }}</span></td>
               <td class="col-num">{{ formatNumber(row.commit) }}</td>
               <td class="col-cr"><span :class="crClass(row.mqlWon?.color)">{{ fmtCr(row.mqlWon?.val) }}</span></td>
-              <td class="col-money">{{ formatCurrency(row.avgTicket) }}</td>
+              <td class="col-money">{{ fmtMoney(calcAvgTicket(row)) }}</td>
               <td class="col-money fee-hover" @mouseenter="showFeePopup($event, row)" @mouseleave="hideFeePopup">{{ fmtMoney((row.fee_rec ?? 0) + (row.fee_ot ?? 0)) }}</td>
-              <td class="col-money">{{ formatCurrency(row.avgBooking) }}</td>
+              <td class="col-money">{{ fmtMoney(calcAvgBooking(row)) }}</td>
               <td class="col-money booking-val">{{ formatCurrency(row.booking) }}</td>
               <td class="col-center">{{ fmtRoas(row.roas_booking) }}</td>
               <td class="col-center">{{ fmtRoas(row.roas_fee) }}</td>
@@ -194,9 +194,9 @@
               <td class="col-cr"><span :class="crClass(row.cr7?.color)">{{ fmtCr(row.cr7?.val) }}</span></td>
               <td class="col-num">{{ formatNumber(row.commit_monetizacao) }}</td>
               <td class="col-cr"><span :class="crClass(row.mqlWonMon?.color)">{{ fmtCr(row.mqlWonMon?.val) }}</span></td>
-              <td class="col-money">{{ fmtMoney(row.avgTicketMon) }}</td>
+              <td class="col-money">{{ fmtMoney(calcAvgTicketMon(row)) }}</td>
               <td class="col-money fee-hover" @mouseenter="showFeeMonPopup($event, row)" @mouseleave="hideFeePopup">{{ fmtMoney((row.fee_rec_mon ?? 0) + (row.fee_ot_mon ?? 0)) }}</td>
-              <td class="col-money">{{ fmtMoney(row.avgBookingMon) }}</td>
+              <td class="col-money">{{ fmtMoney(calcAvgBookingMon(row)) }}</td>
               <td class="col-money">{{ fmtMoney(row.booking_monetizacao) }}</td>
             </tr>
 
@@ -213,35 +213,35 @@
                 </td>
                 <td class="col-center step-val">{{ fmtMoney(step.investimento) }}</td>
                 <td class="col-center step-val">{{ fmtCpl(step.investimento, stepCplDenominator(step)) }}</td>
-                <td class="col-num step-val">{{ drilldown === 'sdr' || drilldown === 'canal' ? formatNumber(step.leads) : '' }}</td>
+                <td class="col-num step-val">{{ drilldown === 'sdr' || drilldown === 'canal' ? formatNumber(Math.round(step.leads)) : '' }}</td>
                 <td class="col-cr">{{ drilldown === 'sdr' || drilldown === 'canal' ? fmtCalcCr(step.mql, step.leads) : '' }}</td>
-                <td class="col-num step-val">{{ drilldown === 'sdr' || drilldown === 'canal' ? formatNumber(step.mql) : '' }}</td>
+                <td class="col-num step-val">{{ drilldown === 'sdr' || drilldown === 'canal' ? formatNumber(Math.round(step.mql)) : '' }}</td>
                 <td class="col-cr">{{ drilldown === 'sdr' || drilldown === 'canal' ? fmtCalcCr(step.sql, step.mql) : '' }}</td>
-                <td class="col-num step-val">{{ drilldown === 'sdr' || drilldown === 'closer' || drilldown === 'canal' ? formatNumber(step.sql) : '' }}</td>
+                <td class="col-num step-val">{{ drilldown === 'sdr' || drilldown === 'closer' || drilldown === 'canal' ? formatNumber(Math.round(step.sql)) : '' }}</td>
                 <td class="col-cr">{{ drilldown === 'sdr' || drilldown === 'closer' || drilldown === 'canal' ? fmtCalcCr(step.sal, step.sql) : '' }}</td>
-                <td class="col-num step-val">{{ formatNumber(step.sal) }}</td>
+                <td class="col-num step-val">{{ formatNumber(Math.round(step.sal)) }}</td>
                 <td class="col-cr"><span :class="crClass(row.cr4?.color)">{{ fmtCalcCr(step.commit, step.sal) }}</span></td>
-                <td class="col-num step-val">{{ formatNumber(step.commit) }}</td>
+                <td class="col-num step-val">{{ formatNumber(Math.round(step.commit)) }}</td>
                 <td class="col-cr"><span :class="crClass(row.mqlWon?.color)">{{ fmtCalcCr(step.commit, step.mql) }}</span></td>
-                <td class="col-money step-val">{{ fmtMoney(step.avgTicket) }}</td>
+                <td class="col-money step-val">{{ fmtMoney(calcAvgTicket(step)) }}</td>
                 <td class="col-money step-val fee-hover" @mouseenter="showFeePopup($event, step)" @mouseleave="hideFeePopup">{{ fmtMoney((step.fee_rec ?? 0) + (step.fee_ot ?? 0)) }}</td>
-                <td class="col-money step-val">{{ fmtMoney(step.avgBooking) }}</td>
+                <td class="col-money step-val">{{ fmtMoney(calcAvgBooking(step)) }}</td>
                 <td class="col-money step-val">{{ step.booking > 0 ? formatCurrency(step.booking) : '—' }}</td>
                 <td class="col-center step-val">{{ fmtRoas(step.roas_booking) }}</td>
                 <td class="col-center step-val">{{ fmtRoas(step.roas_fee) }}</td>
                 <td class="col-num step-val">{{ fmtLt(step.LT_medio) }}</td>
                 <td class="col-money step-val">{{ fmtLtv(step) }}</td>
-                <td class="col-num step-val">{{ formatNumber(step.aql_monetizacao) }}</td>
+                <td class="col-num step-val">{{ formatNumber(Math.round(step.aql_monetizacao)) }}</td>
                 <td class="col-cr step-val"><span :class="crClass(row.cr5?.color)">{{ fmtCalcCr(step.sql_monetizacao, step.aql_monetizacao) }}</span></td>
-                <td class="col-num step-val">{{ formatNumber(step.sql_monetizacao) }}</td>
+                <td class="col-num step-val">{{ formatNumber(Math.round(step.sql_monetizacao)) }}</td>
                 <td class="col-cr step-val"><span :class="crClass(row.cr6?.color)">{{ fmtCalcCr(step.sal_monetizacao, step.sql_monetizacao) }}</span></td>
-                <td class="col-num step-val">{{ formatNumber(step.sal_monetizacao) }}</td>
+                <td class="col-num step-val">{{ formatNumber(Math.round(step.sal_monetizacao)) }}</td>
                 <td class="col-cr step-val"><span :class="crClass(row.cr7?.color)">{{ fmtCalcCr(step.commit_monetizacao, step.sal_monetizacao) }}</span></td>
-                <td class="col-num step-val">{{ formatNumber(step.commit_monetizacao) }}</td>
+                <td class="col-num step-val">{{ formatNumber(Math.round(step.commit_monetizacao)) }}</td>
                 <td class="col-cr step-val"><span :class="crClass(row.mqlWonMon?.color)">{{ fmtCalcCr(step.commit_monetizacao, step.aql_monetizacao) }}</span></td>
-                <td class="col-money step-val">{{ fmtMoney(step.avgTicketMon) }}</td>
+                <td class="col-money step-val">{{ fmtMoney(calcAvgTicketMon(step)) }}</td>
                 <td class="col-money step-val fee-hover" @mouseenter="showFeeMonPopup($event, step)" @mouseleave="hideFeePopup">{{ fmtMoney((step.fee_rec_mon ?? 0) + (step.fee_ot_mon ?? 0)) }}</td>
-                <td class="col-money step-val">{{ fmtMoney(step.avgBookingMon) }}</td>
+                <td class="col-money step-val">{{ fmtMoney(calcAvgBookingMon(step)) }}</td>
                 <td class="col-money step-val">{{ fmtMoney(step.booking_monetizacao) }}</td>
               </tr>
             </template>
@@ -249,7 +249,9 @@
         </tbody>
       </table>
     </div>
-    <!-- Fee breakdown popup -->
+  </div>
+  <!-- Fee breakdown popup (fixed to viewport, escapes overflow) -->
+  <Teleport to="body">
     <div v-if="feePopup.visible" class="fee-popup" :style="{ top: feePopup.y + 'px', left: feePopup.x + 'px' }">
       <div class="fee-popup-item">
         <span class="fee-popup-label">Fee Recorrente</span>
@@ -260,7 +262,7 @@
         <span class="fee-popup-value">{{ feePopup.ot }}</span>
       </div>
     </div>
-  </div>
+  </Teleport>
 </template>
 
 <script setup>
@@ -287,11 +289,10 @@ const feePopup = ref({ visible: false, x: 0, y: 0, rec: '—', ot: '—' })
 
 function showFeePopup(event, item) {
   const rect = event.target.getBoundingClientRect()
-  const wrap = event.target.closest('.funnel-table-wrap')?.getBoundingClientRect() ?? { top: 0, left: 0 }
   feePopup.value = {
     visible: true,
-    x: rect.left - wrap.left,
-    y: rect.bottom - wrap.top + 4,
+    x: rect.left,
+    y: rect.bottom + 4,
     rec: fmtMoney(item.fee_rec ?? 0),
     ot: fmtMoney(item.fee_ot ?? 0),
   }
@@ -299,11 +300,10 @@ function showFeePopup(event, item) {
 
 function showFeeMonPopup(event, item) {
   const rect = event.target.getBoundingClientRect()
-  const wrap = event.target.closest('.funnel-table-wrap')?.getBoundingClientRect() ?? { top: 0, left: 0 }
   feePopup.value = {
     visible: true,
-    x: rect.left - wrap.left,
-    y: rect.bottom - wrap.top + 4,
+    x: rect.left,
+    y: rect.bottom + 4,
     rec: fmtMoney(item.fee_rec_mon ?? 0),
     ot: fmtMoney(item.fee_ot_mon ?? 0),
   }
@@ -386,6 +386,38 @@ function fmtLt(val) {
   return meses.toFixed(2).replace('.', ',') + ' mês'
 }
 
+// Avg Ticket = Fee total / (Commit Aquisição + Commit Monetização)
+function calcAvgTicket(item) {
+  const fee = (item.fee_rec ?? 0) + (item.fee_ot ?? 0)
+  const commits = (item.commit ?? 0) + (item.commit_monetizacao ?? 0)
+  if (commits <= 0 || fee <= 0) return 0
+  return Math.round(fee / commits)
+}
+
+// Avg Booking = Booking / (Commit Aquisição + Commit Monetização)
+function calcAvgBooking(item) {
+  const booking = item.booking ?? 0
+  const commits = (item.commit ?? 0) + (item.commit_monetizacao ?? 0)
+  if (commits <= 0 || booking <= 0) return 0
+  return Math.round(booking / commits)
+}
+
+// Avg Booking Mon = Booking Monetização / Commit Monetização
+function calcAvgBookingMon(item) {
+  const booking = item.booking_monetizacao ?? 0
+  const commits = item.commit_monetizacao ?? 0
+  if (commits <= 0 || booking <= 0) return 0
+  return Math.round(booking / commits)
+}
+
+// Avg Ticket Mon = Fee Mon / Commit Monetização
+function calcAvgTicketMon(item) {
+  const fee = (item.fee_rec_mon ?? 0) + (item.fee_ot_mon ?? 0)
+  const commits = item.commit_monetizacao ?? 0
+  if (commits <= 0 || fee <= 0) return 0
+  return Math.round(fee / commits)
+}
+
 function fmtLtv(row) {
   if (row.ltv != null) return formatCurrency(row.ltv)
   const fee = row.fee_total ?? 0
@@ -398,7 +430,6 @@ function fmtLtv(row) {
 
 <style scoped>
 .funnel-table-wrap {
-  position: relative;
   background: #141414;
   border: 1px solid #222;
   border-radius: 6px;
@@ -697,9 +728,13 @@ tbody td.col-tier {
 .fee-hover:hover {
   background: rgba(255, 255, 255, 0.06);
 }
+</style>
+
+<style>
+/* Fee popup — global (Teleported to body, scoped attrs won't reach it) */
 .fee-popup {
-  position: absolute;
-  z-index: 100;
+  position: fixed;
+  z-index: 9999;
   background: #1a1a1a;
   border: 1px solid #333;
   border-radius: 6px;
