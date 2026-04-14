@@ -280,8 +280,14 @@ const { data, loading, error, fetchData } = useDashboardData(DASHBOARD_ID)
 
 function parseCurrency(raw) {
   if (!raw) return 0
-  const cleaned = String(raw).replace('R$', '').replace(/\s/g, '').replace(/\./g, '').replace(',', '.')
-  const n = parseFloat(cleaned)
+  let s = String(raw).replace('R$', '').replace(/\s/g, '')
+  if (!s) return 0
+  if (s.includes(',')) {
+    // Formato brasileiro: "1.234,56" — ponto é milhar, vírgula é decimal
+    s = s.replace(/\./g, '').replace(',', '.')
+  }
+  // Sem vírgula: ponto já é decimal (ex: "12183.71") ou inteiro (ex: "5315")
+  const n = parseFloat(s)
   return isNaN(n) ? 0 : n
 }
 
