@@ -287,9 +287,14 @@ function parseCurrency(raw) {
 
 function parseMonth(raw) {
   if (!raw) return null
+  // Formato ISO: "2026-01-01T00:00:00.000Z"
+  if (/^\d{4}-\d{2}/.test(raw)) {
+    const d = new Date(raw)
+    if (!isNaN(d)) return { month: d.getUTCMonth() + 1, year: d.getUTCFullYear() }
+  }
+  // Formato dd/mm/yyyy
   const parts = raw.split('/')
   if (parts.length < 3) return null
-  // Formato dd/mm/yyyy — mês é parts[1]
   return { month: parseInt(parts[1], 10), year: parseInt(parts[2], 10) }
 }
 
@@ -318,21 +323,24 @@ const rawRows = computed(() => {
     : Array.isArray(data.value) ? data.value
     : []
   return rows.map(row => {
-    const parsed   = parseMonth(row['Mês'])
+    const parsed   = parseMonth(row['Mês'] || row['Mes'] || '')
     const squad    = normalizeSquad(row['Squad'] || '')
-    const isCancelado = row['Status'] === 'Recorrência Cancelada'
-    const receitaRecorrente = parseCurrency(row['Receita Recorrente'])
+    const receitaRecorrente = parseCurrency(row['Receita Recorrente'] || row['Receita_Recorrente'])
+    // Suporte ao formato novo (Revenue_Churn direto) e antigo (Status-based)
+    const churn = row['Revenue_Churn'] != null
+      ? parseCurrency(row['Revenue_Churn'])
+      : (row['Status'] === 'Recorrência Cancelada' ? receitaRecorrente : 0)
     return {
       squad,
       coordenador:  row['Coordenador'] || '',
       year:         parsed?.year ?? 0,
       month:        parsed?.month ?? 0,
       mrr:          receitaRecorrente,
-      churn:        isCancelado ? receitaRecorrente : 0,
-      isencao:      parseCurrency(row['Isenção']),
-      monetRec:     parseCurrency(row['Monetização Recorrente']),
-      monetOneTime: parseCurrency(row['Atribuição One Time / Bookado']),
-      monetVar:     parseCurrency(row['Monetização Variável']),
+      churn,
+      isencao:      parseCurrency(row['Isenção'] || row['Isencao']),
+      monetRec:     parseCurrency(row['Monetização Recorrente'] || row['Monetizacao_Recorrente']),
+      monetOneTime: parseCurrency(row['Atribuição One Time / Bookado'] || row['Atribuicao_One_Time__Bookado']),
+      monetVar:     parseCurrency(row['Monetização Variável'] || row['Monetizacao_Variavel']),
       nps:          row['NPS'] != null && row['NPS'] !== '' ? Number(row['NPS']) : null
     }
   }).filter(r => r.squad && r.year > 0)
