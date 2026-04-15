@@ -947,6 +947,8 @@ function heatClass(key, value, squads, currentSquad) {
       return relativeColor(key, value, squads, false)
 
     case 'saldoFinal':
+      if (value < 0) return 'c-red'
+      return relativeColor(key, value, squads, false)
     case 'nrr':
       return relativeColor(key, value, squads, false)
 
