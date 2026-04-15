@@ -4,8 +4,9 @@
       v-for="option in options"
       :key="option.value"
       class="toggle-btn"
-      :class="{ active: modelValue === option.value }"
-      @click="handleSelect(option.value)"
+      :class="{ active: modelValue === option.value, disabled: option.disabled }"
+      :disabled="option.disabled"
+      @click="handleSelect(option)"
     >
       {{ option.label }}
     </button>
@@ -34,8 +35,9 @@ defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const handleSelect = (value) => {
-  emit('update:modelValue', value)
+const handleSelect = (option) => {
+  if (option.disabled) return
+  emit('update:modelValue', option.value)
 }
 </script>
 
@@ -62,9 +64,14 @@ const handleSelect = (value) => {
   letter-spacing: 0.5px;
 }
 
-.toggle-btn:hover {
+.toggle-btn:hover:not(.disabled) {
   color: var(--text-primary, #fff);
   background: rgba(255, 255, 255, 0.05);
+}
+
+.toggle-btn.disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .toggle-btn.active {
