@@ -1,0 +1,868 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e15]
+        - generic: Dashboards V4
+      - button "Toggle sidebar" [ref=e9] [cursor=pointer]:
+        - img [ref=e17]
+    - navigation [ref=e13]:
+      - list [ref=e20]:
+        - listitem [ref=e21]:
+          - link "Conversão Saber → Ter/Executar" [ref=e22] [cursor=pointer]:
+            - /url: /tx-conv-saber-monetizacao
+            - img [ref=e23]
+            - generic: Conversão Saber → Ter/Executar
+        - listitem [ref=e26]:
+          - link "GTM Motion" [ref=e27] [cursor=pointer]:
+            - /url: /gtm-motion
+            - img [ref=e28]
+            - generic: GTM Motion
+        - listitem [ref=e30]:
+          - link "Raio-X Financeiro" [ref=e31] [cursor=pointer]:
+            - /url: /raio-x-financeiro
+            - img [ref=e32]
+            - generic: Raio-X Financeiro
+        - listitem [ref=e36]:
+          - link "Comparativo Squads" [ref=e37] [cursor=pointer]:
+            - /url: /comparativo-squads
+            - img [ref=e38]
+            - generic: Comparativo Squads
+  - main [ref=e14]:
+    - generic [ref=e43]:
+      - generic [ref=e45]:
+        - generic [ref=e46]:
+          - heading "Produção Comercial" [level=1] [ref=e47]
+          - generic [ref=e48]: "|"
+          - heading "GTM Motion" [level=2] [ref=e49]
+        - generic [ref=e50]:
+          - generic [ref=e51]: "Última atualização: 13/04/2026 13:09"
+          - generic [ref=e52]:
+            - button "Quarter" [active] [ref=e53] [cursor=pointer]
+            - button "Mês" [ref=e54] [cursor=pointer]
+          - combobox [ref=e857] [cursor=pointer]:
+            - option "Q4 2025"
+            - option "Q1 2026"
+            - option "Q2 2026" [selected]
+          - img [ref=e60] [cursor=pointer]
+          - button "Atualizar" [ref=e62] [cursor=pointer]:
+            - img [ref=e63]
+            - generic [ref=e68]: Atualizar
+      - generic [ref=e69]:
+        - generic [ref=e70]:
+          - generic [ref=e71]: Canal
+          - combobox [ref=e72] [cursor=pointer]:
+            - option "Consolidado" [selected]
+            - option "Black box"
+            - option "Indicação"
+            - option "Recuperação"
+            - option "Sem Canal"
+            - option "Recovery"
+            - option "Visary - Mentor"
+            - option "Evento"
+            - option "Transf. Interna"
+        - generic [ref=e73]:
+          - generic [ref=e74]: Closer
+          - combobox [ref=e75] [cursor=pointer]:
+            - option "Todos" [selected]
+            - option "Caio Fernandes"
+            - option "Gerson Braz"
+            - option "Guilherme Brufato"
+            - option "Lucas Cunha"
+            - option "Paulo Infante"
+            - option "Sem closer"
+        - generic [ref=e76]:
+          - generic [ref=e77]: SDR
+          - combobox [ref=e78] [cursor=pointer]:
+            - option "Todos" [selected]
+            - option "Gabriella Wudarski"
+            - option "Geovanna Correa"
+            - option "Gustavo Bonifacio"
+            - option "Paulo Infante"
+            - option "Sem SDR"
+        - generic:
+          - generic: Step
+          - combobox:
+            - option "Todos" [selected]
+            - option "Saber"
+            - option "Ter"
+            - option "Executar"
+            - option "Sem Mapeamento"
+        - generic [ref=e79]:
+          - button "Valores abreviados" [ref=e80] [cursor=pointer]:
+            - img [ref=e82]:
+              - generic [ref=e83]: K
+          - button "Valores completos" [ref=e84] [cursor=pointer]:
+            - img [ref=e86]:
+              - generic [ref=e87]: 0,0
+        - generic [ref=e88]:
+          - button "1 linha" [ref=e89] [cursor=pointer]:
+            - img [ref=e90]
+          - button "2 linhas" [ref=e92] [cursor=pointer]:
+            - img [ref=e93]
+      - generic [ref=e98]:
+        - generic [ref=e99]: Revenue Architecture × Theory of Constraints
+        - heading "BowTie Model" [level=2] [ref=e100]
+        - text: Heatmap de Restrições · CR · ΔT · VM
+      - generic [ref=e101]:
+        - generic [ref=e102]:
+          - generic [ref=e103]:
+            - generic "Investimento" [ref=e104]
+            - generic [ref=e105]: "?"
+          - generic [ref=e107]: R$ 0,00
+          - generic [ref=e109]:
+            - generic [ref=e110]: Δ Período Anterior
+            - generic [ref=e111]: "-100,0%"
+        - generic [ref=e112]:
+          - generic [ref=e113]:
+            - generic "Prospects" [ref=e114]
+            - generic [ref=e115]: "?"
+          - generic [ref=e117]: "191"
+          - generic [ref=e118]:
+            - generic [ref=e119]:
+              - generic [ref=e120]: Meta
+              - generic "0" [ref=e121]
+            - generic [ref=e122]:
+              - generic [ref=e123]: Δ Meta
+              - generic "--" [ref=e124]
+            - generic [ref=e125]:
+              - generic [ref=e126]: Δ Período Anterior
+              - generic [ref=e127]: "-88,0%"
+        - generic [ref=e128]:
+          - generic [ref=e129]:
+            - generic "MQL" [ref=e130]
+            - generic [ref=e131]: "?"
+          - generic [ref=e133]: "191"
+          - generic [ref=e134]:
+            - generic [ref=e135]:
+              - generic [ref=e136]: Meta
+              - generic "0" [ref=e137]
+            - generic [ref=e138]:
+              - generic [ref=e139]: Δ Meta
+              - generic "--" [ref=e140]
+            - generic [ref=e141]:
+              - generic [ref=e142]: Δ Período Anterior
+              - generic [ref=e143]: "-88,0%"
+        - generic [ref=e144]:
+          - generic [ref=e145]:
+            - generic "SQL" [ref=e146]
+            - generic [ref=e147]: "?"
+          - generic [ref=e149]: "31"
+          - generic [ref=e150]:
+            - generic [ref=e151]:
+              - generic [ref=e152]: Meta
+              - generic "0" [ref=e153]
+            - generic [ref=e154]:
+              - generic [ref=e155]: Δ Meta
+              - generic "--" [ref=e156]
+            - generic [ref=e157]:
+              - generic [ref=e158]: Δ Período Anterior
+              - generic [ref=e159]: "-87,3%"
+        - generic [ref=e160]:
+          - generic [ref=e161]:
+            - generic "SAL" [ref=e162]
+            - generic [ref=e163]: "?"
+          - generic [ref=e165]: "17"
+          - generic [ref=e166]:
+            - generic [ref=e167]:
+              - generic [ref=e168]: Meta
+              - generic "0" [ref=e169]
+            - generic [ref=e170]:
+              - generic [ref=e171]: Δ Meta
+              - generic "--" [ref=e172]
+            - generic [ref=e173]:
+              - generic [ref=e174]: Δ Período Anterior
+              - generic [ref=e175]: "-91,8%"
+        - generic [ref=e176]:
+          - generic [ref=e177]:
+            - generic "Commit" [ref=e178]
+            - generic [ref=e179]: "?"
+          - generic [ref=e181]: "3"
+          - generic [ref=e182]:
+            - generic [ref=e183]:
+              - generic [ref=e184]: Meta
+              - generic "0" [ref=e185]
+            - generic [ref=e186]:
+              - generic [ref=e187]: Δ Meta
+              - generic "--" [ref=e188]
+            - generic [ref=e189]:
+              - generic [ref=e190]: Δ Período Anterior
+              - generic [ref=e191]: "-93,6%"
+        - generic [ref=e192]:
+          - generic [ref=e193]:
+            - generic "Avg Ticket" [ref=e194]
+            - generic [ref=e195]: "?"
+          - generic "R$ 8.245,00" [ref=e197]: R$ 8,2k
+          - generic [ref=e198]:
+            - generic [ref=e199]:
+              - generic [ref=e200]: Meta
+              - generic "--" [ref=e201]
+            - generic [ref=e202]:
+              - generic [ref=e203]: Δ Meta
+              - generic "--" [ref=e204]
+            - generic [ref=e205]:
+              - generic [ref=e206]: Δ Período Anterior
+              - generic [ref=e207]: +75,7%
+        - generic [ref=e208]:
+          - generic [ref=e209]:
+            - generic "TCV" [ref=e210]
+            - generic [ref=e211]: "?"
+          - generic "R$ 115.592,00" [ref=e213]: R$ 115,6k
+          - generic [ref=e214]:
+            - generic [ref=e215]:
+              - generic [ref=e216]: Meta
+              - generic "R$ 0,00" [ref=e217]
+            - generic [ref=e218]:
+              - generic [ref=e219]: Δ Meta
+              - generic "--" [ref=e220]
+            - generic [ref=e221]:
+              - generic [ref=e222]: Δ Período Anterior
+              - generic [ref=e223]: "-88,9%"
+        - generic [ref=e224]:
+          - generic [ref=e225]:
+            - generic "ROAS Booking" [ref=e226]
+            - generic [ref=e227]: "?"
+          - generic [ref=e229]: 0,00x
+          - generic [ref=e231]:
+            - generic [ref=e232]: Δ Período Anterior
+            - generic [ref=e233]: "-100,0%"
+        - generic [ref=e234]:
+          - generic [ref=e235]:
+            - generic "ROAS Fee" [ref=e236]
+            - generic [ref=e237]: "?"
+          - generic [ref=e239]: 0,00x
+          - generic [ref=e241]:
+            - generic [ref=e242]: Δ Período Anterior
+            - generic [ref=e243]: "-100,0%"
+        - generic [ref=e244]:
+          - generic [ref=e245]:
+            - generic "LT Médio" [ref=e246]
+            - generic [ref=e247]: "?"
+          - generic [ref=e249]: 0,18 meses
+          - generic [ref=e251]:
+            - generic [ref=e252]: Δ Período Anterior
+            - generic [ref=e253]: "-84,2%"
+        - generic [ref=e254]:
+          - generic [ref=e255]:
+            - generic "LTV" [ref=e256]
+            - generic [ref=e257]: "?"
+          - generic [ref=e259]: "-"
+          - generic [ref=e261]:
+            - generic [ref=e262]: Δ Período Anterior
+            - generic [ref=e263]: 0,0%
+        - generic [ref=e264]:
+          - generic [ref=e265]:
+            - generic "Avg Ticket Monetização" [ref=e266]
+            - generic [ref=e267]: "?"
+          - generic [ref=e269]: R$ 667,00
+          - generic [ref=e271]:
+            - generic [ref=e272]: Δ Período Anterior
+            - generic [ref=e273]: "-81,0%"
+        - generic [ref=e274]:
+          - generic [ref=e275]:
+            - generic "Booking Monetização" [ref=e276]
+            - generic [ref=e277]: "?"
+          - generic "R$ 3.028,00" [ref=e279]: R$ 3,0k
+          - generic [ref=e281]:
+            - generic [ref=e282]: Δ Período Anterior
+            - generic [ref=e283]: "-98,2%"
+      - generic [ref=e284]:
+        - generic [ref=e285]:
+          - heading "Consolidado — Todos os Canais" [level=3] [ref=e286]
+          - generic [ref=e287]:
+            - button "Step" [ref=e288] [cursor=pointer]
+            - button "Closer" [ref=e289] [cursor=pointer]
+            - button "Canal" [ref=e290] [cursor=pointer]
+            - button "SDR" [ref=e291] [cursor=pointer]
+        - table [ref=e294]:
+          - rowgroup [ref=e295]:
+            - row "Tier ? Investimento ? CPL ? Prospects ? CR1% ? MQL ? CR2% ? SQL ? CR3% ? SAL ? CR4% ? Commit ? Hit Rate ? Avg Ticket ? Fee ? Avg Booking ? Booking ? ROAS Booking ? ROAS Direto ? LT Médio ? LTV ? AQL Mon. ? CR5% ? SQL Mon. ? CR6% ? SAL Mon. ? CR7% ? Commit Mon. ? Hit Rate Mon. ? Avg Ticket Mon. ? Fee Mon. ? Avg Booking Mon. ? Booking Monet. ?" [ref=e296]:
+              - columnheader "Tier ?" [ref=e297]:
+                - text: Tier
+                - generic [ref=e298]: "?"
+              - columnheader "Investimento ?" [ref=e299]:
+                - text: Investimento
+                - generic [ref=e300]: "?"
+              - columnheader "CPL ?" [ref=e301]:
+                - text: CPL
+                - generic [ref=e302]: "?"
+              - columnheader "Prospects ?" [ref=e303]:
+                - text: Prospects
+                - generic [ref=e304]: "?"
+              - columnheader "CR1% ?" [ref=e305]:
+                - text: CR1%
+                - generic [ref=e306]: "?"
+              - columnheader "MQL ?" [ref=e307]:
+                - text: MQL
+                - generic [ref=e308]: "?"
+              - columnheader "CR2% ?" [ref=e309]:
+                - text: CR2%
+                - generic [ref=e310]: "?"
+              - columnheader "SQL ?" [ref=e311]:
+                - text: SQL
+                - generic [ref=e312]: "?"
+              - columnheader "CR3% ?" [ref=e313]:
+                - text: CR3%
+                - generic [ref=e314]: "?"
+              - columnheader "SAL ?" [ref=e315]:
+                - text: SAL
+                - generic [ref=e316]: "?"
+              - columnheader "CR4% ?" [ref=e317]:
+                - text: CR4%
+                - generic [ref=e318]: "?"
+              - columnheader "Commit ?" [ref=e319]:
+                - text: Commit
+                - generic [ref=e320]: "?"
+              - columnheader "Hit Rate ?" [ref=e321]:
+                - text: Hit Rate
+                - generic [ref=e322]: "?"
+              - columnheader "Avg Ticket ?" [ref=e323]:
+                - text: Avg Ticket
+                - generic [ref=e324]: "?"
+              - columnheader "Fee ?" [ref=e325]:
+                - text: Fee
+                - generic [ref=e326]: "?"
+              - columnheader "Avg Booking ?" [ref=e327]:
+                - text: Avg Booking
+                - generic [ref=e328]: "?"
+              - columnheader "Booking ?" [ref=e329]:
+                - text: Booking
+                - generic [ref=e330]: "?"
+              - columnheader "ROAS Booking ?" [ref=e331]:
+                - text: ROAS Booking
+                - generic [ref=e332]: "?"
+              - columnheader "ROAS Direto ?" [ref=e333]:
+                - text: ROAS Direto
+                - generic [ref=e334]: "?"
+              - columnheader "LT Médio ?" [ref=e335]:
+                - text: LT Médio
+                - generic [ref=e336]: "?"
+              - columnheader "LTV ?" [ref=e337]:
+                - text: LTV
+                - generic [ref=e338]: "?"
+              - columnheader "AQL Mon. ?" [ref=e339]:
+                - text: AQL Mon.
+                - generic [ref=e340]: "?"
+              - columnheader "CR5% ?" [ref=e341]:
+                - text: CR5%
+                - generic [ref=e342]: "?"
+              - columnheader "SQL Mon. ?" [ref=e343]:
+                - text: SQL Mon.
+                - generic [ref=e344]: "?"
+              - columnheader "CR6% ?" [ref=e345]:
+                - text: CR6%
+                - generic [ref=e346]: "?"
+              - columnheader "SAL Mon. ?" [ref=e347]:
+                - text: SAL Mon.
+                - generic [ref=e348]: "?"
+              - columnheader "CR7% ?" [ref=e349]:
+                - text: CR7%
+                - generic [ref=e350]: "?"
+              - columnheader "Commit Mon. ?" [ref=e351]:
+                - text: Commit Mon.
+                - generic [ref=e352]: "?"
+              - columnheader "Hit Rate Mon. ?" [ref=e353]:
+                - text: Hit Rate Mon.
+                - generic [ref=e354]: "?"
+              - columnheader "Avg Ticket Mon. ?" [ref=e355]:
+                - text: Avg Ticket Mon.
+                - generic [ref=e356]: "?"
+              - columnheader "Fee Mon. ?" [ref=e357]:
+                - text: Fee Mon.
+                - generic [ref=e358]: "?"
+              - columnheader "Avg Booking Mon. ?" [ref=e359]:
+                - text: Avg Booking Mon.
+                - generic [ref=e360]: "?"
+              - columnheader "Booking Monet. ?" [ref=e361]:
+                - text: Booking Monet.
+                - generic [ref=e362]: "?"
+          - rowgroup [ref=e363]:
+            - row "Expandir Tiny — — 3 100,00% 3 100,00% 3 33,33% 1 0,00% 0 0,00% — — — R$ 0,00 — — — — 0 0,00% 0 0,00% 0 0,00% 0 0,00% — — — —" [ref=e364]:
+              - cell "Expandir Tiny" [ref=e365]:
+                - button "Expandir" [ref=e366] [cursor=pointer]:
+                  - img [ref=e367]
+                - text: Tiny
+              - cell "—" [ref=e369]
+              - cell "—" [ref=e370]
+              - cell "3" [ref=e371]
+              - cell "100,00%" [ref=e372]
+              - cell "3" [ref=e373]
+              - cell "100,00%" [ref=e374]
+              - cell "3" [ref=e375]
+              - cell "33,33%" [ref=e376]
+              - cell "1" [ref=e377]
+              - cell "0,00%" [ref=e378]
+              - cell "0" [ref=e379]
+              - cell "0,00%" [ref=e380]
+              - cell "—" [ref=e381]
+              - cell "—" [ref=e382] [cursor=pointer]
+              - cell "—" [ref=e383]
+              - cell "R$ 0,00" [ref=e384]
+              - cell "—" [ref=e385]
+              - cell "—" [ref=e386]
+              - cell "—" [ref=e387]
+              - cell "—" [ref=e388]
+              - cell "0" [ref=e389]
+              - cell "0,00%" [ref=e390]
+              - cell "0" [ref=e391]
+              - cell "0,00%" [ref=e392]
+              - cell "0" [ref=e393]
+              - cell "0,00%" [ref=e394]
+              - cell "0" [ref=e395]
+              - cell "0,00%" [ref=e396]
+              - cell "—" [ref=e397]
+              - cell "—" [ref=e398] [cursor=pointer]
+              - cell "—" [ref=e399]
+              - cell "—" [ref=e400]
+            - row "Expandir Small — — 24 100,00% 24 50,00% 12 58,33% 7 14,29% 1 4,17% R$ 7.588,00 R$ 7.588,00 R$ 7.588,00 R$ 7.588,00 — — 0,17 mês — 0 0,00% 0 0,00% 0 0,00% 0 0,00% — — — —" [ref=e401]:
+              - cell "Expandir Small" [ref=e402]:
+                - button "Expandir" [ref=e403] [cursor=pointer]:
+                  - img [ref=e404]
+                - text: Small
+              - cell "—" [ref=e406]
+              - cell "—" [ref=e407]
+              - cell "24" [ref=e408]
+              - cell "100,00%" [ref=e409]
+              - cell "24" [ref=e410]
+              - cell "50,00%" [ref=e411]
+              - cell "12" [ref=e412]
+              - cell "58,33%" [ref=e413]
+              - cell "7" [ref=e414]
+              - cell "14,29%" [ref=e415]
+              - cell "1" [ref=e416]
+              - cell "4,17%" [ref=e417]
+              - cell "R$ 7.588,00" [ref=e418]
+              - cell "R$ 7.588,00" [ref=e419] [cursor=pointer]
+              - cell "R$ 7.588,00" [ref=e420]
+              - cell "R$ 7.588,00" [ref=e421]
+              - cell "—" [ref=e422]
+              - cell "—" [ref=e423]
+              - cell "0,17 mês" [ref=e424]
+              - cell "—" [ref=e425]
+              - cell "0" [ref=e426]
+              - cell "0,00%" [ref=e427]
+              - cell "0" [ref=e428]
+              - cell "0,00%" [ref=e429]
+              - cell "0" [ref=e430]
+              - cell "0,00%" [ref=e431]
+              - cell "0" [ref=e432]
+              - cell "0,00%" [ref=e433]
+              - cell "—" [ref=e434]
+              - cell "—" [ref=e435] [cursor=pointer]
+              - cell "—" [ref=e436]
+              - cell "—" [ref=e437]
+            - row "Expandir Medium — — 31 100,00% 31 41,94% 13 46,15% 6 16,67% 1 3,23% R$ 5.716,00 R$ 17.146,59 R$ 21.015,00 R$ 63.044,00 — — 0,17 mês — 2 100,00% 2 100,00% 2 100,00% 2 100,00% R$ 1.000,00 R$ 2.000,00 R$ 1.514,00 R$ 3.028,00" [ref=e438]:
+              - cell "Expandir Medium" [ref=e439]:
+                - button "Expandir" [ref=e440] [cursor=pointer]:
+                  - img [ref=e441]
+                - text: Medium
+              - cell "—" [ref=e443]
+              - cell "—" [ref=e444]
+              - cell "31" [ref=e445]
+              - cell "100,00%" [ref=e446]
+              - cell "31" [ref=e447]
+              - cell "41,94%" [ref=e448]
+              - cell "13" [ref=e449]
+              - cell "46,15%" [ref=e450]
+              - cell "6" [ref=e451]
+              - cell "16,67%" [ref=e452]
+              - cell "1" [ref=e453]
+              - cell "3,23%" [ref=e454]
+              - cell "R$ 5.716,00" [ref=e455]
+              - cell "R$ 17.146,59" [ref=e456] [cursor=pointer]
+              - cell "R$ 21.015,00" [ref=e457]
+              - cell "R$ 63.044,00" [ref=e458]
+              - cell "—" [ref=e459]
+              - cell "—" [ref=e460]
+              - cell "0,17 mês" [ref=e461]
+              - cell "—" [ref=e462]
+              - cell "2" [ref=e463]
+              - cell "100,00%" [ref=e464]
+              - cell "2" [ref=e465]
+              - cell "100,00%" [ref=e466]
+              - cell "2" [ref=e467]
+              - cell "100,00%" [ref=e468]
+              - cell "2" [ref=e469]
+              - cell "100,00%" [ref=e470]
+              - cell "R$ 1.000,00" [ref=e471]
+              - cell "R$ 2.000,00" [ref=e472] [cursor=pointer]
+              - cell "R$ 1.514,00" [ref=e473]
+              - cell "R$ 3.028,00" [ref=e474]
+            - row "Expandir Large — — 4 100,00% 4 50,00% 2 100,00% 2 0,00% 0 0,00% — — — R$ 0,00 — — — — 0 0,00% 0 0,00% 0 0,00% 0 0,00% — — — —" [ref=e475]:
+              - cell "Expandir Large" [ref=e476]:
+                - button "Expandir" [ref=e477] [cursor=pointer]:
+                  - img [ref=e478]
+                - text: Large
+              - cell "—" [ref=e480]
+              - cell "—" [ref=e481]
+              - cell "4" [ref=e482]
+              - cell "100,00%" [ref=e483]
+              - cell "4" [ref=e484]
+              - cell "50,00%" [ref=e485]
+              - cell "2" [ref=e486]
+              - cell "100,00%" [ref=e487]
+              - cell "2" [ref=e488]
+              - cell "0,00%" [ref=e489]
+              - cell "0" [ref=e490]
+              - cell "0,00%" [ref=e491]
+              - cell "—" [ref=e492]
+              - cell "—" [ref=e493] [cursor=pointer]
+              - cell "—" [ref=e494]
+              - cell "R$ 0,00" [ref=e495]
+              - cell "—" [ref=e496]
+              - cell "—" [ref=e497]
+              - cell "—" [ref=e498]
+              - cell "—" [ref=e499]
+              - cell "0" [ref=e500]
+              - cell "0,00%" [ref=e501]
+              - cell "0" [ref=e502]
+              - cell "0,00%" [ref=e503]
+              - cell "0" [ref=e504]
+              - cell "0,00%" [ref=e505]
+              - cell "0" [ref=e506]
+              - cell "0,00%" [ref=e507]
+              - cell "—" [ref=e508]
+              - cell "—" [ref=e509] [cursor=pointer]
+              - cell "—" [ref=e510]
+              - cell "—" [ref=e511]
+            - row "Expandir Enterprise — — 0 0,00% 0 0,00% 0 0,00% 0 0,00% 0 0,00% — — — R$ 0,00 — — — — 1 100,00% 1 100,00% 1 100,00% 1 100,00% — — — —" [ref=e512]:
+              - cell "Expandir Enterprise" [ref=e513]:
+                - button "Expandir" [ref=e514] [cursor=pointer]:
+                  - img [ref=e515]
+                - text: Enterprise
+              - cell "—" [ref=e517]
+              - cell "—" [ref=e518]
+              - cell "0" [ref=e519]
+              - cell "0,00%" [ref=e520]
+              - cell "0" [ref=e521]
+              - cell "0,00%" [ref=e522]
+              - cell "0" [ref=e523]
+              - cell "0,00%" [ref=e524]
+              - cell "0" [ref=e525]
+              - cell "0,00%" [ref=e526]
+              - cell "0" [ref=e527]
+              - cell "0,00%" [ref=e528]
+              - cell "—" [ref=e529]
+              - cell "—" [ref=e530] [cursor=pointer]
+              - cell "—" [ref=e531]
+              - cell "R$ 0,00" [ref=e532]
+              - cell "—" [ref=e533]
+              - cell "—" [ref=e534]
+              - cell "—" [ref=e535]
+              - cell "—" [ref=e536]
+              - cell "1" [ref=e537]
+              - cell "100,00%" [ref=e538]
+              - cell "1" [ref=e539]
+              - cell "100,00%" [ref=e540]
+              - cell "1" [ref=e541]
+              - cell "100,00%" [ref=e542]
+              - cell "1" [ref=e543]
+              - cell "100,00%" [ref=e544]
+              - cell "—" [ref=e545]
+              - cell "—" [ref=e546] [cursor=pointer]
+              - cell "—" [ref=e547]
+              - cell "—" [ref=e548]
+            - row "Expandir Non-ICP — — 9 100,00% 9 11,11% 1 100,00% 1 100,00% 1 11,11% — — R$ 44.960,00 R$ 44.960,00 — — 0,20 mês — 0 0,00% 0 0,00% 0 0,00% 0 0,00% — — — —" [ref=e549]:
+              - cell "Expandir Non-ICP" [ref=e550]:
+                - button "Expandir" [ref=e551] [cursor=pointer]:
+                  - img [ref=e552]
+                - text: Non-ICP
+              - cell "—" [ref=e554]
+              - cell "—" [ref=e555]
+              - cell "9" [ref=e556]
+              - cell "100,00%" [ref=e557]
+              - cell "9" [ref=e558]
+              - cell "11,11%" [ref=e559]
+              - cell "1" [ref=e560]
+              - cell "100,00%" [ref=e561]
+              - cell "1" [ref=e562]
+              - cell "100,00%" [ref=e563]
+              - cell "1" [ref=e564]
+              - cell "11,11%" [ref=e565]
+              - cell "—" [ref=e566]
+              - cell "—" [ref=e567] [cursor=pointer]
+              - cell "R$ 44.960,00" [ref=e568]
+              - cell "R$ 44.960,00" [ref=e569]
+              - cell "—" [ref=e570]
+              - cell "—" [ref=e571]
+              - cell "0,20 mês" [ref=e572]
+              - cell "—" [ref=e573]
+              - cell "0" [ref=e574]
+              - cell "0,00%" [ref=e575]
+              - cell "0" [ref=e576]
+              - cell "0,00%" [ref=e577]
+              - cell "0" [ref=e578]
+              - cell "0,00%" [ref=e579]
+              - cell "0" [ref=e580]
+              - cell "0,00%" [ref=e581]
+              - cell "—" [ref=e582]
+              - cell "—" [ref=e583] [cursor=pointer]
+              - cell "—" [ref=e584]
+              - cell "—" [ref=e585]
+            - row "Sem mapeamento — — 120 — 120 — — — — — — — — — — — — — — — 0 — 0 — 0 — 0 — — — — —" [ref=e586]:
+              - cell "Sem mapeamento" [ref=e587]: Sem mapeamento
+              - cell "—" [ref=e588]
+              - cell "—" [ref=e589]
+              - cell "120" [ref=e590]
+              - cell "—" [ref=e591]
+              - cell "120" [ref=e592]
+              - cell "—" [ref=e593]
+              - cell "—" [ref=e594]
+              - cell "—" [ref=e595]
+              - cell "—" [ref=e596]
+              - cell "—" [ref=e597]
+              - cell "—" [ref=e598]
+              - cell "—" [ref=e599]
+              - cell "—" [ref=e600]
+              - cell "—" [ref=e601]
+              - cell "—" [ref=e602]
+              - cell "—" [ref=e603]
+              - cell "—" [ref=e604]
+              - cell "—" [ref=e605]
+              - cell "—" [ref=e606]
+              - cell "—" [ref=e607]
+              - cell "0" [ref=e608]
+              - cell "—" [ref=e609]
+              - cell "0" [ref=e610]
+              - cell "—" [ref=e611]
+              - cell "0" [ref=e612]
+              - cell "—" [ref=e613]
+              - cell "0" [ref=e614]
+              - cell "—" [ref=e615]
+              - cell "—" [ref=e616]
+              - cell "—" [ref=e617]
+              - cell "—" [ref=e618]
+              - cell "—" [ref=e619]
+            - row "Expandir Total — — 191 100,00% 191 16,23% 31 54,84% 17 17,65% 3 1,57% R$ 4.122,00 R$ 24.734,59 R$ 19.265,00 R$ 115.592,00 — — 0,18 mês — 3 100,00% 3 100,00% 3 100,00% 3 100,00% R$ 667,00 R$ 2.000,00 R$ 1.009,00 R$ 3.028,00" [ref=e620]:
+              - cell "Expandir Total" [ref=e621]:
+                - button "Expandir" [ref=e622] [cursor=pointer]:
+                  - img [ref=e623]
+                - text: Total
+              - cell "—" [ref=e625]
+              - cell "—" [ref=e626]
+              - cell "191" [ref=e627]
+              - cell "100,00%" [ref=e628]
+              - cell "191" [ref=e629]
+              - cell "16,23%" [ref=e630]
+              - cell "31" [ref=e631]
+              - cell "54,84%" [ref=e632]
+              - cell "17" [ref=e633]
+              - cell "17,65%" [ref=e634]
+              - cell "3" [ref=e635]
+              - cell "1,57%" [ref=e636]
+              - cell "R$ 4.122,00" [ref=e637]
+              - cell "R$ 24.734,59" [ref=e638] [cursor=pointer]
+              - cell "R$ 19.265,00" [ref=e639]
+              - cell "R$ 115.592,00" [ref=e640]
+              - cell "—" [ref=e641]
+              - cell "—" [ref=e642]
+              - cell "0,18 mês" [ref=e643]
+              - cell "—" [ref=e644]
+              - cell "3" [ref=e645]
+              - cell "100,00%" [ref=e646]
+              - cell "3" [ref=e647]
+              - cell "100,00%" [ref=e648]
+              - cell "3" [ref=e649]
+              - cell "100,00%" [ref=e650]
+              - cell "3" [ref=e651]
+              - cell "100,00%" [ref=e652]
+              - cell "R$ 667,00" [ref=e653]
+              - cell "R$ 2.000,00" [ref=e654] [cursor=pointer]
+              - cell "R$ 1.009,00" [ref=e655]
+              - cell "R$ 3.028,00" [ref=e656]
+      - generic [ref=e657]:
+        - generic [ref=e658]:
+          - img [ref=e659]
+          - heading "Listagem de Prospects" [level=3] [ref=e660]
+          - generic [ref=e661]: 1815 prospects
+        - generic [ref=e662]:
+          - generic [ref=e663]:
+            - img
+            - textbox "Buscar por nome..." [ref=e664]
+          - generic [ref=e665]:
+            - generic [ref=e666]: "Linhas por página:"
+            - combobox [ref=e667] [cursor=pointer]:
+              - option "10" [selected]
+              - option "25"
+              - option "50"
+              - option "100"
+        - table [ref=e669]:
+          - rowgroup [ref=e670]:
+            - row "Nome ⇅ Data de Criação ↓ Tier ⇅ Categoria / Step ⇅ Canal de Origem ⇅ Etapa ⇅ Kommo ⇅" [ref=e671]:
+              - columnheader "Nome ⇅" [ref=e672] [cursor=pointer]:
+                - text: Nome
+                - generic [ref=e673]: ⇅
+              - columnheader "Data de Criação ↓" [ref=e674] [cursor=pointer]:
+                - text: Data de Criação
+                - generic [ref=e675]: ↓
+              - columnheader "Tier ⇅" [ref=e676] [cursor=pointer]:
+                - text: Tier
+                - generic [ref=e677]: ⇅
+              - columnheader "Categoria / Step ⇅" [ref=e678] [cursor=pointer]:
+                - text: Categoria / Step
+                - generic [ref=e679]: ⇅
+              - columnheader "Canal de Origem ⇅" [ref=e680] [cursor=pointer]:
+                - text: Canal de Origem
+                - generic [ref=e681]: ⇅
+              - columnheader "Etapa ⇅" [ref=e682] [cursor=pointer]:
+                - text: Etapa
+                - generic [ref=e683]: ⇅
+              - columnheader "Kommo ⇅" [ref=e684] [cursor=pointer]:
+                - text: Kommo
+                - generic [ref=e685]: ⇅
+          - rowgroup [ref=e686]:
+            - row "Serra Gaucha Off-Road / Garagem 419 13/04/2026 Sem mapeamento Sem mapeamento Black box Novo Lead (Pré Vendas) Abrir" [ref=e687]:
+              - cell "Serra Gaucha Off-Road / Garagem 419" [ref=e688]
+              - cell "13/04/2026" [ref=e689]
+              - cell "Sem mapeamento" [ref=e690]:
+                - generic [ref=e691]: Sem mapeamento
+              - cell "Sem mapeamento" [ref=e692]
+              - cell "Black box" [ref=e693]
+              - cell "Novo Lead (Pré Vendas)" [ref=e694]:
+                - generic [ref=e695]: Novo Lead (Pré Vendas)
+              - cell "Abrir" [ref=e696]:
+                - link "Abrir" [ref=e697] [cursor=pointer]:
+                  - /url: https://edisonv4companycom.kommo.com/leads/detail/27736101
+                  - img [ref=e698]
+                  - text: Abrir
+            - row "Vai Xorá 13/04/2026 Sem mapeamento Sem mapeamento Black box Novo Lead (Pré Vendas) Abrir" [ref=e702]:
+              - cell "Vai Xorá" [ref=e703]
+              - cell "13/04/2026" [ref=e704]
+              - cell "Sem mapeamento" [ref=e705]:
+                - generic [ref=e706]: Sem mapeamento
+              - cell "Sem mapeamento" [ref=e707]
+              - cell "Black box" [ref=e708]
+              - cell "Novo Lead (Pré Vendas)" [ref=e709]:
+                - generic [ref=e710]: Novo Lead (Pré Vendas)
+              - cell "Abrir" [ref=e711]:
+                - link "Abrir" [ref=e712] [cursor=pointer]:
+                  - /url: https://edisonv4companycom.kommo.com/leads/detail/27736103
+                  - img [ref=e713]
+                  - text: Abrir
+            - row "Patrick Design 13/04/2026 Sem mapeamento Sem mapeamento Black box Novo Lead (Pré Vendas) Abrir" [ref=e717]:
+              - cell "Patrick Design" [ref=e718]
+              - cell "13/04/2026" [ref=e719]
+              - cell "Sem mapeamento" [ref=e720]:
+                - generic [ref=e721]: Sem mapeamento
+              - cell "Sem mapeamento" [ref=e722]
+              - cell "Black box" [ref=e723]
+              - cell "Novo Lead (Pré Vendas)" [ref=e724]:
+                - generic [ref=e725]: Novo Lead (Pré Vendas)
+              - cell "Abrir" [ref=e726]:
+                - link "Abrir" [ref=e727] [cursor=pointer]:
+                  - /url: https://edisonv4companycom.kommo.com/leads/detail/27736473
+                  - img [ref=e728]
+                  - text: Abrir
+            - row "MILLAR 12/04/2026 Sem mapeamento Sem mapeamento Black box Novo Lead (Pré Vendas) Abrir" [ref=e732]:
+              - cell "MILLAR" [ref=e733]
+              - cell "12/04/2026" [ref=e734]
+              - cell "Sem mapeamento" [ref=e735]:
+                - generic [ref=e736]: Sem mapeamento
+              - cell "Sem mapeamento" [ref=e737]
+              - cell "Black box" [ref=e738]
+              - cell "Novo Lead (Pré Vendas)" [ref=e739]:
+                - generic [ref=e740]: Novo Lead (Pré Vendas)
+              - cell "Abrir" [ref=e741]:
+                - link "Abrir" [ref=e742] [cursor=pointer]:
+                  - /url: https://edisonv4companycom.kommo.com/leads/detail/27724435
+                  - img [ref=e743]
+                  - text: Abrir
+            - row "Machine comércio de motos 12/04/2026 Sem mapeamento Sem mapeamento Black box Novo Lead (Pré Vendas) Abrir" [ref=e747]:
+              - cell "Machine comércio de motos" [ref=e748]
+              - cell "12/04/2026" [ref=e749]
+              - cell "Sem mapeamento" [ref=e750]:
+                - generic [ref=e751]: Sem mapeamento
+              - cell "Sem mapeamento" [ref=e752]
+              - cell "Black box" [ref=e753]
+              - cell "Novo Lead (Pré Vendas)" [ref=e754]:
+                - generic [ref=e755]: Novo Lead (Pré Vendas)
+              - cell "Abrir" [ref=e756]:
+                - link "Abrir" [ref=e757] [cursor=pointer]:
+                  - /url: https://edisonv4companycom.kommo.com/leads/detail/27724963
+                  - img [ref=e758]
+                  - text: Abrir
+            - row "entretenimentossa 12/04/2026 Sem mapeamento Sem mapeamento Black box Novo Lead (Pré Vendas) Abrir" [ref=e762]:
+              - cell "entretenimentossa" [ref=e763]
+              - cell "12/04/2026" [ref=e764]
+              - cell "Sem mapeamento" [ref=e765]:
+                - generic [ref=e766]: Sem mapeamento
+              - cell "Sem mapeamento" [ref=e767]
+              - cell "Black box" [ref=e768]
+              - cell "Novo Lead (Pré Vendas)" [ref=e769]:
+                - generic [ref=e770]: Novo Lead (Pré Vendas)
+              - cell "Abrir" [ref=e771]:
+                - link "Abrir" [ref=e772] [cursor=pointer]:
+                  - /url: https://edisonv4companycom.kommo.com/leads/detail/27725571
+                  - img [ref=e773]
+                  - text: Abrir
+            - row "A & G 12/04/2026 Sem mapeamento Sem mapeamento Black box Novo Lead (Pré Vendas) Abrir" [ref=e777]:
+              - cell "A & G" [ref=e778]
+              - cell "12/04/2026" [ref=e779]
+              - cell "Sem mapeamento" [ref=e780]:
+                - generic [ref=e781]: Sem mapeamento
+              - cell "Sem mapeamento" [ref=e782]
+              - cell "Black box" [ref=e783]
+              - cell "Novo Lead (Pré Vendas)" [ref=e784]:
+                - generic [ref=e785]: Novo Lead (Pré Vendas)
+              - cell "Abrir" [ref=e786]:
+                - link "Abrir" [ref=e787] [cursor=pointer]:
+                  - /url: https://edisonv4companycom.kommo.com/leads/detail/27727803
+                  - img [ref=e788]
+                  - text: Abrir
+            - row "CTFT e FtNUTRITION 12/04/2026 Sem mapeamento Sem mapeamento Black box Novo Lead (Pré Vendas) Abrir" [ref=e792]:
+              - cell "CTFT e FtNUTRITION" [ref=e793]
+              - cell "12/04/2026" [ref=e794]
+              - cell "Sem mapeamento" [ref=e795]:
+                - generic [ref=e796]: Sem mapeamento
+              - cell "Sem mapeamento" [ref=e797]
+              - cell "Black box" [ref=e798]
+              - cell "Novo Lead (Pré Vendas)" [ref=e799]:
+                - generic [ref=e800]: Novo Lead (Pré Vendas)
+              - cell "Abrir" [ref=e801]:
+                - link "Abrir" [ref=e802] [cursor=pointer]:
+                  - /url: https://edisonv4companycom.kommo.com/leads/detail/27727805
+                  - img [ref=e803]
+                  - text: Abrir
+            - row "Wilcos do Brasil Ind e Com Ltda 12/04/2026 Sem mapeamento Sem mapeamento Black box Novo Lead (Pré Vendas) Abrir" [ref=e807]:
+              - cell "Wilcos do Brasil Ind e Com Ltda" [ref=e808]
+              - cell "12/04/2026" [ref=e809]
+              - cell "Sem mapeamento" [ref=e810]:
+                - generic [ref=e811]: Sem mapeamento
+              - cell "Sem mapeamento" [ref=e812]
+              - cell "Black box" [ref=e813]
+              - cell "Novo Lead (Pré Vendas)" [ref=e814]:
+                - generic [ref=e815]: Novo Lead (Pré Vendas)
+              - cell "Abrir" [ref=e816]:
+                - link "Abrir" [ref=e817] [cursor=pointer]:
+                  - /url: https://edisonv4companycom.kommo.com/leads/detail/27727807
+                  - img [ref=e818]
+                  - text: Abrir
+            - row "Vieira tecnologia em sistemas automotivos 12/04/2026 Sem mapeamento Sem mapeamento Black box Novo Lead (Pré Vendas) Abrir" [ref=e822]:
+              - cell "Vieira tecnologia em sistemas automotivos" [ref=e823]
+              - cell "12/04/2026" [ref=e824]
+              - cell "Sem mapeamento" [ref=e825]:
+                - generic [ref=e826]: Sem mapeamento
+              - cell "Sem mapeamento" [ref=e827]
+              - cell "Black box" [ref=e828]
+              - cell "Novo Lead (Pré Vendas)" [ref=e829]:
+                - generic [ref=e830]: Novo Lead (Pré Vendas)
+              - cell "Abrir" [ref=e831]:
+                - link "Abrir" [ref=e832] [cursor=pointer]:
+                  - /url: https://edisonv4companycom.kommo.com/leads/detail/27727809
+                  - img [ref=e833]
+                  - text: Abrir
+        - generic [ref=e837]:
+          - button "Primeira página" [disabled] [ref=e838]:
+            - img [ref=e839]
+          - button "Página anterior" [disabled] [ref=e842]:
+            - img [ref=e843]
+          - generic [ref=e845]:
+            - text: Página
+            - strong [ref=e846]: "1"
+            - text: de
+            - strong [ref=e847]: "182"
+          - button "Próxima página" [ref=e848] [cursor=pointer]:
+            - img [ref=e849]
+          - button "Última página" [ref=e851] [cursor=pointer]:
+            - img [ref=e852]
+          - generic [ref=e855]: 1–10 de 1815

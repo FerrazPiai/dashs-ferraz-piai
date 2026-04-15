@@ -75,6 +75,10 @@
               <div class="squad-name">{{ squad.squad }}</div>
               <div class="squad-coord">{{ squad.coordenador || '—' }}</div>
             </th>
+            <th v-if="totalColumn" class="col-squad-header col-total-header">
+              <div class="squad-name">Total</div>
+              <div class="squad-coord">&nbsp;</div>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -92,10 +96,25 @@
               v-for="squad in squadColumns"
               :key="squad.squad"
               class="col-value"
-              :class="heatClass(metric.key, squad[metric.key], squadColumns)"
+              :class="[heatClass(metric.key, squad[metric.key], squadColumns, squad), { 'has-tip': TOOLTIP_METRICS.has(metric.key) }]"
+              @mouseenter="TOOLTIP_METRICS.has(metric.key) ? openCellTip($event, metric.key, squad) : null"
+              @mouseleave="TOOLTIP_METRICS.has(metric.key) ? leaveCellTip() : null"
+              @click.stop="TOOLTIP_METRICS.has(metric.key) ? pinCellTip() : null"
             >
               <span v-if="squad[metric.key] === null || squad[metric.key] === undefined" class="em-dash">—</span>
               <span v-else>{{ metric.fmt(squad[metric.key]) }}</span>
+            </td>
+            <!-- Total column -->
+            <td
+              v-if="totalColumn"
+              class="col-value col-total-value"
+              :class="{ 'has-tip': TOOLTIP_METRICS.has(metric.key) }"
+              @mouseenter="TOOLTIP_METRICS.has(metric.key) ? openCellTip($event, metric.key, totalColumn) : null"
+              @mouseleave="TOOLTIP_METRICS.has(metric.key) ? leaveCellTip() : null"
+              @click.stop="TOOLTIP_METRICS.has(metric.key) ? pinCellTip() : null"
+            >
+              <span v-if="totalColumn[metric.key] === null || totalColumn[metric.key] === undefined" class="em-dash">—</span>
+              <span v-else>{{ metric.fmt(totalColumn[metric.key]) }}</span>
             </td>
           </tr>
         </tbody>
@@ -141,7 +160,17 @@
             <td class="legend-td" colspan="3">Mapa de calor relativo entre as squads</td>
           </tr>
           <tr>
-            <td class="legend-td legend-td--label">Saldo Final</td>
+            <td class="legend-td legend-td--label">Saldo Final / NRR</td>
+            <td class="legend-td" colspan="3">Mapa de calor relativo entre as squads</td>
+          </tr>
+          <tr>
+            <td class="legend-td legend-td--label">NRR (%)</td>
+            <td class="legend-td">≥ 100%</td>
+            <td class="legend-td">95% – 100%</td>
+            <td class="legend-td">&lt; 95%</td>
+          </tr>
+          <tr>
+            <td class="legend-td legend-td--label">% Rev Churn / % Monetização sobre Receita</td>
             <td class="legend-td" colspan="3">Mapa de calor relativo entre as squads</td>
           </tr>
           <tr>
@@ -177,10 +206,38 @@
     @confirm="showUpdatingModal = false"
     @cancel="showUpdatingModal = false"
   />
+
+  <!-- Tooltip: Breakdown genérico -->
+  <Teleport to="body">
+    <div
+      v-if="cellTipOpen && cellTipRows.length"
+      class="cell-tip"
+      :class="{ 'cell-tip--pinned': cellTipPinned }"
+      :style="cellTipPos"
+      @mouseleave="leaveCellTip"
+      @click.stop
+    >
+      <button v-if="cellTipPinned" class="cell-tip__close" @click="closeCellTip">&times;</button>
+      <div class="cell-tip__title">{{ cellTipTitle }}</div>
+      <div class="cell-tip__rows">
+        <template v-for="(row, i) in cellTipRows" :key="i">
+          <div v-if="row.divider" class="cell-tip__divider"></div>
+          <div v-else-if="row.hint" class="cell-tip__hint">Breakdown indisponível para dados históricos</div>
+          <div v-else class="cell-tip__row" :class="{ 'cell-tip__row--bold': row.bold }">
+            <span class="cell-tip__label">{{ row.label }}</span>
+            <span class="cell-tip__values">
+              <span class="cell-tip__val">{{ row.value }}</span>
+              <span v-if="row.pct" class="cell-tip__pct">{{ row.pct }}</span>
+            </span>
+          </div>
+        </template>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useDashboardData } from '../../composables/useDashboardData.js'
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
 import VConfirmModal from '../../components/ui/VConfirmModal.vue'
@@ -249,15 +306,19 @@ function fmtPct(v) {
 }
 
 const METRICS = [
-  { key: 'mrr',          label: 'MRR Médio',                               fmt: fmtBRL, bold: false, tip: 'Média da receita recorrente mensal no período selecionado' },
-  { key: 'churn',        label: 'Churn Total',                             fmt: fmtBRL, bold: false, tip: 'Soma da receita recorrente dos clientes com status "Recorrência Cancelada"' },
-  { key: 'isencao',      label: 'Isenção Total',                           fmt: fmtBRL, bold: false, tip: 'Soma de todas as isenções concedidas no período' },
-  { key: 'totalPerdas',  label: 'Total de Perdas',                         fmt: fmtBRL, bold: true,  tip: 'Churn Total + Isenção Total' },
-  { key: 'pctPerdas',    label: '% Médio de Perdas sobre o MRR',           fmt: fmtPct, bold: false, tip: 'Média das % mensais de (Perdas do mês ÷ MRR do mês)' },
-  { key: 'totalMonet',   label: 'Monetização Total',                       fmt: fmtBRL, bold: false, tip: 'Soma de monetização recorrente + one time + variável' },
-  { key: 'pctMonet',     label: '% Médio de Monetização sobre o MRR',      fmt: fmtPct, bold: false, tip: 'Média das % mensais de (Monetização do mês ÷ MRR do mês)' },
-  { key: 'saldoFinal',   label: 'Saldo Final',                             fmt: fmtBRL, bold: true,  tip: 'Monetização Total − Total de Perdas' },
-  { key: 'nps',          label: 'NPS',                                     fmt: v => v != null ? v.toFixed(1) : '—', bold: false, tip: 'Net Promoter Score da squad (dados trimestrais)' }
+  { key: 'mrr',              label: 'MRR Médio',                               fmt: fmtBRL, bold: false, tip: 'Média da receita recorrente mensal no período selecionado' },
+  { key: 'churn',            label: 'Churn Total',                             fmt: fmtBRL, bold: false, tip: 'Soma da receita recorrente dos clientes com status "Recorrência Cancelada"' },
+  { key: 'isencao',          label: 'Isenção Total',                           fmt: fmtBRL, bold: false, tip: 'Soma de todas as isenções concedidas no período' },
+  { key: 'totalPerdas',      label: 'Total de Perdas',                         fmt: fmtBRL, bold: true,  tip: 'Churn Total + Isenção Total' },
+  { key: 'pctPerdas',        label: '% Médio de Perdas sobre o MRR',           fmt: fmtPct, bold: false, tip: 'Média das % mensais de (Perdas do mês ÷ MRR do mês)' },
+  { key: 'pctChurnReceita',  label: '% Médio de Perdas sobre Receita Total',   fmt: fmtPct, bold: false, tip: 'Revenue Churn ÷ Receita Total × 100' },
+  { key: 'totalMonet',       label: 'Monetização Total',                       fmt: fmtBRL, bold: false, tip: 'Soma de monetização recorrente + one time + variável' },
+  { key: 'pctMonet',         label: '% Médio de Monetização sobre o MRR',      fmt: fmtPct, bold: false, tip: 'Média das % mensais de (Monetização do mês ÷ MRR do mês)' },
+  { key: 'pctMonetReceita',  label: '% Monetização sobre Receita Total',       fmt: fmtPct, bold: false, tip: 'Monetização Total ÷ Receita Total × 100' },
+  { key: 'saldoFinal',       label: 'Saldo Final',                             fmt: fmtBRL, bold: true,  tip: 'Monetização Total − Total de Perdas' },
+  { key: 'nrr',              label: 'NRR',                                     fmt: fmtBRL, bold: false, tip: 'Receita Recorrente + Monetização − Isenção − Revenue Churn' },
+  { key: 'nrrPct',           label: 'NRR (%)',                                 fmt: fmtPct, bold: false, tip: 'NRR ÷ Receita Recorrente × 100' },
+  { key: 'nps',              label: 'NPS',                                     fmt: v => v != null ? v.toFixed(1) : '—', bold: false, tip: 'Net Promoter Score da squad (dados trimestrais)' }
 ]
 
 // ---------------------------------------------------------------------------
@@ -508,7 +569,13 @@ const squadColumns = computed(() => {
     return Object.entries(historico)
       .filter(([squad]) => selectedSquads.value.includes(squad))
       .sort(([a], [b]) => a.localeCompare(b, 'pt-BR'))
-      .map(([squad, data]) => ({ squad, ...data }))
+      .map(([squad, d]) => {
+        const nrr = d.mrr + d.totalMonet - d.totalPerdas
+        const nrrPct = d.mrr > 0 ? (nrr / d.mrr) * 100 : null
+        const pctChurnReceita = nrr > 0 ? (Math.abs(d.churn) / nrr) * 100 : null
+        const pctMonetReceita = nrr > 0 ? (d.totalMonet / nrr) * 100 : null
+        return { squad, ...d, monetRec: d.monetRec ?? null, monetOneTime: d.monetOneTime ?? null, monetVar: d.monetVar ?? null, nrr, nrrPct, pctChurnReceita, pctMonetReceita }
+      })
   }
 
   if (!filteredRows.value.length) return []
@@ -523,6 +590,9 @@ const squadColumns = computed(() => {
         churnByMonth: new Map(),
         isencaoByMonth: new Map(),
         monetByMonth: new Map(),
+        monetRecByMonth: new Map(),
+        monetOneTimeByMonth: new Map(),
+        monetVarByMonth: new Map(),
         npsValues: []
       })
     }
@@ -533,6 +603,9 @@ const squadColumns = computed(() => {
     g.isencaoByMonth.set(mv, (g.isencaoByMonth.get(mv) ?? 0) + r.isencao)
     const monetRow = r.monetRec + r.monetOneTime + r.monetVar
     g.monetByMonth.set(mv, (g.monetByMonth.get(mv) ?? 0) + monetRow)
+    g.monetRecByMonth.set(mv, (g.monetRecByMonth.get(mv) ?? 0) + r.monetRec)
+    g.monetOneTimeByMonth.set(mv, (g.monetOneTimeByMonth.get(mv) ?? 0) + r.monetOneTime)
+    g.monetVarByMonth.set(mv, (g.monetVarByMonth.get(mv) ?? 0) + r.monetVar)
     if (r.nps !== null) g.npsValues.push(r.nps)
   })
 
@@ -562,8 +635,11 @@ const squadColumns = computed(() => {
         ? pctPerdasMensal.reduce((a, v) => a + v, 0) / pctPerdasMensal.length
         : null
 
-      // Monetização: soma total
+      // Monetização: soma total e breakdown
       const totalMonet = Array.from(g.monetByMonth.values()).reduce((a, v) => a + v, 0)
+      const monetRec = Array.from(g.monetRecByMonth.values()).reduce((a, v) => a + v, 0)
+      const monetOneTime = Array.from(g.monetOneTimeByMonth.values()).reduce((a, v) => a + v, 0)
+      const monetVar = Array.from(g.monetVarByMonth.values()).reduce((a, v) => a + v, 0)
 
       // % Monetização: média das % mensais (monet_mes / mrr_mes)
       const pctMonetMensal = monthKeys.map(mv => {
@@ -576,6 +652,13 @@ const squadColumns = computed(() => {
         : null
       const saldoFinal = totalMonet - totalPerdas
 
+      // NRR (= Receita Total): Recorrente + Monetização + Aquisição − Perdas
+      const nrr = mrr + totalMonet - totalPerdas
+      const nrrPct = mrr > 0 ? (nrr / mrr) * 100 : null
+      // % sobre Receita Total (denominador = NRR)
+      const pctChurnReceita = nrr > 0 ? (Math.abs(churn) / nrr) * 100 : null
+      const pctMonetReceita = nrr > 0 ? (totalMonet / nrr) * 100 : null
+
       // NPS: buscar hardcoded pelo período selecionado
       let nps = null
       if (periodMode.value === 'trimestre' && selectedQuarter.value) {
@@ -587,14 +670,186 @@ const squadColumns = computed(() => {
           const [year, q] = key.split('-')
           const qMonths = QUARTER_MONTHS[q]
           const selectedMonths = monthKeys.map(mv => mv % 100)
-          if (parseInt(year) === monthKeys[0] && qMonths && qMonths.every(m => selectedMonths.includes(m))) {
+          if (parseInt(year) === Math.floor(monthKeys[0] / 100) && qMonths && qMonths.every(m => selectedMonths.includes(m))) {
             if (npsMap[g.squad] !== undefined) nps = npsMap[g.squad]
             break
           }
         }
       }
-      return { squad: g.squad, coordenador: g.coordenador, mrr, churn, isencao, totalPerdas, pctPerdas, totalMonet, pctMonet, saldoFinal, nps }
+      return { squad: g.squad, coordenador: g.coordenador, mrr, churn, isencao, totalPerdas, pctPerdas, totalMonet, monetRec, monetOneTime, monetVar, pctMonet, saldoFinal, nrr, nrrPct, pctChurnReceita, pctMonetReceita, nps }
     })
+})
+
+// ---------------------------------------------------------------------------
+// Total column (visible when 2+ squads)
+// ---------------------------------------------------------------------------
+
+const totalColumn = computed(() => {
+  const cols = squadColumns.value
+  if (cols.length < 2) return null
+  const sum = key => cols.reduce((a, s) => a + (s[key] || 0), 0)
+  const mrr = sum('mrr')
+  const churn = sum('churn')
+  const isencao = sum('isencao')
+  const totalPerdas = sum('totalPerdas')
+  const totalMonet = sum('totalMonet')
+  const monetRec = sum('monetRec')
+  const monetOneTime = sum('monetOneTime')
+  const monetVar = sum('monetVar')
+  const saldoFinal = totalMonet - totalPerdas
+  const nrr = mrr + totalMonet - totalPerdas
+  const nrrPct = mrr > 0 ? (nrr / mrr) * 100 : null
+  const pctPerdas = mrr > 0 ? (totalPerdas / mrr) * 100 : null
+  const pctMonet = mrr > 0 ? (totalMonet / mrr) * 100 : null
+  const pctChurnReceita = nrr > 0 ? (Math.abs(churn) / nrr) * 100 : null
+  const pctMonetReceita = nrr > 0 ? (totalMonet / nrr) * 100 : null
+  const npsVals = cols.map(s => s.nps).filter(v => v != null)
+  const nps = npsVals.length > 0 ? npsVals.reduce((a, v) => a + v, 0) / npsVals.length : null
+  return { squad: 'Total', coordenador: '', mrr, churn, isencao, totalPerdas, pctPerdas, totalMonet, monetRec, monetOneTime, monetVar, pctMonet, saldoFinal, nrr, nrrPct, pctChurnReceita, pctMonetReceita, nps }
+})
+
+// ---------------------------------------------------------------------------
+// Cell breakdown tooltip (genérico para todas as métricas compostas)
+// ---------------------------------------------------------------------------
+
+const TOOLTIP_METRICS = new Set([
+  'totalMonet', 'pctPerdas', 'pctChurnReceita',
+  'pctMonet', 'pctMonetReceita', 'saldoFinal', 'nrr'
+])
+
+const cellTipOpen = ref(false)
+const cellTipPinned = ref(false)
+const cellTipPos = ref({})
+const cellTipMetric = ref(null)
+const cellTipSquad = ref(null)
+
+function openCellTip(e, metricKey, squad) {
+  if (cellTipPinned.value) return
+  const tipH = 220 // altura estimada do tooltip
+  const x = Math.max(8, Math.min(e.clientX - 80, window.innerWidth - 300))
+  const y = (e.clientY + tipH + 16 > window.innerHeight)
+    ? e.clientY - tipH - 8   // flip acima se não cabe abaixo
+    : e.clientY + 16
+  cellTipPos.value = { position: 'fixed', top: y + 'px', left: x + 'px', zIndex: 9999 }
+  cellTipMetric.value = metricKey
+  cellTipSquad.value = squad
+  cellTipOpen.value = true
+}
+
+function leaveCellTip() {
+  if (cellTipPinned.value) return
+  cellTipOpen.value = false
+}
+
+function pinCellTip() {
+  if (cellTipPinned.value) { cellTipPinned.value = false; cellTipOpen.value = false; return }
+  cellTipPinned.value = true
+}
+
+function closeCellTip() {
+  cellTipPinned.value = false
+  cellTipOpen.value = false
+}
+
+function handleClickOutside() {
+  if (cellTipPinned.value) closeCellTip()
+}
+onMounted(() => document.addEventListener('click', handleClickOutside))
+onBeforeUnmount(() => document.removeEventListener('click', handleClickOutside))
+
+const cellTipTitle = computed(() => {
+  if (!cellTipMetric.value || !cellTipSquad.value) return ''
+  const titles = {
+    totalMonet: 'Breakdown Monetização',
+    pctPerdas: '% Perdas sobre MRR',
+    pctChurnReceita: '% Perdas sobre Receita Total',
+    pctMonet: '% Monetização sobre MRR',
+    pctMonetReceita: '% Monetização sobre Receita Total',
+    saldoFinal: 'Composição Saldo Final',
+    nrr: 'Composição NRR'
+  }
+  return `${titles[cellTipMetric.value] || ''} — ${cellTipSquad.value.squad}`
+})
+
+const cellTipRows = computed(() => {
+  const s = cellTipSquad.value
+  const k = cellTipMetric.value
+  if (!s || !k) return []
+  const hasBkd = s.monetRec != null
+  switch (k) {
+    case 'totalMonet':
+      if (!hasBkd) return [{ label: 'Total', value: fmtBRL(s.totalMonet), bold: true }, { hint: true }]
+      return [
+        { label: 'Recorrente', value: fmtBRL(s.monetRec) },
+        { label: 'One Time', value: fmtBRL(s.monetOneTime) },
+        { label: 'Variável', value: fmtBRL(s.monetVar) },
+        { divider: true },
+        { label: 'Total', value: fmtBRL(s.totalMonet), bold: true }
+      ]
+    case 'pctPerdas': {
+      const chPct = s.mrr > 0 ? fmtPct(Math.abs(s.churn) / s.mrr * 100) : '—'
+      const isPct = s.mrr > 0 ? fmtPct(Math.abs(s.isencao) / s.mrr * 100) : '—'
+      return [
+        { label: 'Churn', value: fmtBRL(s.churn), pct: chPct },
+        { label: 'Isenção', value: fmtBRL(s.isencao), pct: isPct },
+        { divider: true },
+        { label: 'Total de Perdas', value: fmtBRL(s.totalPerdas), pct: fmtPct(s.pctPerdas), bold: true }
+      ]
+    }
+    case 'pctChurnReceita': {
+      const chPct = s.nrr > 0 ? fmtPct(Math.abs(s.churn) / s.nrr * 100) : '—'
+      const isPct = s.nrr > 0 ? fmtPct(Math.abs(s.isencao) / s.nrr * 100) : '—'
+      const tPct = s.nrr > 0 ? fmtPct(s.totalPerdas / s.nrr * 100) : '—'
+      return [
+        { label: 'Churn', value: fmtBRL(s.churn), pct: chPct },
+        { label: 'Isenção', value: fmtBRL(s.isencao), pct: isPct },
+        { divider: true },
+        { label: 'Total de Perdas', value: fmtBRL(s.totalPerdas), pct: tPct, bold: true }
+      ]
+    }
+    case 'pctMonet': {
+      if (!hasBkd) return [{ label: 'Total', value: fmtBRL(s.totalMonet), pct: fmtPct(s.pctMonet), bold: true }, { hint: true }]
+      const rPct = s.mrr > 0 ? fmtPct(s.monetRec / s.mrr * 100) : '—'
+      const oPct = s.mrr > 0 ? fmtPct(s.monetOneTime / s.mrr * 100) : '—'
+      const vPct = s.mrr > 0 ? fmtPct(s.monetVar / s.mrr * 100) : '—'
+      return [
+        { label: 'Recorrente', value: fmtBRL(s.monetRec), pct: rPct },
+        { label: 'One Time', value: fmtBRL(s.monetOneTime), pct: oPct },
+        { label: 'Variável', value: fmtBRL(s.monetVar), pct: vPct },
+        { divider: true },
+        { label: 'Total', value: fmtBRL(s.totalMonet), pct: fmtPct(s.pctMonet), bold: true }
+      ]
+    }
+    case 'pctMonetReceita': {
+      if (!hasBkd) return [{ label: 'Total', value: fmtBRL(s.totalMonet), pct: fmtPct(s.pctMonetReceita), bold: true }, { hint: true }]
+      const rPct = s.nrr > 0 ? fmtPct(s.monetRec / s.nrr * 100) : '—'
+      const oPct = s.nrr > 0 ? fmtPct(s.monetOneTime / s.nrr * 100) : '—'
+      const vPct = s.nrr > 0 ? fmtPct(s.monetVar / s.nrr * 100) : '—'
+      return [
+        { label: 'Recorrente', value: fmtBRL(s.monetRec), pct: rPct },
+        { label: 'One Time', value: fmtBRL(s.monetOneTime), pct: oPct },
+        { label: 'Variável', value: fmtBRL(s.monetVar), pct: vPct },
+        { divider: true },
+        { label: 'Total', value: fmtBRL(s.totalMonet), pct: fmtPct(s.pctMonetReceita), bold: true }
+      ]
+    }
+    case 'saldoFinal':
+      return [
+        { label: 'Monetização Total', value: fmtBRL(s.totalMonet) },
+        { label: 'Total de Perdas', value: fmtBRL(-s.totalPerdas) },
+        { divider: true },
+        { label: 'Saldo Final', value: fmtBRL(s.saldoFinal), bold: true }
+      ]
+    case 'nrr':
+      return [
+        { label: 'MRR Médio', value: fmtBRL(s.mrr) },
+        { label: 'Monetização', value: fmtBRL(s.totalMonet) },
+        { label: 'Perdas', value: fmtBRL(-s.totalPerdas) },
+        { divider: true },
+        { label: 'NRR', value: fmtBRL(s.nrr), bold: true }
+      ]
+    default: return []
+  }
 })
 
 // ---------------------------------------------------------------------------
@@ -619,7 +874,7 @@ function pctPerdasColor(value) {
   return 'c-red'
 }
 
-function heatClass(key, value, squads) {
+function heatClass(key, value, squads, currentSquad) {
   if (value === null || value === undefined || isNaN(value)) return ''
 
   switch (key) {
@@ -634,9 +889,8 @@ function heatClass(key, value, squads) {
     case 'churn':
     case 'isencao':
     case 'totalPerdas': {
-      // Mesma cor do % de perdas da squad
-      const squad = squads.find(s => s[key] === value)
-      if (squad?.pctPerdas != null) return pctPerdasColor(squad.pctPerdas)
+      // Mesma cor do % de perdas da squad (usa objeto direto, não match por valor)
+      if (currentSquad?.pctPerdas != null) return pctPerdasColor(currentSquad.pctPerdas)
       return ''
     }
 
@@ -645,6 +899,18 @@ function heatClass(key, value, squads) {
       return relativeColor(key, value, squads, false)
 
     case 'saldoFinal':
+    case 'nrr':
+      return relativeColor(key, value, squads, false)
+
+    case 'nrrPct':
+      if (value >= 100) return 'c-green'
+      if (value >= 95) return 'c-yellow'
+      return 'c-red'
+
+    case 'pctChurnReceita':
+      return relativeColor(key, value, squads, true)
+
+    case 'pctMonetReceita':
       return relativeColor(key, value, squads, false)
 
     case 'nps':
@@ -941,7 +1207,7 @@ async function confirmRefresh() {
   background: #141414;
   border-bottom: 1px solid #2a2a2a;
   border-right: 1px solid #1e1e1e;
-  text-align: right;
+  text-align: center;
   vertical-align: bottom;
 }
 
@@ -1172,4 +1438,83 @@ async function confirmRefresh() {
   margin-bottom: 16px;
   font-size: 14px;
 }
+
+/* ---- Total column ---- */
+.col-total-header {
+  border-left: 2px solid #333;
+}
+
+.col-total-value {
+  border-left: 2px solid #333;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ---- Cell breakdown tooltip ---- */
+.has-tip { cursor: pointer; }
+
+.cell-tip {
+  width: 320px;
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 8px;
+  padding: 16px 18px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  font-family: 'Ubuntu', 'Segoe UI', sans-serif;
+  animation: cell-tip-in 0.15s ease;
+  pointer-events: none;
+}
+
+.cell-tip--pinned {
+  pointer-events: auto;
+  border-color: #333;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8);
+}
+
+@keyframes cell-tip-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.cell-tip__close {
+  position: absolute; top: 8px; right: 10px;
+  background: none; border: none; color: #555;
+  font-size: 18px; cursor: pointer; padding: 0; line-height: 1;
+}
+.cell-tip__close:hover { color: #fff; }
+
+.cell-tip__title {
+  font-size: 11px; color: #666; text-transform: uppercase;
+  letter-spacing: 0.5px; font-weight: 600; margin-bottom: 14px;
+}
+
+.cell-tip__rows { display: flex; flex-direction: column; gap: 8px; }
+
+.cell-tip__row {
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+.cell-tip__label { font-size: 12px; color: #999; }
+
+.cell-tip__values { display: flex; align-items: center; gap: 10px; }
+
+.cell-tip__val {
+  font-size: 13px; color: #ccc; font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell-tip__pct {
+  font-size: 11px; color: #666; font-weight: 500;
+  min-width: 56px; text-align: right;
+}
+
+.cell-tip__divider { height: 1px; background: #2a2a2a; margin: 4px 0; }
+
+.cell-tip__row--bold .cell-tip__label { color: #fff; font-weight: 600; }
+.cell-tip__row--bold .cell-tip__val { color: #fff; font-weight: 700; }
+.cell-tip__row--bold .cell-tip__pct { color: #aaa; font-weight: 600; }
+
+.cell-tip__hint {
+  font-size: 10px; color: #555; font-style: italic; margin-top: 4px;
+}
+
 </style>

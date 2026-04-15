@@ -89,7 +89,7 @@ import VRefreshButton from '../../components/ui/VRefreshButton.vue'
 import VConfirmModal from '../../components/ui/VConfirmModal.vue'
 import MvSectionTable from './components/MvSectionTable.vue'
 import MvListagemTable from './components/MvListagemTable.vue'
-import { MOCK_DATA } from './mock-data.js'
+// mock-data removido
 
 const { data, loading, error, fetchData } = useDashboardData('marketing-vendas')
 
@@ -129,11 +129,13 @@ function transformApiData(raw) {
         tierMap.set(r.tier, { name: r.tier, investimento: 0, prospects: 0, leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
       }
       const t = tierMap.get(r.tier)
-      t.leads      += Number(r.leads)   || 0
-      t.agendadas  += Number(r.mql)     || 0
-      t.realizadas += Number(r.sql)     || 0
-      t.contratos  += Number(r.sal)     || 0
-      t.booking    += Number(r.booking) || 0
+      t.investimento += Number(r.investimento) || 0
+      t.prospects    += Number(r.prospects)    || 0
+      t.leads        += Number(r.leads)        || 0
+      t.agendadas    += Number(r.mql)          || 0
+      t.realizadas   += Number(r.sql)          || 0
+      t.contratos    += Number(r.sal)          || 0
+      t.booking      += Number(r.booking)      || 0
     })
 
   const tiers = [...tierMap.values()].map(t => {
@@ -151,11 +153,13 @@ function transformApiData(raw) {
         analistaMap.set(name, { name, avatar: name.slice(0, 2).toUpperCase(), investimento: 0, trend: null, trendDir: null, prospects: 0, leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
       }
       const a = analistaMap.get(name)
-      a.leads      += Number(r.leads)   || 0
-      a.agendadas  += Number(r.mql)     || 0
-      a.realizadas += Number(r.sql)     || 0
-      a.contratos  += Number(r.sal)     || 0
-      a.booking    += Number(r.booking) || 0
+      a.investimento += Number(r.investimento) || 0
+      a.prospects    += Number(r.prospects)    || 0
+      a.leads        += Number(r.leads)        || 0
+      a.agendadas    += Number(r.mql)          || 0
+      a.realizadas   += Number(r.sql)          || 0
+      a.contratos    += Number(r.sal)          || 0
+      a.booking      += Number(r.booking)      || 0
     })
 
   const analistas = [...analistaMap.values()].map(a => {
@@ -172,11 +176,13 @@ function transformApiData(raw) {
       canalMap.set(canal, { name: canal, icon: meta.icon, iconColor: meta.color, investimento: 0, trend: null, trendDir: null, prospects: 0, leads: 0, agendadas: 0, realizadas: 0, contratos: 0, booking: 0 })
     }
     const c = canalMap.get(canal)
-    c.leads      += Number(r.leads_value)   || 0
-    c.agendadas  += Number(r.mql_value)     || 0
-    c.realizadas += Number(r.sql_value)     || 0
-    c.contratos  += Number(r.commit_value)  || 0
-    c.booking    += Number(r.booking_value) || 0
+    c.investimento += Number(r.investimento_value ?? r.investimento) || 0
+    c.prospects    += Number(r.prospects_value ?? r.prospects)       || 0
+    c.leads        += Number(r.leads_value)                         || 0
+    c.agendadas    += Number(r.mql_value)                           || 0
+    c.realizadas   += Number(r.sql_value)                           || 0
+    c.contratos    += Number(r.commit_value)                        || 0
+    c.booking      += Number(r.booking_value)                       || 0
   })
 
   const canais = [...canalMap.values()].map(c => {
@@ -193,7 +199,6 @@ function transformApiData(raw) {
 
 const resolvedData = computed(() => {
   if (data.value) return transformApiData(data.value)
-  if (import.meta.env.DEV) return MOCK_DATA
   return null
 })
 

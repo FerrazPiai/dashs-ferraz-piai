@@ -1,0 +1,175 @@
+- generic [ref=e20]:
+  - complementary [ref=e21]:
+    - generic [ref=e22]:
+      - generic [ref=e23]:
+        - img [ref=e24]
+        - generic: Dashboards V4
+      - button "Toggle sidebar" [ref=e26] [cursor=pointer]:
+        - img [ref=e27]
+    - navigation [ref=e30]:
+      - list [ref=e31]:
+        - listitem [ref=e32]:
+          - link "Conversão Saber → Ter/Executar" [ref=e33] [cursor=pointer]:
+            - /url: /tx-conv-saber-monetizacao
+            - img [ref=e34]
+            - generic: Conversão Saber → Ter/Executar
+        - listitem [ref=e37]:
+          - link "GTM Motion" [ref=e38] [cursor=pointer]:
+            - /url: /gtm-motion
+            - img [ref=e39]
+            - generic: GTM Motion
+        - listitem [ref=e41]:
+          - link "Raio-X Financeiro" [ref=e42] [cursor=pointer]:
+            - /url: /raio-x-financeiro
+            - img [ref=e43]
+            - generic: Raio-X Financeiro
+        - listitem [ref=e47]:
+          - link "Comparativo Squads" [ref=e48] [cursor=pointer]:
+            - /url: /comparativo-squads
+            - img [ref=e49]
+            - generic: Comparativo Squads
+  - main [ref=e54]:
+    - generic [ref=e55]:
+      - generic [ref=e56]:
+        - generic [ref=e57]:
+          - heading "Raio-X Financeiro" [level=1] [ref=e58]
+          - generic [ref=e59]: Abr 2026 – Jun 2026
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - button "Competência" [ref=e62] [cursor=pointer]
+            - button "Caixa" [ref=e63] [cursor=pointer]
+          - generic [ref=e64]:
+            - button "Quarter" [ref=e65] [cursor=pointer]
+            - button "Mês" [ref=e66] [cursor=pointer]
+          - generic [ref=e67]:
+            - combobox [ref=e68] [cursor=pointer]:
+              - option "Jan 2026"
+              - option "Fev 2026"
+              - option "Mar 2026"
+              - option "Abr 2026" [selected]
+              - option "Mai 2026"
+              - option "Jun 2026"
+              - option "Jul 2026"
+              - option "Ago 2026"
+              - option "Set 2026"
+              - option "Out 2026"
+              - option "Nov 2026"
+              - option "Dez 2026"
+            - generic [ref=e69]: até
+            - combobox [ref=e70] [cursor=pointer]:
+              - option "Abr 2026"
+              - option "Mai 2026"
+              - option "Jun 2026" [selected]
+              - option "Jul 2026"
+              - option "Ago 2026"
+              - option "Set 2026"
+              - option "Out 2026"
+              - option "Nov 2026"
+              - option "Dez 2026"
+          - button "Atualizar" [ref=e71] [cursor=pointer]:
+            - img [ref=e72]
+            - generic [ref=e77]: Atualizar
+      - generic [ref=e78]:
+        - generic [ref=e80]:
+          - button "Planejado" [ref=e81] [cursor=pointer]
+          - button "Realizado" [ref=e82] [cursor=pointer]
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - button "Valores abreviados" [ref=e85] [cursor=pointer]:
+              - img [ref=e87]:
+                - generic [ref=e88]: K
+            - button "Valores completos" [ref=e89] [cursor=pointer]:
+              - img [ref=e91]:
+                - generic [ref=e92]: 0,0
+          - generic [ref=e93]:
+            - button "1 linha" [ref=e94] [cursor=pointer]:
+              - img [ref=e95]
+            - button "2 linhas" [ref=e97] [cursor=pointer]:
+              - img [ref=e98]
+      - generic [ref=e101]:
+        - generic [ref=e102]:
+          - generic [ref=e103]:
+            - generic [ref=e104]: Receita Líquida
+            - generic [ref=e105]: "?"
+          - generic [ref=e106]: R$ 582,9k
+          - generic [ref=e107]: Δ Período Anterior -63,2%
+          - generic [ref=e108]: Δ Vs Planejado 0,0%
+        - generic [ref=e109]:
+          - generic [ref=e110]:
+            - generic [ref=e111]: Lucro Bruto
+            - generic [ref=e112]: "?"
+          - generic [ref=e113]: "-R$ 203,9k"
+          - generic [ref=e114]: "-35.0% da Rec. Líquida"
+          - generic [ref=e115]: Δ Período Anterior -128,4%
+          - generic [ref=e116]: Δ Vs Planejado -396,9%
+        - generic [ref=e117]:
+          - generic [ref=e118]:
+            - generic [ref=e119]: EBITDA
+            - generic [ref=e120]: "?"
+          - generic [ref=e121]: "-R$ 982,9k"
+          - generic [ref=e122]: "-168.6% da Rec. Líquida"
+          - generic [ref=e123]: Δ Período Anterior -57,8%
+          - generic [ref=e124]: Δ Vs Planejado -378,9%
+        - generic [ref=e125]:
+          - generic [ref=e126]:
+            - generic [ref=e127]: Lucro Líquido
+            - generic [ref=e128]: "?"
+          - generic [ref=e129]: "-R$ 990,8k"
+          - generic [ref=e130]: "-170.0% da Rec. Líquida"
+          - generic [ref=e131]: Δ Período Anterior -59,5%
+          - generic [ref=e132]: Δ Vs Planejado -382,7%
+        - generic [ref=e133]:
+          - generic [ref=e134]:
+            - generic [ref=e135]: "% CSP"
+            - generic [ref=e136]: "?"
+          - generic [ref=e137]: 135.0%
+          - generic [ref=e138]: R$ 786,8k
+          - generic [ref=e139]: Δ Período Anterior -9,3%
+        - generic [ref=e140]:
+          - generic [ref=e141]:
+            - generic [ref=e142]: "% Desp. Comerciais"
+            - generic [ref=e143]: "?"
+          - generic [ref=e144]: 75.0%
+          - generic [ref=e145]: R$ 437,4k
+          - generic [ref=e146]: Δ Período Anterior -52,7%
+          - generic [ref=e147]: Δ Vs Planejado +166,4%
+        - generic [ref=e148]:
+          - generic [ref=e149]:
+            - generic [ref=e150]: "% Desp. Administrativas"
+            - generic [ref=e151]: "?"
+          - generic [ref=e152]: 43.3%
+          - generic [ref=e153]: R$ 252,3k
+          - generic [ref=e154]: Δ Período Anterior -22,8%
+        - generic [ref=e155]:
+          - generic [ref=e156]:
+            - generic [ref=e157]: "% Desp. Gerais"
+            - generic [ref=e158]: "?"
+          - generic [ref=e159]: 15.3%
+          - generic [ref=e160]: R$ 89,3k
+          - generic [ref=e161]: Δ Período Anterior -0,2%
+        - generic [ref=e162]:
+          - generic [ref=e163]:
+            - generic [ref=e164]: "% Despesa Financeira"
+            - generic [ref=e165]: "?"
+          - generic [ref=e166]: 13.9%
+          - generic [ref=e167]: R$ 81,2k
+          - generic [ref=e168]: Δ Período Anterior -5,9%
+      - generic [ref=e169]:
+        - heading "Diagrama de Sankey" [level=3] [ref=e171]
+        - generic [ref=e173]:
+          - generic [ref=e177]:
+            - generic [ref=e178]:
+              - generic [ref=e179]: Margem Bruta
+              - generic [ref=e180]: "-35.0%"
+              - generic [ref=e181]: "?"
+            - generic [ref=e183]:
+              - generic [ref=e184]: Margem Operacional
+              - generic [ref=e185]: "-168.6%"
+              - generic [ref=e186]: "?"
+            - generic [ref=e188]:
+              - generic [ref=e189]: Margem Líquida
+              - generic [ref=e190]: "-170.0%"
+              - generic [ref=e191]: "?"
+          - generic [ref=e192]:
+            - generic [ref=e193]: Entradas / Saldo Acumulado
+            - generic [ref=e195]: Deduções / Custos / Despesas

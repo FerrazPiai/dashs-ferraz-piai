@@ -8,7 +8,8 @@
     "webhookEndpoint": "WEBHOOK_POST_TX_CONV_SABER_MONETIZACAO",
     "workflowId": "rwnQ8GfuDdSuVZv-h4PR2",
     "cacheTTL": 1800000,
-    "status": "available"
+    "status": "available",
+    "allowedRoles": ["board", "operacao"]
   },
   {
     "id": "gtm-motion",
@@ -17,9 +18,10 @@
     "componentPath": "GtmMotion",
     "apiEndpoint": "API_ENDPOINT_GTM_MOTION",
     "webhookEndpoint": "WEBHOOK_POST_GTM_MOTION",
-    "workflowId": "TIeM6pFS2XKAoXS6dRIRu",
+    "workflowId": "2sVzeUPxpwI6lsK2",
     "cacheTTL": 300000,
-    "status": "available"
+    "status": "available",
+    "allowedRoles": ["board", "operacao"]
   },
   {
     "id": "marketing-vendas",
@@ -29,7 +31,8 @@
     "apiEndpoint": "API_ENDPOINT_MARKETING_VENDAS",
     "webhookEndpoint": "WEBHOOK_POST_MARKETING_VENDAS",
     "cacheTTL": 300000,
-    "hidden": true
+    "hidden": true,
+    "allowedRoles": ["board", "operacao"]
   },
   {
     "id": "raio-x-financeiro",
@@ -40,7 +43,19 @@
     "webhookEndpoint": "WEBHOOK_POST_DIAGRAMA_SANKEY",
     "workflowId": "SdLdkXrCmlm0VL1zWp668",
     "cacheTTL": 300000,
-    "status": "available"
+    "status": "available",
+    "allowedRoles": ["board"]
+  },
+  {
+    "id": "nps-satisfacao",
+    "title": "NPS Satisfação",
+    "icon": "smile",
+    "componentPath": "NpsSatisfacao",
+    "apiEndpoint": "API_ENDPOINT_NPS_SATISFACAO",
+    "webhookEndpoint": "WEBHOOK_POST_NPS_SATISFACAO",
+    "cacheTTL": 300000,
+    "status": "available",
+    "allowedRoles": ["board", "operacao"]
   },
   {
     "id": "comparativo-squads",
@@ -51,6 +66,7 @@
     "webhookEndpoint": "WEBHOOK_POST_COMPARATIVO_SQUADS",
     "workflowId": "k13lPwqDqCfQoD8p",
     "cacheTTL": 300000,
-    "status": "available"
+    "status": "available",
+    "allowedRoles": ["board", "operacao"]
   }
 ]

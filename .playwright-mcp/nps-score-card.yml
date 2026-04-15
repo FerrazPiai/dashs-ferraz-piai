@@ -1,0 +1,96 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e15]
+        - generic: Dashboards V4
+      - button "Toggle sidebar" [ref=e9] [cursor=pointer]:
+        - img [ref=e17]
+    - navigation [ref=e13]:
+      - list [ref=e20]:
+        - listitem [ref=e21]:
+          - link "Conversão Saber → Ter/Executar" [ref=e22] [cursor=pointer]:
+            - /url: /tx-conv-saber-monetizacao
+            - img [ref=e23]
+            - generic: Conversão Saber → Ter/Executar
+        - listitem [ref=e26]:
+          - link "GTM Motion" [ref=e27] [cursor=pointer]:
+            - /url: /gtm-motion
+            - img [ref=e28]
+            - generic: GTM Motion
+        - listitem [ref=e30]:
+          - link "Raio-X Financeiro" [ref=e31] [cursor=pointer]:
+            - /url: /raio-x-financeiro
+            - img [ref=e32]
+            - generic: Raio-X Financeiro
+        - listitem [ref=e36]:
+          - link "NPS Satisfação" [ref=e37] [cursor=pointer]:
+            - /url: /nps-satisfacao
+            - img [ref=e38]
+            - generic: NPS Satisfação
+        - listitem [ref=e41]:
+          - link "Comparativo Squads" [ref=e42] [cursor=pointer]:
+            - /url: /comparativo-squads
+            - img [ref=e43]
+            - generic: Comparativo Squads
+  - main [ref=e14]:
+    - generic [ref=e48]:
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - heading "NPS" [level=1] [ref=e52]
+          - generic [ref=e53]: "|"
+          - heading "Pesquisa de Satisfação" [level=2] [ref=e54]
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - generic [ref=e57]: Tier
+            - combobox [ref=e58] [cursor=pointer]
+          - generic [ref=e59]:
+            - generic [ref=e60]: Coordenador
+            - combobox [ref=e61] [cursor=pointer]
+          - generic [ref=e62]:
+            - generic [ref=e63]: Grupo LT
+            - combobox [ref=e64] [cursor=pointer]
+          - generic [ref=e65]:
+            - combobox [ref=e66] [cursor=pointer]
+            - generic [ref=e67]: até
+            - combobox [ref=e68] [cursor=pointer]
+          - button "Atualizar" [ref=e69] [cursor=pointer]:
+            - img [ref=e70]
+            - generic [ref=e75]: Atualizar
+      - generic [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - generic [ref=e79]
+            - generic [ref=e85]
+            - button "+" [ref=e88] [cursor=pointer]
+          - generic [ref=e89]:
+            - generic [ref=e90]
+            - generic [ref=e97]
+        - generic [ref=e104]:
+          - heading "Ranking de Coordenadores" [level=3] [ref=e106]
+          - generic [ref=e107]:
+            - generic [ref=e108]
+            - generic [ref=e120]
+            - generic [ref=e132]
+            - generic [ref=e144]
+        - generic [ref=e157]:
+          - heading "NPS por Dimensão" [level=3] [ref=e158]
+          - generic [ref=e159]:
+            - generic [ref=e160]
+            - generic [ref=e166]
+            - generic [ref=e171]
+        - generic [ref=e186]:
+          - heading "Evolução Temporal" [level=3] [ref=e187]
+          - generic [ref=e188]:
+            - generic [ref=e189]
+            - generic [ref=e195]
+            - generic [ref=e201]
+            - button "MoM" [ref=e213] [cursor=pointer]
+        - generic [ref=e219]:
+          - generic [ref=e220]:
+            - heading "Detalhamento NPS" [level=3] [ref=e221]
+            - generic [ref=e222]: 278 registros
+          - table [ref=e224]:
+            - rowgroup [ref=e225]
+            - rowgroup [ref=e234]
+          - button "Mostrar todos (278)" [ref=e506] [cursor=pointer]
