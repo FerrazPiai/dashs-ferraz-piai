@@ -260,7 +260,41 @@
     <div class="table-section">
       <div class="table-header">
         <h3 class="table-title">Detalhamento NPS</h3>
-        <span class="nps-table-count">{{ filteredData.length }} registros</span>
+        <span class="nps-table-count">{{ tableFilteredData.length }} registros</span>
+      </div>
+      <div class="nps-table-filters">
+        <div class="search-wrapper">
+          <i data-lucide="search" class="search-icon"></i>
+          <input v-model="tableSearch" type="text" placeholder="Buscar por cliente..." class="search-input" />
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Tier</label>
+          <select class="filter-select" v-model="tableTier">
+            <option value="todos">Todos</option>
+            <option v-for="t in tableTierOptions" :key="t" :value="t">{{ t }}</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Grupo LT</label>
+          <select class="filter-select" v-model="tableLtGroup">
+            <option value="todos">Todos</option>
+            <option v-for="g in tableLtGroupOptions" :key="g.key" :value="g.key">{{ g.label }}</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Coordenador</label>
+          <select class="filter-select" v-model="tableCoord">
+            <option value="todos">Todos</option>
+            <option v-for="c in tableCoordOptions" :key="c" :value="c">{{ c }}</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Classificação</label>
+          <select class="filter-select" v-model="tableClassif">
+            <option value="todos">Todos</option>
+            <option v-for="cl in tableClassifOptions" :key="cl.value" :value="cl.value">{{ cl.label }}</option>
+          </select>
+        </div>
       </div>
       <div class="nps-table-scroll">
         <table class="nps-detail-table">
@@ -286,8 +320,8 @@
           </tbody>
         </table>
       </div>
-      <div v-if="filteredData.length > pageSize" class="nps-table-footer">
-        <button class="nps-show-more" @click="showAllRows = !showAllRows">{{ showAllRows ? 'Mostrar menos' : `Mostrar todos (${filteredData.length})` }}</button>
+      <div v-if="tableFilteredData.length > pageSize" class="nps-table-footer">
+        <button class="nps-show-more" @click="showAllRows = !showAllRows">{{ showAllRows ? 'Mostrar menos' : `Mostrar todos (${tableFilteredData.length})` }}</button>
       </div>
     </div>
   </div>
@@ -572,12 +606,54 @@ const evoData = computed(() => {
   return { labels, data, compData }
 })
 
+// ── Table filters (local to detail table) ──────────────────────────────────
+const tableSearch = ref('')
+const tableTier = ref('todos')
+const tableCoord = ref('todos')
+const tableLtGroup = ref('todos')
+const tableClassif = ref('todos')
+
+const tableTierOptions = computed(() => {
+  const set = new Set()
+  for (const r of filteredData.value) if (r.Tier) set.add(r.Tier)
+  return TIER_ORDER.filter(t => set.has(t))
+})
+const tableCoordOptions = computed(() => {
+  const set = new Set()
+  for (const r of filteredData.value) {
+    if (r.coordenador && r.coordenador !== '-') set.add(r.coordenador)
+  }
+  return [...set].sort()
+})
+const tableLtGroupOptions = LT_GROUPS
+const tableClassifOptions = [
+  { value: 'promoter', label: 'Promotor' },
+  { value: 'neutral', label: 'Neutro' },
+  { value: 'detractor', label: 'Detrator' },
+]
+
+const tableFilteredData = computed(() => {
+  let rows = filteredData.value
+  if (tableSearch.value) {
+    const q = tableSearch.value.toLowerCase()
+    rows = rows.filter(r => (r.Cliente || '').toLowerCase().includes(q))
+  }
+  if (tableTier.value !== 'todos') rows = rows.filter(r => r.Tier === tableTier.value)
+  if (tableCoord.value !== 'todos') rows = rows.filter(r => r.coordenador === tableCoord.value)
+  if (tableLtGroup.value !== 'todos') {
+    const g = LT_GROUPS.find(x => x.key === tableLtGroup.value)
+    if (g) rows = rows.filter(r => typeof r.LT === 'number' && r.LT >= g.min && r.LT < g.max)
+  }
+  if (tableClassif.value !== 'todos') rows = rows.filter(r => classify(r.Nota) === tableClassif.value)
+  return rows
+})
+
 // ── Table sort ──────────────────────────────────────────────────────────────
 const sortCol = ref('Nota'); const sortDir = ref('asc'); const showAllRows = ref(false); const pageSize = 30
 function toggleSort(col) { if (sortCol.value===col) sortDir.value = sortDir.value==='asc'?'desc':'asc'; else { sortCol.value=col; sortDir.value = col==='Nota'?'asc':'desc' } }
 function sortIcon(col) { if (sortCol.value!==col) return ''; return sortDir.value==='asc'?'▲':'▼' }
 const sortedTableData = computed(() => {
-  const rows = [...filteredData.value]; const dir = sortDir.value==='asc'?1:-1; const col = sortCol.value
+  const rows = [...tableFilteredData.value]; const dir = sortDir.value==='asc'?1:-1; const col = sortCol.value
   rows.sort((a,b) => {
     if (col==='Cliente') return dir*(a.Cliente||'').localeCompare(b.Cliente||'')
     if (col==='Nota') return dir*((a.Nota??0)-(b.Nota??0))
@@ -791,6 +867,16 @@ const truncate = (s, l) => s && s.length > l ? s.substring(0, l) + '...' : s
 .spinner-lg { width: 28px; height: 28px; border-width: 3px; }
 @keyframes nps-spin { to { transform: rotate(360deg); } }
 .nps-table-count { font-size: 12px; color: #666; }
+.nps-table-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.nps-table-filters .search-wrapper { position: relative; flex: 1; min-width: 180px; max-width: 280px; }
+.nps-table-filters .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #555; stroke-width: 2; pointer-events: none; }
+.nps-table-filters .search-input { width: 100%; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px; color: #ccc; font-size: 12px; font-family: inherit; padding: 6px 10px 6px 32px; outline: none; box-sizing: border-box; transition: border-color 0.15s; }
+.nps-table-filters .search-input::placeholder { color: #444; }
+.nps-table-filters .search-input:focus { border-color: #444; }
+.nps-table-filters .filter-group { display: flex; align-items: center; gap: 6px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px; padding: 5px 10px; }
+.nps-table-filters .filter-label { font-size: 10px; color: #555; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+.nps-table-filters .filter-select { background: transparent; border: none; color: #ccc; font-size: 12px; font-weight: 500; font-family: inherit; cursor: pointer; outline: none; padding: 3px 16px 3px 2px; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 2px center; }
+.nps-table-filters .filter-select option { background: #1a1a1a; color: #ccc; font-family: 'Ubuntu', sans-serif; font-size: 12px; }
 .nps-table-scroll { overflow-x: auto; max-height: 500px; overflow-y: auto; }
 .nps-detail-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .nps-detail-table thead { position: sticky; top: 0; z-index: 2; }

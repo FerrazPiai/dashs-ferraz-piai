@@ -143,22 +143,24 @@
                 </tbody>
               </table>
             </div>
-            <div class="legend-divider"></div>
-            <div class="legend-section">
-              <div class="legend-section-title">Cores no BowTie Model</div>
-              <div class="legend-section-desc">O heatmap do BowTie usa escala <strong>relativa</strong> — compara as taxas de conversão (CR) entre si no período selecionado:</div>
-              <div class="legend-bowtie-bar">
-                <span class="legend-bowtie-label">Trava</span>
-                <div class="legend-bowtie-gradient"></div>
-                <span class="legend-bowtie-label">Saudável</span>
+            <template v-if="showBowtie">
+              <div class="legend-divider"></div>
+              <div class="legend-section">
+                <div class="legend-section-title">Cores no BowTie Model</div>
+                <div class="legend-section-desc">O heatmap do BowTie usa escala <strong>relativa</strong> — compara as taxas de conversão (CR) entre si no período selecionado:</div>
+                <div class="legend-bowtie-bar">
+                  <span class="legend-bowtie-label">Trava</span>
+                  <div class="legend-bowtie-gradient"></div>
+                  <span class="legend-bowtie-label">Saudável</span>
+                </div>
+                <ul class="legend-bowtie-list">
+                  <li><span class="legend-dot legend-dot--red"></span><strong>Vermelho</strong> — Menor CR do período (gargalo / restrição)</li>
+                  <li><span class="legend-dot legend-dot--yellow"></span><strong>Âmbar</strong> — CRs intermediários (proporcional)</li>
+                  <li><span class="legend-dot legend-dot--green"></span><strong>Verde</strong> — Maior CR do período (etapa mais saudável)</li>
+                </ul>
+                <div class="legend-section-desc" style="margin-top: 6px;">A escala recalcula automaticamente a cada período. A etapa COMMIT é sempre dourada (ponto de inflexão).</div>
               </div>
-              <ul class="legend-bowtie-list">
-                <li><span class="legend-dot legend-dot--red"></span><strong>Vermelho</strong> — Menor CR do período (gargalo / restrição)</li>
-                <li><span class="legend-dot legend-dot--yellow"></span><strong>Âmbar</strong> — CRs intermediários (proporcional)</li>
-                <li><span class="legend-dot legend-dot--green"></span><strong>Verde</strong> — Maior CR do período (etapa mais saudável)</li>
-              </ul>
-              <div class="legend-section-desc" style="margin-top: 6px;">A escala recalcula automaticamente a cada período. A etapa COMMIT é sempre dourada (ponto de inflexão).</div>
-            </div>
+            </template>
           </div>
         </div>
         <VRefreshButton :loading="loading || refreshing" @click="handleRefresh" />
@@ -206,8 +208,8 @@
       <span>{{ error }}</span>
     </div>
 
-    <!-- BowTie Model -->
-    <GtmBowTieChart :data="bowtieData" :loading="loading" />
+    <!-- BowTie Model (oculto em produção) -->
+    <GtmBowTieChart v-if="showBowtie" :data="bowtieData" :loading="loading" />
 
     <!-- KPI Toggles (above KPI grid) -->
     <div class="kpi-toggles-bar">
@@ -506,6 +508,9 @@ const { data, loading, error, fetchData } = useDashboardData('gtm-motion')
 // ── Refreshing state (button only, keeps data visible) ─────────────────────
 const refreshing = ref(false)
 
+// ── BowTie Model (oculto em produção) ──────────────────────────────────────
+const showBowtie = !import.meta.env.PROD
+
 // ── Legend popup state ──────────────────────────────────────────────────────
 const legendOpen = ref(false)
 
@@ -657,35 +662,35 @@ const rawSource = computed(() => {
 
 const mesesDisponiveis = computed(() => {
   const src = rawSource.value
-  if (!src) return MESES
+  if (!src) return [...MESES].reverse()
   const rows = [...(src.kpis ?? []), ...(src.funil ?? [])]
   const set = new Set(rows.map(r => r.mes).filter(Boolean))
-  if (!set.size) return MESES
-  return MESES.filter(m => set.has(m.value))
+  if (!set.size) return [...MESES].reverse()
+  return MESES.filter(m => set.has(m.value)).reverse()
 })
 
 const quartersDisponiveis = computed(() => {
   const src = rawSource.value
-  if (!src) return QUARTERS
+  if (!src) return [...QUARTERS].reverse()
   const rows = [...(src.kpis ?? []), ...(src.funil ?? [])]
   const set = new Set(rows.map(r => r.quarter).filter(Boolean))
-  if (!set.size) return QUARTERS
-  return QUARTERS.filter(q => set.has(q.value))
+  if (!set.size) return [...QUARTERS].reverse()
+  return QUARTERS.filter(q => set.has(q.value)).reverse()
 })
 
 // Snap selections to available data when it loads
 watch(mesesDisponiveis, (available) => {
   if (!available.length) return
   const vals = available.map(m => m.value)
-  if (!vals.includes(mesInicial.value)) mesInicial.value = vals[vals.length - 1]
-  if (!vals.includes(mesFinal.value))   mesFinal.value   = vals[vals.length - 1]
+  if (!vals.includes(mesInicial.value)) mesInicial.value = vals[0]
+  if (!vals.includes(mesFinal.value))   mesFinal.value   = vals[0]
   if (mesInicial.value > mesFinal.value) mesInicial.value = mesFinal.value
 }, { immediate: false })
 
 watch(quartersDisponiveis, (available) => {
   if (!available.length) return
   const vals = available.map(q => q.value)
-  if (!vals.includes(selectedQuarter.value)) selectedQuarter.value = vals[vals.length - 1]
+  if (!vals.includes(selectedQuarter.value)) selectedQuarter.value = vals[0]
 }, { immediate: false })
 
 // ── Closer / SDR options (from raw API data) ─────────────────────────────────

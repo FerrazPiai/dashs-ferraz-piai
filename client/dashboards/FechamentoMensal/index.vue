@@ -311,10 +311,10 @@ const METRICS = [
   { key: 'isencao',          label: 'Isenção Total',                           fmt: fmtBRL, bold: false, tip: 'Soma de todas as isenções concedidas no período' },
   { key: 'totalPerdas',      label: 'Total de Perdas',                         fmt: fmtBRL, bold: true,  tip: 'Churn Total + Isenção Total' },
   { key: 'pctPerdas',        label: '% Médio de Perdas sobre o MRR',           fmt: fmtPct, bold: false, tip: 'Média das % mensais de (Perdas do mês ÷ MRR do mês)' },
-  { key: 'pctChurnReceita',  label: '% Médio de Perdas sobre Receita Total',   fmt: fmtPct, bold: false, tip: 'Revenue Churn ÷ Receita Total × 100' },
+  { key: 'pctChurnReceita',  label: '% Médio de Perdas sobre Receita Total',   fmt: fmtPct, bold: false, tip: 'Média das % mensais de (Revenue Churn do mês ÷ Receita Total do mês)' },
   { key: 'totalMonet',       label: 'Monetização Total',                       fmt: fmtBRL, bold: false, tip: 'Soma de monetização recorrente + one time + variável' },
   { key: 'pctMonet',         label: '% Médio de Monetização sobre o MRR',      fmt: fmtPct, bold: false, tip: 'Média das % mensais de (Monetização do mês ÷ MRR do mês)' },
-  { key: 'pctMonetReceita',  label: '% Monetização sobre Receita Total',       fmt: fmtPct, bold: false, tip: 'Monetização Total ÷ Receita Total × 100' },
+  { key: 'pctMonetReceita',  label: '% Médio de Monetização sobre Receita Total', fmt: fmtPct, bold: false, tip: 'Média das % mensais de (Monetização do mês ÷ Receita Total do mês)' },
   { key: 'saldoFinal',       label: 'Saldo Final',                             fmt: fmtBRL, bold: true,  tip: 'Monetização Total − Total de Perdas' },
   { key: 'nrr',              label: 'NRR',                                     fmt: fmtBRL, bold: false, tip: 'Receita Recorrente + Monetização − Isenção − Revenue Churn' },
   { key: 'nrrPct',           label: 'NRR (%)',                                 fmt: fmtPct, bold: false, tip: 'NRR ÷ Receita Recorrente × 100' },
@@ -459,7 +459,7 @@ const mesesDisponiveis = computed(() => {
       result.push({ value: v, label: `${MONTH_NAMES[r.month]}/${r.year}`, year: r.year, month: r.month })
     }
   })
-  return result.sort((a, b) => a.value - b.value)
+  return result.sort((a, b) => b.value - a.value)
 })
 
 const mesesFinaisDisponiveis = computed(() => {
@@ -492,13 +492,13 @@ const quartersDisponiveis = computed(() => {
       }
     }
   })
-  return result.sort((a, b) => a.year !== b.year ? a.year - b.year : a.quarter.localeCompare(b.quarter))
+  return result.sort((a, b) => a.year !== b.year ? b.year - a.year : b.quarter.localeCompare(a.quarter))
 })
 
 watch(mesesDisponiveis, (months) => {
   if (!months.length) return
-  if (!mesInicial.value) mesInicial.value = months[0].value
-  if (!mesFinal.value)   mesFinal.value   = months[months.length - 1].value
+  if (!mesInicial.value) mesInicial.value = months[months.length - 1].value
+  if (!mesFinal.value)   mesFinal.value   = months[0].value
 }, { immediate: true })
 
 const quarterInitialized = ref(false)
@@ -511,7 +511,7 @@ watch(quartersDisponiveis, (quarters) => {
     const curQ = `Q${Math.ceil((now.getMonth() + 1) / 3)}`
     const curKey = `${curYear}-${curQ}`
     const match = quarters.find(q => q.value === curKey)
-    selectedQuarter.value = match ? match.value : quarters[quarters.length - 1].value
+    selectedQuarter.value = match ? match.value : quarters[0].value
     // Só marcar como inicializado quando os dados da API já carregaram
     if (rawRows.value.length > 0) quarterInitialized.value = true
   }
@@ -572,8 +572,9 @@ const squadColumns = computed(() => {
       .map(([squad, d]) => {
         const nrr = d.mrr + d.totalMonet - d.totalPerdas
         const nrrPct = d.mrr > 0 ? (nrr / d.mrr) * 100 : null
-        const pctChurnReceita = nrr > 0 ? (Math.abs(d.churn) / nrr) * 100 : null
-        const pctMonetReceita = nrr > 0 ? (d.totalMonet / nrr) * 100 : null
+        const receitaTotal = d.mrr + d.totalMonet
+        const pctChurnReceita = receitaTotal > 0 ? (Math.abs(d.churn) / receitaTotal) * 100 : null
+        const pctMonetReceita = receitaTotal > 0 ? (d.totalMonet / receitaTotal) * 100 : null
         return { squad, ...d, monetRec: d.monetRec ?? null, monetOneTime: d.monetOneTime ?? null, monetVar: d.monetVar ?? null, nrr, nrrPct, pctChurnReceita, pctMonetReceita }
       })
   }
@@ -652,12 +653,28 @@ const squadColumns = computed(() => {
         : null
       const saldoFinal = totalMonet - totalPerdas
 
-      // NRR (= Receita Total): Recorrente + Monetização + Aquisição − Perdas
+      // NRR: Recorrente + Monetização − Perdas
       const nrr = mrr + totalMonet - totalPerdas
       const nrrPct = mrr > 0 ? (nrr / mrr) * 100 : null
-      // % sobre Receita Total (denominador = NRR)
-      const pctChurnReceita = nrr > 0 ? (Math.abs(churn) / nrr) * 100 : null
-      const pctMonetReceita = nrr > 0 ? (totalMonet / nrr) * 100 : null
+      // % Médio sobre Receita Total (denominador = MRR + Monetização do mês)
+      const pctChurnReceitaMensal = monthKeys.map(mv => {
+        const mrrMes = g.mrrByMonth.get(mv) || 0
+        const monetMes = g.monetByMonth.get(mv) || 0
+        const receitaTotalMes = mrrMes + monetMes
+        return receitaTotalMes > 0 ? (Math.abs(g.churnByMonth.get(mv) || 0) / receitaTotalMes) * 100 : null
+      }).filter(v => v !== null)
+      const pctChurnReceita = pctChurnReceitaMensal.length > 0
+        ? pctChurnReceitaMensal.reduce((a, v) => a + v, 0) / pctChurnReceitaMensal.length
+        : null
+      const pctMonetReceitaMensal = monthKeys.map(mv => {
+        const mrrMes = g.mrrByMonth.get(mv) || 0
+        const monetMes = g.monetByMonth.get(mv) || 0
+        const receitaTotalMes = mrrMes + monetMes
+        return receitaTotalMes > 0 ? (monetMes / receitaTotalMes) * 100 : null
+      }).filter(v => v !== null)
+      const pctMonetReceita = pctMonetReceitaMensal.length > 0
+        ? pctMonetReceitaMensal.reduce((a, v) => a + v, 0) / pctMonetReceitaMensal.length
+        : null
 
       // NPS: buscar hardcoded pelo período selecionado
       let nps = null
@@ -701,8 +718,9 @@ const totalColumn = computed(() => {
   const nrrPct = mrr > 0 ? (nrr / mrr) * 100 : null
   const pctPerdas = mrr > 0 ? (totalPerdas / mrr) * 100 : null
   const pctMonet = mrr > 0 ? (totalMonet / mrr) * 100 : null
-  const pctChurnReceita = nrr > 0 ? (Math.abs(churn) / nrr) * 100 : null
-  const pctMonetReceita = nrr > 0 ? (totalMonet / nrr) * 100 : null
+  const receitaTotal = mrr + totalMonet
+  const pctChurnReceita = receitaTotal > 0 ? (Math.abs(churn) / receitaTotal) * 100 : null
+  const pctMonetReceita = receitaTotal > 0 ? (totalMonet / receitaTotal) * 100 : null
   const npsVals = cols.map(s => s.nps).filter(v => v != null)
   const nps = npsVals.length > 0 ? npsVals.reduce((a, v) => a + v, 0) / npsVals.length : null
   return { squad: 'Total', coordenador: '', mrr, churn, isencao, totalPerdas, pctPerdas, totalMonet, monetRec, monetOneTime, monetVar, pctMonet, saldoFinal, nrr, nrrPct, pctChurnReceita, pctMonetReceita, nps }
@@ -764,7 +782,7 @@ const cellTipTitle = computed(() => {
     pctPerdas: '% Perdas sobre MRR',
     pctChurnReceita: '% Perdas sobre Receita Total',
     pctMonet: '% Monetização sobre MRR',
-    pctMonetReceita: '% Monetização sobre Receita Total',
+    pctMonetReceita: '% Médio de Monetização sobre Receita Total',
     saldoFinal: 'Composição Saldo Final',
     nrr: 'Composição NRR'
   }
@@ -908,7 +926,7 @@ function heatClass(key, value, squads, currentSquad) {
       return 'c-red'
 
     case 'pctChurnReceita':
-      return relativeColor(key, value, squads, true)
+      return pctPerdasColor(value)
 
     case 'pctMonetReceita':
       return relativeColor(key, value, squads, false)

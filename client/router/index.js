@@ -20,6 +20,15 @@ const dashboardRoutes = dashboardsConfig.map((dashboard) => ({
 }))
 
 /**
+ * Rota padrao por role — primeiro dashboard acessivel
+ */
+function getDefaultRoute(role) {
+  if (role === 'admin' || role === 'board') return '/raio-x-financeiro'
+  if (role === 'operacao') return '/nps-satisfacao'
+  return '/nps-satisfacao'
+}
+
+/**
  * Router configuration
  */
 const router = createRouter({
@@ -32,11 +41,11 @@ const router = createRouter({
       component: LoginView
     },
 
-    // Redirect root — resolvido no beforeEach baseado no role
+    // Redirect root — resolvido no beforeEach baseado no role do usuario
     {
       path: '/',
       name: 'home',
-      redirect: '/raio-x-financeiro'
+      component: { render: () => null }
     },
 
     // Dashboard routes (auto-generated)
@@ -91,21 +100,18 @@ router.beforeEach(async (to) => {
 
   // Redirect root baseado no role do usuario
   if (to.name === 'home') {
-    const role = auth.role
-    if (role === 'admin' || role === 'board') return { path: '/raio-x-financeiro' }
-    if (role === 'operacao') return { path: '/nps-satisfacao' }
-    return { path: '/raio-x-financeiro' }
+    return { path: getDefaultRoute(auth.role) }
   }
 
   // Check admin-only routes
   if (to.meta.requireAdmin && !auth.isAdmin) {
-    return { name: 'access-denied' }
+    return { path: getDefaultRoute(auth.role) }
   }
 
-  // Check role-based dashboard access
+  // Check role-based dashboard access — redireciona silenciosamente
   const allowedRoles = to.meta.allowedRoles
   if (allowedRoles && auth.role !== 'admin' && !allowedRoles.includes(auth.role)) {
-    return { name: 'access-denied' }
+    return { path: getDefaultRoute(auth.role) }
   }
 
   // Update page title

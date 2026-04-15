@@ -240,7 +240,7 @@ const mesesDisponiveis = computed(() => {
     for (const ym of Object.keys(view)) set.add(ym)
   }
   if (!set.size) return MESES_FALLBACK
-  return [...set].sort().map(ym => {
+  return [...set].sort().reverse().map(ym => {
     const [y, m] = ym.split('-')
     return { value: ym, label: `${MES_LABELS[m] || m} ${y}` }
   })
@@ -248,14 +248,14 @@ const mesesDisponiveis = computed(() => {
 
 const quartersDisponiveisFromData = computed(() => {
   const months = mesesDisponiveis.value.map(m => m.value)
-  if (!months.length) return QUARTERS_FALLBACK
+  if (!months.length) return [...QUARTERS_FALLBACK].reverse()
   const qSet = new Set()
   for (const ym of months) {
     const [y, m] = ym.split('-').map(Number)
     const q = Math.ceil(m / 3)
     qSet.add(`${y}-Q${q}`)
   }
-  return [...qSet].sort().map(q => ({ value: q, label: q.replace('-', ' ').replace('Q', 'Q') }))
+  return [...qSet].sort().reverse().map(q => ({ value: q, label: q.replace('-', ' ').replace('Q', 'Q') }))
 })
 
 const mesesFinalDisponiveis = computed(() =>
@@ -269,8 +269,8 @@ watch(mesInicial, (val) => {
 watch(mesesDisponiveis, (available) => {
   if (!available.length) return
   const vals = available.map(m => m.value)
-  if (!vals.includes(mesInicial.value)) mesInicial.value = vals[0]
-  if (!vals.includes(mesFinal.value)) mesFinal.value = vals[vals.length - 1]
+  if (!vals.includes(mesInicial.value)) mesInicial.value = vals[vals.length - 1]
+  if (!vals.includes(mesFinal.value)) mesFinal.value = vals[0]
 })
 
 // ── Quarter selection ───────────────────────────────────────────────────────
@@ -733,8 +733,9 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   background: #1a1a1a;
+  border: 1px solid #222;
   border-radius: 6px;
-  padding: 4px 10px;
+  padding: 8px 14px;
 }
 
 .period-sep {
@@ -751,16 +752,21 @@ onMounted(async () => {
   font-family: inherit;
   cursor: pointer;
   outline: none;
-  padding: 4px 0;
+  padding: 6px 18px 6px 4px;
   appearance: none;
   -webkit-appearance: none;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 2px center;
 }
 
 .month-select option {
   background: #1a1a1a;
   color: #ccc;
+  font-family: 'Ubuntu', sans-serif;
+  font-size: 13px;
 }
 
 /* ── Filters Bar ── */
