@@ -127,7 +127,7 @@
               </tr>
             </thead>
             <tbody v-if="!loading && tierTableData.length > 0">
-              <tr v-for="(row, index) in tierTableData" :key="index">
+              <tr v-for="row in tierTableData" :key="row.safra + '|' + row.tier">
                 <td>{{ row.safra }}</td>
                 <td>{{ row.tier }}</td>
                 <td class="text-right">{{ row.total }}</td>
@@ -165,7 +165,7 @@
               </tr>
             </thead>
             <tbody v-if="!loading && clientTableData.length > 0">
-              <tr v-for="(row, index) in clientTableData" :key="index">
+              <tr v-for="row in clientTableData" :key="row.lead_id">
                 <td>{{ row.company_id }}</td>
                 <td>{{ row.lead_name }}</td>
                 <td>{{ row.safra }}</td>
@@ -478,7 +478,7 @@ const clientTableData = computed(() => {
       company_id: lead.company_id || '-',  // Company ID vem do Saber, não da monetização
       safra: lead.lead_created_at_safra,
       tier: lead.lead_tier || 'Sem Tier',
-      data_lead_saber_sort: dataSaber !== '-' ? new Date(dataSaber) : new Date(0),
+      data_lead_saber_sort: (() => { const d = dataSaber !== '-' ? new Date(dataSaber) : null; return d && !isNaN(d) ? d : new Date(0) })(),
       monetizado: !!monetInfo,
       tier_order: tierOrder[lead.lead_tier] || 6
     }

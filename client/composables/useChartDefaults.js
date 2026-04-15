@@ -18,7 +18,7 @@ export function getChartDefaults(overrides = {}) {
         labels: {
           color: '#cccccc',
           font: {
-            family: "'Montserrat', 'Segoe UI', sans-serif",
+            family: "'Ubuntu', 'Segoe UI', sans-serif",
             size: 12
           },
           padding: 15,
@@ -34,12 +34,12 @@ export function getChartDefaults(overrides = {}) {
         padding: 12,
         displayColors: true,
         titleFont: {
-          family: "'Montserrat', 'Segoe UI', sans-serif",
+          family: "'Ubuntu', 'Segoe UI', sans-serif",
           size: 13,
           weight: 600
         },
         bodyFont: {
-          family: "'Montserrat', 'Segoe UI', sans-serif",
+          family: "'Ubuntu', 'Segoe UI', sans-serif",
           size: 12
         }
       }
@@ -53,7 +53,7 @@ export function getChartDefaults(overrides = {}) {
         ticks: {
           color: '#666666',
           font: {
-            family: "'Montserrat', 'Segoe UI', sans-serif",
+            family: "'Ubuntu', 'Segoe UI', sans-serif",
             size: 11
           }
         }
@@ -66,7 +66,7 @@ export function getChartDefaults(overrides = {}) {
         ticks: {
           color: '#666666',
           font: {
-            family: "'Montserrat', 'Segoe UI', sans-serif",
+            family: "'Ubuntu', 'Segoe UI', sans-serif",
             size: 11
           }
         }
@@ -83,14 +83,14 @@ export function getChartDefaults(overrides = {}) {
  */
 export function getChartColors() {
   return [
-    '#ff0000', // Primary red
-    '#3b82f6', // Blue
-    '#22c55e', // Green
-    '#fbbf24', // Yellow
-    '#ef4444', // Danger red
-    '#a855f7', // Purple
-    '#14b8a6', // Teal
-    '#f97316'  // Orange
+    '#22c55e', // Verde
+    '#f97316', // Laranja
+    '#fbbf24', // Amarelo
+    '#ff0000', // Vermelho
+    '#a855f7', // Roxo
+    '#84cc16', // Verde-limão
+    '#ec4899', // Rosa
+    '#999999'  // Cinza
   ]
 }
 

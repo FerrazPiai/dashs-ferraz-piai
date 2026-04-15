@@ -1,17 +1,17 @@
+import 'dotenv/config' // Deve ser o primeiro import — carrega .env antes de qualquer modulo que use process.env
 import express from 'express'
 import session from 'express-session'
-import dotenv from 'dotenv'
+import connectPgSimple from 'connect-pg-simple'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import pool from './lib/db.js'
 import apiRoutes from './routes/api.js'
 import authRoutes from './routes/auth.js'
+import adminRoutes from './routes/admin.js'
 import { requireAuth } from './middleware/requireAuth.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-
-// Load environment variables
-dotenv.config()
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -20,8 +20,11 @@ const NODE_ENV = process.env.NODE_ENV || 'development'
 // Middleware
 app.use(express.json())
 
-// Session
-const sessionStore = undefined // use MemoryStore (dev worktree)
+// Session store — Postgres (schema dashboards_hub)
+const PgStore = connectPgSimple(session)
+const sessionStore = process.env.DATABASE_URL
+  ? new PgStore({ pool, schemaName: 'dashboards_hub', tableName: 'sessions' })
+  : undefined // fallback MemoryStore se sem DATABASE_URL
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'dashboards-v4-secret',
@@ -54,9 +57,12 @@ app.use('/api/auth', authRoutes)
 app.use('/api/dashboards', requireAuth)
 app.use('/api/data', requireAuth)
 app.use('/api/cache', requireAuth)
+app.use('/api/update-status', requireAuth)
+app.use('/api/admin', requireAuth)
 
 // API routes
 app.use('/api', apiRoutes)
+app.use('/api/admin', adminRoutes)
 
 // Serve static files in production
 if (NODE_ENV === 'production') {

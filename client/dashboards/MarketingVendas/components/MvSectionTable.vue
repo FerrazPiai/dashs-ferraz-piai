@@ -387,6 +387,13 @@ watch(() => props.loading, (val) => { if (!val) initIcons() })
   color: #fff !important;
 }
 
+/* Avg Ticket */
+.col-currency {
+  font-weight: 600 !important;
+  color: #fff !important;
+  text-align: right;
+}
+
 /* Status dot */
 .status-dot {
   display: inline-block;

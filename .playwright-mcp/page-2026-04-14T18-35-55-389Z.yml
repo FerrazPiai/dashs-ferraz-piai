@@ -1,0 +1,498 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e15]
+        - generic: Dashboards V4
+      - button "Toggle sidebar" [ref=e9] [cursor=pointer]:
+        - img [ref=e17]
+    - navigation [ref=e13]:
+      - list [ref=e20]:
+        - listitem [ref=e21]:
+          - link "Conversão Saber → Ter/Executar" [ref=e22] [cursor=pointer]:
+            - /url: /tx-conv-saber-monetizacao
+            - img [ref=e23]
+            - generic: Conversão Saber → Ter/Executar
+        - listitem [ref=e26]:
+          - link "GTM Motion" [ref=e27] [cursor=pointer]:
+            - /url: /gtm-motion
+            - img [ref=e28]
+            - generic: GTM Motion
+        - listitem [ref=e30]:
+          - link "Raio-X Financeiro" [ref=e31] [cursor=pointer]:
+            - /url: /raio-x-financeiro
+            - img [ref=e32]
+            - generic: Raio-X Financeiro
+        - listitem [ref=e36]:
+          - link "NPS Satisfação" [ref=e37] [cursor=pointer]:
+            - /url: /nps-satisfacao
+            - img [ref=e38]
+            - generic: NPS Satisfação
+        - listitem [ref=e41]:
+          - link "Comparativo Squads" [ref=e42] [cursor=pointer]:
+            - /url: /comparativo-squads
+            - img [ref=e43]
+            - generic: Comparativo Squads
+  - main [ref=e14]:
+    - generic [ref=e48]:
+      - generic [ref=e50]:
+        - generic [ref=e51]:
+          - heading "NPS" [level=1] [ref=e52]
+          - generic [ref=e53]: "|"
+          - heading "Pesquisa de Satisfação" [level=2] [ref=e54]
+        - generic [ref=e55]:
+          - generic [ref=e56]:
+            - generic [ref=e57]: Tier
+            - combobox [ref=e58] [cursor=pointer]:
+              - option "Todos" [selected]
+              - option "Enterprise"
+              - option "Large"
+              - option "Medium"
+              - option "Small"
+              - option "Tiny"
+              - option "Non-ICP"
+              - option "Sem preenchimento"
+          - generic [ref=e59]:
+            - generic [ref=e60]: Coordenador
+            - combobox [ref=e61] [cursor=pointer]:
+              - option "Todos" [selected]
+              - option "Deniz Oliveira"
+              - option "Gabriela Campos"
+              - option "Silvania Fraga"
+          - generic [ref=e62]:
+            - generic [ref=e63]: Grupo LT
+            - combobox [ref=e64] [cursor=pointer]:
+              - option "Todos" [selected]
+              - option "0 a 3 meses"
+              - option "3 a 6 meses"
+              - option "6 a 9 meses"
+              - option "9 a 12 meses"
+              - option "12+ meses"
+          - generic [ref=e65]:
+            - combobox [ref=e66] [cursor=pointer]:
+              - option "Abr 2024" [selected]
+              - option "Jul 2024"
+              - option "Out 2024"
+              - option "Nov 2024"
+              - option "Fev 2025"
+              - option "Mar 2025"
+              - option "Mai 2025"
+              - option "Ago 2025"
+              - option "Set 2025"
+              - option "Out 2025"
+              - option "Nov 2025"
+              - option "Dez 2025"
+              - option "Fev 2026"
+              - option "Mar 2026"
+            - generic [ref=e67]: até
+            - combobox [ref=e68] [cursor=pointer]:
+              - option "Abr 2024"
+              - option "Jul 2024"
+              - option "Out 2024"
+              - option "Nov 2024"
+              - option "Fev 2025"
+              - option "Mar 2025"
+              - option "Mai 2025"
+              - option "Ago 2025"
+              - option "Set 2025"
+              - option "Out 2025"
+              - option "Nov 2025"
+              - option "Dez 2025"
+              - option "Fev 2026"
+              - option "Mar 2026" [selected]
+          - button "Atualizar" [ref=e69] [cursor=pointer]:
+            - img [ref=e70]
+            - generic [ref=e75]: Atualizar
+      - generic [ref=e76]:
+        - generic [ref=e77]:
+          - generic [ref=e78]:
+            - generic [ref=e79]:
+              - generic [ref=e80]:
+                - text: NPS Score
+                - generic [ref=e81]: "?"
+              - generic [ref=e82]: "+24"
+              - generic [ref=e83]: 278 respostas
+              - generic [ref=e84]: "%P(44) - %D(20)"
+            - generic [ref=e85]:
+              - generic [ref=e86]: Nota Média
+              - generic [ref=e87]: "7.9"
+            - button "+" [ref=e88] [cursor=pointer]
+          - generic [ref=e89]:
+            - generic [ref=e90]:
+              - generic [ref=e92]: 44%
+              - generic [ref=e94]: 36%
+              - generic [ref=e96]: 20%
+            - generic [ref=e97]:
+              - generic [ref=e98]: Promotores (9-10)
+              - generic [ref=e100]: Neutros (7-8)
+              - generic [ref=e102]: Detratores (0-6)
+        - generic [ref=e104]:
+          - heading "Ranking de Coordenadores" [level=3] [ref=e106]
+          - generic [ref=e107]:
+            - generic [ref=e108]:
+              - generic [ref=e109]: 1o
+              - generic [ref=e110]: Gabriela Campos
+              - generic [ref=e113]: "+38.6"
+              - generic [ref=e114]:
+                - generic [ref=e115]: 57 resp.
+                - generic [ref=e116]: 32P
+                - generic [ref=e117]: 15N
+                - generic [ref=e118]: 10D
+                - generic [ref=e119]: LT 25.5m
+            - generic [ref=e120]:
+              - generic [ref=e121]: 2o
+              - generic [ref=e122]: Deniz Oliveira
+              - generic [ref=e125]: "+29.8"
+              - generic [ref=e126]:
+                - generic [ref=e127]: 47 resp.
+                - generic [ref=e128]: 21P
+                - generic [ref=e129]: 19N
+                - generic [ref=e130]: 7D
+                - generic [ref=e131]: LT 28.3m
+            - generic [ref=e132]:
+              - generic [ref=e133]: 3o
+              - generic [ref=e134]: Silvania Fraga
+              - generic [ref=e137]: "+19.0"
+              - generic [ref=e138]:
+                - generic [ref=e139]: 21 resp.
+                - generic [ref=e140]: 9P
+                - generic [ref=e141]: 7N
+                - generic [ref=e142]: 5D
+                - generic [ref=e143]: LT 19.9m
+            - generic [ref=e144]:
+              - generic [ref=e145]: 4o
+              - generic [ref=e146]: Sem coordenador
+              - generic [ref=e149]: "+17.6"
+              - generic [ref=e150]:
+                - generic [ref=e151]: 153 resp.
+                - generic [ref=e152]: 61P
+                - generic [ref=e153]: 58N
+                - generic [ref=e154]: 34D
+                - generic [ref=e155]: LT 15.5m
+        - generic [ref=e157]:
+          - heading "NPS por Dimensão" [level=3] [ref=e158]
+          - generic [ref=e159]:
+            - generic [ref=e160]:
+              - generic [ref=e161]: Eixo principal
+              - generic [ref=e162]:
+                - button "Tier" [ref=e163] [cursor=pointer]
+                - button "Coordenador" [ref=e164] [cursor=pointer]
+                - button "Grupo LT" [ref=e165] [cursor=pointer]
+            - generic [ref=e166]:
+              - generic [ref=e167]: Métrica
+              - generic [ref=e168]:
+                - button "NPS Score" [ref=e169] [cursor=pointer]
+                - button "Distribuição" [ref=e170] [cursor=pointer]
+            - generic [ref=e171]:
+              - button "Gráfico" [ref=e172] [cursor=pointer]:
+                - img [ref=e173]
+              - button "Tabela" [ref=e177] [cursor=pointer]:
+                - img [ref=e178]
+        - generic [ref=e186]:
+          - heading "Evolução Temporal" [level=3] [ref=e187]
+          - generic [ref=e188]:
+            - generic [ref=e189]:
+              - generic [ref=e190]: Métricas
+              - button "NPS Score" [ref=e191] [cursor=pointer]:
+                - generic [ref=e192]: NPS Score
+                - img [ref=e193]
+            - generic [ref=e195]:
+              - button "Data" [ref=e196] [cursor=pointer]
+              - button "Dia" [ref=e197] [cursor=pointer]
+              - button "Semana" [ref=e198] [cursor=pointer]
+              - button "Mês" [ref=e199] [cursor=pointer]
+              - button "Ano" [ref=e200] [cursor=pointer]
+            - generic [ref=e201]:
+              - button [ref=e202] [cursor=pointer]:
+                - img [ref=e203]
+              - button [ref=e207] [cursor=pointer]:
+                - img [ref=e208]
+            - button "MoM" [ref=e213] [cursor=pointer]:
+              - img [ref=e214]
+              - text: MoM
+        - generic [ref=e219]:
+          - generic [ref=e220]:
+            - heading "Detalhamento NPS" [level=3] [ref=e221]
+            - generic [ref=e222]: 278 registros
+          - table [ref=e224]:
+            - rowgroup [ref=e225]:
+              - row "Cliente Nota ▲ Classificação Tier Coordenador LT Data" [ref=e226]:
+                - columnheader "Cliente" [ref=e227] [cursor=pointer]
+                - columnheader "Nota ▲" [ref=e228] [cursor=pointer]
+                - columnheader "Classificação" [ref=e229] [cursor=pointer]
+                - columnheader "Tier" [ref=e230] [cursor=pointer]
+                - columnheader "Coordenador" [ref=e231] [cursor=pointer]
+                - columnheader "LT" [ref=e232] [cursor=pointer]
+                - columnheader "Data" [ref=e233] [cursor=pointer]
+            - rowgroup [ref=e234]:
+              - row "KONIG TECNOLOGIA DA INFORMACAO LTDA... 1 Detrator Small Sem coord. 2 meses 14/10/2024" [ref=e235]:
+                - cell "KONIG TECNOLOGIA DA INFORMACAO LTDA..." [ref=e236]
+                - cell "1" [ref=e237]:
+                  - generic [ref=e238]: "1"
+                - cell "Detrator" [ref=e239]
+                - cell "Small" [ref=e240]
+                - cell "Sem coord." [ref=e241]
+                - cell "2 meses" [ref=e242]
+                - cell "14/10/2024" [ref=e243]
+              - row "LL TOUCH ADVANCED AESTHETICS 1 Detrator Non-ICP Sem coord. 6 meses 06/02/2025" [ref=e244]:
+                - cell "LL TOUCH ADVANCED AESTHETICS" [ref=e245]
+                - cell "1" [ref=e246]:
+                  - generic [ref=e247]: "1"
+                - cell "Detrator" [ref=e248]
+                - cell "Non-ICP" [ref=e249]
+                - cell "Sem coord." [ref=e250]
+                - cell "6 meses" [ref=e251]
+                - cell "06/02/2025" [ref=e252]
+              - row "Maha (MENUTRE GASTRONOMIA PRATICA L... 1 Detrator Non-ICP Sem coord. 6 meses 16/07/2024" [ref=e253]:
+                - cell "Maha (MENUTRE GASTRONOMIA PRATICA L..." [ref=e254]
+                - cell "1" [ref=e255]:
+                  - generic [ref=e256]: "1"
+                - cell "Detrator" [ref=e257]
+                - cell "Non-ICP" [ref=e258]
+                - cell "Sem coord." [ref=e259]
+                - cell "6 meses" [ref=e260]
+                - cell "16/07/2024" [ref=e261]
+              - row "MARINHO TURISMO BUZIOS LTDA - 10.50... 1 Detrator Medium Sem coord. 7 meses 10/03/2026" [ref=e262]:
+                - cell "MARINHO TURISMO BUZIOS LTDA - 10.50..." [ref=e263]
+                - cell "1" [ref=e264]:
+                  - generic [ref=e265]: "1"
+                - cell "Detrator" [ref=e266]
+                - cell "Medium" [ref=e267]
+                - cell "Sem coord." [ref=e268]
+                - cell "7 meses" [ref=e269]
+                - cell "10/03/2026" [ref=e270]
+              - row "MORANGOS DA CHAPADA 1 Detrator Tiny Sem coord. 4 meses 04/08/2025" [ref=e271]:
+                - cell "MORANGOS DA CHAPADA" [ref=e272]
+                - cell "1" [ref=e273]:
+                  - generic [ref=e274]: "1"
+                - cell "Detrator" [ref=e275]
+                - cell "Tiny" [ref=e276]
+                - cell "Sem coord." [ref=e277]
+                - cell "4 meses" [ref=e278]
+                - cell "04/08/2025" [ref=e279]
+              - row "OZOXX COMERCIO E IMPORTACAO DE EQUI... 1 Detrator Large Gabriela Campos 8 meses 09/02/2026" [ref=e280]:
+                - cell "OZOXX COMERCIO E IMPORTACAO DE EQUI..." [ref=e281]
+                - cell "1" [ref=e282]:
+                  - generic [ref=e283]: "1"
+                - cell "Detrator" [ref=e284]
+                - cell "Large" [ref=e285]
+                - cell "Gabriela Campos" [ref=e286]
+                - cell "8 meses" [ref=e287]
+                - cell "09/02/2026" [ref=e288]
+              - row "STEFANUTTO COMERCIO DE TINTAS E ASS... 1 Detrator Tiny Sem coord. 3 meses 04/08/2025" [ref=e289]:
+                - cell "STEFANUTTO COMERCIO DE TINTAS E ASS..." [ref=e290]
+                - cell "1" [ref=e291]:
+                  - generic [ref=e292]: "1"
+                - cell "Detrator" [ref=e293]
+                - cell "Tiny" [ref=e294]
+                - cell "Sem coord." [ref=e295]
+                - cell "3 meses" [ref=e296]
+                - cell "04/08/2025" [ref=e297]
+              - row "CONDOR BRASIL INDUSTRIA, COMERCIO E... 2 Detrator Medium Sem coord. 18 meses 29/05/2025" [ref=e298]:
+                - cell "CONDOR BRASIL INDUSTRIA, COMERCIO E..." [ref=e299]
+                - cell "2" [ref=e300]:
+                  - generic [ref=e301]: "2"
+                - cell "Detrator" [ref=e302]
+                - cell "Medium" [ref=e303]
+                - cell "Sem coord." [ref=e304]
+                - cell "18 meses" [ref=e305]
+                - cell "29/05/2025" [ref=e306]
+              - row "BALDA COMERCIO DE ALIMENTOS LTDA - ... 3 Detrator Tiny Sem coord. 7 meses 25/11/2025" [ref=e307]:
+                - cell "BALDA COMERCIO DE ALIMENTOS LTDA - ..." [ref=e308]
+                - cell "3" [ref=e309]:
+                  - generic [ref=e310]: "3"
+                - cell "Detrator" [ref=e311]
+                - cell "Tiny" [ref=e312]
+                - cell "Sem coord." [ref=e313]
+                - cell "7 meses" [ref=e314]
+                - cell "25/11/2025" [ref=e315]
+              - row "DAY HOSPITAL NOVA PLASTICA LTDA - 1... 3 Detrator Sem preenchimento Sem coord. 20 meses 07/08/2025" [ref=e316]:
+                - cell "DAY HOSPITAL NOVA PLASTICA LTDA - 1..." [ref=e317]
+                - cell "3" [ref=e318]:
+                  - generic [ref=e319]: "3"
+                - cell "Detrator" [ref=e320]
+                - cell "Sem preenchimento" [ref=e321]
+                - cell "Sem coord." [ref=e322]
+                - cell "20 meses" [ref=e323]
+                - cell "07/08/2025" [ref=e324]
+              - row "Forty One Construction 3 Detrator Non-ICP Sem coord. 5 meses 15/07/2024" [ref=e325]:
+                - cell "Forty One Construction" [ref=e326]
+                - cell "3" [ref=e327]:
+                  - generic [ref=e328]: "3"
+                - cell "Detrator" [ref=e329]
+                - cell "Non-ICP" [ref=e330]
+                - cell "Sem coord." [ref=e331]
+                - cell "5 meses" [ref=e332]
+                - cell "15/07/2024" [ref=e333]
+              - row "COSTA ALMEIDA COMERCIO DE ROUPAS LT... 4 Detrator Small Gabriela Campos 22 meses 20/02/2025" [ref=e334]:
+                - cell "COSTA ALMEIDA COMERCIO DE ROUPAS LT..." [ref=e335]
+                - cell "4" [ref=e336]:
+                  - generic [ref=e337]: "4"
+                - cell "Detrator" [ref=e338]
+                - cell "Small" [ref=e339]
+                - cell "Gabriela Campos" [ref=e340]
+                - cell "22 meses" [ref=e341]
+                - cell "20/02/2025" [ref=e342]
+              - row "LEFER INDUSTRIA E COMERCIO LTDA - 4... 4 Detrator Small Gabriela Campos 16 meses 25/11/2025" [ref=e343]:
+                - cell "LEFER INDUSTRIA E COMERCIO LTDA - 4..." [ref=e344]
+                - cell "4" [ref=e345]:
+                  - generic [ref=e346]: "4"
+                - cell "Detrator" [ref=e347]
+                - cell "Small" [ref=e348]
+                - cell "Gabriela Campos" [ref=e349]
+                - cell "16 meses" [ref=e350]
+                - cell "25/11/2025" [ref=e351]
+              - row "MAQCENTER - MAQUINAS PARA CONSTRUCO... 4 Detrator Small Sem coord. 25 meses 07/05/2025" [ref=e352]:
+                - cell "MAQCENTER - MAQUINAS PARA CONSTRUCO..." [ref=e353]
+                - cell "4" [ref=e354]:
+                  - generic [ref=e355]: "4"
+                - cell "Detrator" [ref=e356]
+                - cell "Small" [ref=e357]
+                - cell "Sem coord." [ref=e358]
+                - cell "25 meses" [ref=e359]
+                - cell "07/05/2025" [ref=e360]
+              - row "MARLIN AUTOS LTDA - 18.684.751/0001... 4 Detrator Large Sem coord. 7 meses 08/08/2025" [ref=e361]:
+                - cell "MARLIN AUTOS LTDA - 18.684.751/0001..." [ref=e362]
+                - cell "4" [ref=e363]:
+                  - generic [ref=e364]: "4"
+                - cell "Detrator" [ref=e365]
+                - cell "Large" [ref=e366]
+                - cell "Sem coord." [ref=e367]
+                - cell "7 meses" [ref=e368]
+                - cell "08/08/2025" [ref=e369]
+              - row "MINERVA S.A.. - 67.620.377/0006-29 4 Detrator Enterprise Sem coord. 8 meses 27/05/2025" [ref=e370]:
+                - cell "MINERVA S.A.. - 67.620.377/0006-29" [ref=e371]
+                - cell "4" [ref=e372]:
+                  - generic [ref=e373]: "4"
+                - cell "Detrator" [ref=e374]
+                - cell "Enterprise" [ref=e375]
+                - cell "Sem coord." [ref=e376]
+                - cell "8 meses" [ref=e377]
+                - cell "27/05/2025" [ref=e378]
+              - row "MONNAIE ASSISTENCIA MEDICA LTDA - 4... 4 Detrator Sem preenchimento Deniz Oliveira 34 meses 03/02/2025" [ref=e379]:
+                - cell "MONNAIE ASSISTENCIA MEDICA LTDA - 4..." [ref=e380]
+                - cell "4" [ref=e381]:
+                  - generic [ref=e382]: "4"
+                - cell "Detrator" [ref=e383]
+                - cell "Sem preenchimento" [ref=e384]
+                - cell "Deniz Oliveira" [ref=e385]
+                - cell "34 meses" [ref=e386]
+                - cell "03/02/2025" [ref=e387]
+              - row "REMA TIP TOP SOLUCOES INDUSTRIAIS L... 4 Detrator Sem preenchimento Silvania Fraga 18 meses 26/11/2025" [ref=e388]:
+                - cell "REMA TIP TOP SOLUCOES INDUSTRIAIS L..." [ref=e389]
+                - cell "4" [ref=e390]:
+                  - generic [ref=e391]: "4"
+                - cell "Detrator" [ref=e392]
+                - cell "Sem preenchimento" [ref=e393]
+                - cell "Silvania Fraga" [ref=e394]
+                - cell "18 meses" [ref=e395]
+                - cell "26/11/2025" [ref=e396]
+              - row "WBR INDUSTRIA E COMERCIO DE VESTUAR... 4 Detrator Enterprise Silvania Fraga 30 meses 19/05/2025" [ref=e397]:
+                - cell "WBR INDUSTRIA E COMERCIO DE VESTUAR..." [ref=e398]
+                - cell "4" [ref=e399]:
+                  - generic [ref=e400]: "4"
+                - cell "Detrator" [ref=e401]
+                - cell "Enterprise" [ref=e402]
+                - cell "Silvania Fraga" [ref=e403]
+                - cell "30 meses" [ref=e404]
+                - cell "19/05/2025" [ref=e405]
+              - row "WBR INDUSTRIA E COMERCIO DE VESTUAR... 4 Detrator Enterprise Silvania Fraga 30 meses 29/08/2025" [ref=e406]:
+                - cell "WBR INDUSTRIA E COMERCIO DE VESTUAR..." [ref=e407]
+                - cell "4" [ref=e408]:
+                  - generic [ref=e409]: "4"
+                - cell "Detrator" [ref=e410]
+                - cell "Enterprise" [ref=e411]
+                - cell "Silvania Fraga" [ref=e412]
+                - cell "30 meses" [ref=e413]
+                - cell "29/08/2025" [ref=e414]
+              - row "ABSOLUTA INCORPORACAO IMOBILIARIA L... 5 Detrator Medium Sem coord. 5 meses 05/05/2025" [ref=e415]:
+                - cell "ABSOLUTA INCORPORACAO IMOBILIARIA L..." [ref=e416]
+                - cell "5" [ref=e417]:
+                  - generic [ref=e418]: "5"
+                - cell "Detrator" [ref=e419]
+                - cell "Medium" [ref=e420]
+                - cell "Sem coord." [ref=e421]
+                - cell "5 meses" [ref=e422]
+                - cell "05/05/2025" [ref=e423]
+              - row "C. M. COMERCIO DE ALIMENTOS CONGELA... 5 Detrator Medium Sem coord. 4 meses 30/05/2025" [ref=e424]:
+                - cell "C. M. COMERCIO DE ALIMENTOS CONGELA..." [ref=e425]
+                - cell "5" [ref=e426]:
+                  - generic [ref=e427]: "5"
+                - cell "Detrator" [ref=e428]
+                - cell "Medium" [ref=e429]
+                - cell "Sem coord." [ref=e430]
+                - cell "4 meses" [ref=e431]
+                - cell "30/05/2025" [ref=e432]
+              - row "CLINICA ODONTOLOGICA FELIPE BAHLS -... 5 Detrator Small Sem coord. 51 meses 26/02/2025" [ref=e433]:
+                - cell "CLINICA ODONTOLOGICA FELIPE BAHLS -..." [ref=e434]
+                - cell "5" [ref=e435]:
+                  - generic [ref=e436]: "5"
+                - cell "Detrator" [ref=e437]
+                - cell "Small" [ref=e438]
+                - cell "Sem coord." [ref=e439]
+                - cell "51 meses" [ref=e440]
+                - cell "26/02/2025" [ref=e441]
+              - row "GW TECNOLOGIA LTDA - 28.124.934/000... 5 Detrator Medium Sem coord. 7 meses 05/11/2025" [ref=e442]:
+                - cell "GW TECNOLOGIA LTDA - 28.124.934/000..." [ref=e443]
+                - cell "5" [ref=e444]:
+                  - generic [ref=e445]: "5"
+                - cell "Detrator" [ref=e446]
+                - cell "Medium" [ref=e447]
+                - cell "Sem coord." [ref=e448]
+                - cell "7 meses" [ref=e449]
+                - cell "05/11/2025" [ref=e450]
+              - row "HSG LTDA - 47.490.507/0001-34 5 Detrator Medium Gabriela Campos 22 meses 19/02/2025" [ref=e451]:
+                - cell "HSG LTDA - 47.490.507/0001-34" [ref=e452]
+                - cell "5" [ref=e453]:
+                  - generic [ref=e454]: "5"
+                - cell "Detrator" [ref=e455]
+                - cell "Medium" [ref=e456]
+                - cell "Gabriela Campos" [ref=e457]
+                - cell "22 meses" [ref=e458]
+                - cell "19/02/2025" [ref=e459]
+              - row "INTACT ESTOJOS ESPECIAIS LTDA - 12.... 5 Detrator Sem preenchimento Deniz Oliveira 16 meses 07/05/2025" [ref=e460]:
+                - cell "INTACT ESTOJOS ESPECIAIS LTDA - 12...." [ref=e461]
+                - cell "5" [ref=e462]:
+                  - generic [ref=e463]: "5"
+                - cell "Detrator" [ref=e464]
+                - cell "Sem preenchimento" [ref=e465]
+                - cell "Deniz Oliveira" [ref=e466]
+                - cell "16 meses" [ref=e467]
+                - cell "07/05/2025" [ref=e468]
+              - row "INTEGRAR DESENVOLVIMENTO PESSOAL E ... 5 Detrator Sem preenchimento Sem coord. 7 meses 04/08/2025" [ref=e469]:
+                - cell "INTEGRAR DESENVOLVIMENTO PESSOAL E ..." [ref=e470]
+                - cell "5" [ref=e471]:
+                  - generic [ref=e472]: "5"
+                - cell "Detrator" [ref=e473]
+                - cell "Sem preenchimento" [ref=e474]
+                - cell "Sem coord." [ref=e475]
+                - cell "7 meses" [ref=e476]
+                - cell "04/08/2025" [ref=e477]
+              - row "LOGLINE SOLUCOES LOGISTICAS INTEGRA... 5 Detrator Medium Sem coord. 6 meses 26/02/2025" [ref=e478]:
+                - cell "LOGLINE SOLUCOES LOGISTICAS INTEGRA..." [ref=e479]
+                - cell "5" [ref=e480]:
+                  - generic [ref=e481]: "5"
+                - cell "Detrator" [ref=e482]
+                - cell "Medium" [ref=e483]
+                - cell "Sem coord." [ref=e484]
+                - cell "6 meses" [ref=e485]
+                - cell "26/02/2025" [ref=e486]
+              - row "MENTE AZUL TREINAMENTOS LTDA - 38.0... 5 Detrator Sem preenchimento Sem coord. 4 meses 20/08/2025" [ref=e487]:
+                - cell "MENTE AZUL TREINAMENTOS LTDA - 38.0..." [ref=e488]
+                - cell "5" [ref=e489]:
+                  - generic [ref=e490]: "5"
+                - cell "Detrator" [ref=e491]
+                - cell "Sem preenchimento" [ref=e492]
+                - cell "Sem coord." [ref=e493]
+                - cell "4 meses" [ref=e494]
+                - cell "20/08/2025" [ref=e495]
+              - row "MIX INDUSTRIA EQUIPAMENTOS E SERVIC... 5 Detrator Medium Sem coord. 5 meses 05/11/2025" [ref=e496]:
+                - cell "MIX INDUSTRIA EQUIPAMENTOS E SERVIC..." [ref=e497]
+                - cell "5" [ref=e498]:
+                  - generic [ref=e499]: "5"
+                - cell "Detrator" [ref=e500]
+                - cell "Medium" [ref=e501]
+                - cell "Sem coord." [ref=e502]
+                - cell "5 meses" [ref=e503]
+                - cell "05/11/2025" [ref=e504]
+          - button "Mostrar todos (278)" [ref=e506] [cursor=pointer]

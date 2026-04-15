@@ -200,6 +200,27 @@ Cada dashboard em `config/dashboards.json` pode ter:
 - **`App.vue` carrega `/api/dashboards`** via `watch(route.name)` — só após sair do `/login` (evita fetch sem sessão)
 - **`LoginView.vue`** é standalone — sem `VLayout`, sem sidebar
 
+## Comparativo Entre Squads — Estrutura de Dados
+
+A API retorna `[{ data: [...rows] }]` com uma linha por cliente/mês. O frontend agrega em métricas por squad.
+
+**Formato atual dos campos (API via N8N → banco de dados):**
+
+| Campo | Tipo | Observação |
+|---|---|---|
+| `Mes` | ISO date string (`2026-01-01T00:00:00.000Z`) | Sem acento, sem hora local |
+| `Squad` | string | Normalizado via `SQUAD_ALIASES` |
+| `Coordenador` | string | |
+| `Status` | string | Ex: `"Recorrência Ativa"` |
+| `Receita_Recorrente` | `"R$ 0,00"` | MRR do cliente |
+| `Revenue_Churn` | `"R$ 0,00"` | Churn direto (0 se ativo) |
+| `Isencao` | `"R$ 0,00"` | Sem acento |
+| `Monetizacao_Recorrente` | `"R$ 0,00"` | Sem acento |
+| `Atribuicao_One_Time__Bookado` | `"R$ 0,00"` | Duplo underscore |
+| `Monetizacao_Variavel` | `"R$ 0,00"` | Sem acento |
+
+**Atenção:** O `parseMonth` e `rawRows` em `FechamentoMensal/index.vue` suportam tanto o formato ISO quanto o legado `dd/mm/yyyy` para retrocompatibilidade. Dados históricos de 2025 são hardcoded em `historico-2025.js` (não vêm da API).
+
 ## GTM Motion — Estrutura de Dados
 
 O dashboard GTM Motion usa duas fontes de dados da planilha Google Sheets (via N8N):

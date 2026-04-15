@@ -1,6 +1,6 @@
 {
   "name": "dashboards-v4",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Monorepo of V4 Company dashboards - Centralized SPA with Vue 3 + Vite + Pinia",
   "type": "module",
   "scripts": {
@@ -20,10 +20,13 @@
   "author": "V4 Company",
   "license": "UNLICENSED",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "connect-pg-simple": "^10.0.0",
     "dotenv": "^16.4.5",
     "express": "^4.18.3",
     "express-session": "^1.19.0",
     "node-fetch": "^3.3.2",
+    "pg": "^8.20.0",
     "pinia": "^2.1.7",
     "session-file-store": "^1.5.0",
     "vue": "^3.4.21",

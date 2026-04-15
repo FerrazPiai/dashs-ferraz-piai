@@ -11,7 +11,7 @@
         <VToggleGroup :options="periodModeOptions" v-model="periodMode" />
         <div v-if="periodMode === 'mes'" class="period-range">
           <select class="month-select" v-model="mesInicial">
-            <option v-for="m in MESES" :key="m.value" :value="m.value">{{ m.label }}</option>
+            <option v-for="m in mesesDisponiveis" :key="m.value" :value="m.value">{{ m.label }}</option>
           </select>
           <span class="period-sep">até</span>
           <select class="month-select" v-model="mesFinal">
@@ -174,7 +174,7 @@ import VConfirmModal from '../../components/ui/VConfirmModal.vue'
 import VChartCard from '../../components/charts/VChartCard.vue'
 import VToggleGroup from '../../components/ui/VToggleGroup.vue'
 import DreSankeyChart from './components/DreSankeyChart.vue'
-import { MOCK_DATA, VISUALIZACOES, CAIXA_MODES, MESES, QUARTERS } from './mock-data.js'
+import { VISUALIZACOES, CAIXA_MODES, MESES as MESES_FALLBACK, QUARTERS as QUARTERS_FALLBACK } from './mock-data.js'
 
 const currentView = ref('competencia')
 const caixaMode = ref('realizado')
@@ -217,7 +217,7 @@ function getCurrentQuarterRange() {
   const qEnd = qStart + 2
   const start = `${year}-${pad(qStart)}`
   const end = `${year}-${pad(qEnd)}`
-  const valores = MESES.map((m) => m.value)
+  const valores = MESES_FALLBACK.map((m) => m.value)
   return {
     start: valores.includes(start) ? start : (valores.find((v) => v >= start) ?? valores[0]),
     end: valores.includes(end) ? end : ([...valores].reverse().find((v) => v <= end) ?? valores[valores.length - 1]),
@@ -228,12 +228,49 @@ const { start: defaultStart, end: defaultEnd } = getCurrentQuarterRange()
 const mesInicial = ref(defaultStart)
 const mesFinal = ref(defaultEnd)
 
+const { data, loading, error, fetchData } = useDashboardData('raio-x-financeiro')
+
+const MES_LABELS = { '01':'Jan','02':'Fev','03':'Mar','04':'Abr','05':'Mai','06':'Jun','07':'Jul','08':'Ago','09':'Set','10':'Out','11':'Nov','12':'Dez' }
+
+const mesesDisponiveis = computed(() => {
+  const source = getParsedSource()
+  if (!source) return MESES_FALLBACK
+  const set = new Set()
+  for (const view of Object.values(source)) {
+    for (const ym of Object.keys(view)) set.add(ym)
+  }
+  if (!set.size) return MESES_FALLBACK
+  return [...set].sort().map(ym => {
+    const [y, m] = ym.split('-')
+    return { value: ym, label: `${MES_LABELS[m] || m} ${y}` }
+  })
+})
+
+const quartersDisponiveisFromData = computed(() => {
+  const months = mesesDisponiveis.value.map(m => m.value)
+  if (!months.length) return QUARTERS_FALLBACK
+  const qSet = new Set()
+  for (const ym of months) {
+    const [y, m] = ym.split('-').map(Number)
+    const q = Math.ceil(m / 3)
+    qSet.add(`${y}-Q${q}`)
+  }
+  return [...qSet].sort().map(q => ({ value: q, label: q.replace('-', ' ').replace('Q', 'Q') }))
+})
+
 const mesesFinalDisponiveis = computed(() =>
-  MESES.filter((m) => m.value >= mesInicial.value)
+  mesesDisponiveis.value.filter((m) => m.value >= mesInicial.value)
 )
 
 watch(mesInicial, (val) => {
   if (mesFinal.value < val) mesFinal.value = val
+})
+
+watch(mesesDisponiveis, (available) => {
+  if (!available.length) return
+  const vals = available.map(m => m.value)
+  if (!vals.includes(mesInicial.value)) mesInicial.value = vals[0]
+  if (!vals.includes(mesFinal.value)) mesFinal.value = vals[vals.length - 1]
 })
 
 // ── Quarter selection ───────────────────────────────────────────────────────
@@ -258,13 +295,7 @@ function quarterToMonthRange(q) {
 
 const selectedQuarter = ref(getCurrentQuarterValue())
 
-const quartersDisponiveis = computed(() => {
-  const mesesValues = MESES.map((m) => m.value)
-  return QUARTERS.filter((q) => {
-    const { start } = quarterToMonthRange(q.value)
-    return mesesValues.includes(start)
-  })
-})
+const quartersDisponiveis = computed(() => quartersDisponiveisFromData.value)
 
 watch(selectedQuarter, () => {
   // Sync month range when quarter changes
@@ -316,13 +347,13 @@ const currentViewLabel = computed(
 
 const periodoLabel = computed(() => {
   if (periodMode.value === 'quarter') {
-    return QUARTERS.find((q) => q.value === selectedQuarter.value)?.label ?? selectedQuarter.value
+    return QUARTERS_FALLBACK.find((q) => q.value === selectedQuarter.value)?.label ?? selectedQuarter.value
   }
   if (mesInicial.value === mesFinal.value) {
-    return MESES.find((m) => m.value === mesInicial.value)?.label ?? ''
+    return MESES_FALLBACK.find((m) => m.value === mesInicial.value)?.label ?? ''
   }
-  const ini = MESES.find((m) => m.value === mesInicial.value)?.label ?? mesInicial.value
-  const fim = MESES.find((m) => m.value === mesFinal.value)?.label ?? mesFinal.value
+  const ini = MESES_FALLBACK.find((m) => m.value === mesInicial.value)?.label ?? mesInicial.value
+  const fim = MESES_FALLBACK.find((m) => m.value === mesFinal.value)?.label ?? mesFinal.value
   return `${ini} – ${fim}`
 })
 
@@ -331,8 +362,6 @@ const chartKey = computed(() =>
     ? `${effectiveView.value}-${selectedQuarter.value}`
     : `${effectiveView.value}-${mesInicial.value}-${mesFinal.value}`
 )
-
-const { data, loading, error, fetchData } = useDashboardData('raio-x-financeiro')
 
 function snakeToCamel(str) {
   return str.replace(/_([a-z])/g, (_, c) => c.toUpperCase())
@@ -355,7 +384,7 @@ function parseApiResponse(apiData) {
 }
 
 function agregaMeses(source, viewKey, de, ate) {
-  const mesesNoRange = MESES.filter((m) => m.value >= de && m.value <= ate)
+  const mesesNoRange = mesesDisponiveis.value.filter((m) => m.value >= de && m.value <= ate)
   const viewData = source[viewKey] ?? {}
   return mesesNoRange.reduce((acc, m) => {
     const d = viewData[m.value]
@@ -368,9 +397,7 @@ function agregaMeses(source, viewKey, de, ate) {
 }
 
 function getParsedSource() {
-  return data.value
-    ? parseApiResponse(data.value)
-    : (import.meta.env.DEV ? MOCK_DATA : null)
+  return data.value ? parseApiResponse(data.value) : null
 }
 
 const resolvedData = computed(() => {
@@ -421,7 +448,7 @@ const previousDeltas = computed(() => {
     const prevVal = prev[key] ?? 0
     if (prevVal !== 0) {
       const pct = ((curVal - prevVal) / Math.abs(prevVal)) * 100
-      result[key] = Math.abs(pct) > 1500 ? 0 : pct
+      result[key] = Math.abs(pct) > 1500 ? null : pct
     } else {
       result[key] = null
     }
@@ -440,7 +467,7 @@ const planejadoDeltas = computed(() => {
     const planVal = plan[key] ?? 0
     if (planVal !== 0) {
       const pct = ((curVal - planVal) / Math.abs(planVal)) * 100
-      result[key] = Math.abs(pct) > 1500 ? 0 : pct
+      result[key] = Math.abs(pct) > 1500 ? null : pct
     } else {
       result[key] = null
     }
@@ -469,11 +496,12 @@ function pctBadgeClass(pct, thresholds) {
 }
 
 function formatPct(value, decimals = 1) {
+  if (value == null || isNaN(value)) return '—'
   return `${Number(value).toFixed(decimals)}%`
 }
 
 function safePct(numerator, denominator) {
-  if (!denominator) return 0
+  if (!denominator) return null
   return (numerator / denominator) * 100
 }
 

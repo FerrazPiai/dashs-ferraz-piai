@@ -17,10 +17,10 @@ export default defineConfig({
   },
 
   server: {
-    port: 5174,
+    port: 5173,
     proxy: {
       '/api': {
-        target: `http://127.0.0.1:${process.env.PORT || 3001}`,
+        target: `http://127.0.0.1:${process.env.PORT || 3000}`,
         changeOrigin: true,
         timeout: 300000,
         proxyTimeout: 300000

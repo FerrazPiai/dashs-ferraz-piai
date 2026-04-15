@@ -90,7 +90,7 @@ const chartDatasets = computed(() => {
     tierData.sort((a, b) => b.rate - a.rate)
 
     const sortedLabels = tierData.map(item => item.tier)
-    const sortedValues = tierData.map(item => item.rate.toFixed(2))
+    const sortedValues = tierData.map(item => parseFloat(item.rate.toFixed(2)))
     const sortedColors = tierData.map(item => tierColorMap[item.tier] || '#6b7280')
 
     return [
@@ -108,7 +108,7 @@ const chartDatasets = computed(() => {
     const values = safras.value.map(safra => {
       const item = props.data.find(d => d.safra === safra && d.tier === tier)
       if (!item || item.total === 0) return 0
-      return ((item.monet / item.total) * 100).toFixed(2)
+      return parseFloat(((item.monet / item.total) * 100).toFixed(2))
     })
 
     // Usar cor do mapa de cores

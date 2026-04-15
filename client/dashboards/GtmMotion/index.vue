@@ -143,6 +143,22 @@
                 </tbody>
               </table>
             </div>
+            <div class="legend-divider"></div>
+            <div class="legend-section">
+              <div class="legend-section-title">Cores no BowTie Model</div>
+              <div class="legend-section-desc">O heatmap do BowTie usa escala <strong>relativa</strong> — compara as taxas de conversão (CR) entre si no período selecionado:</div>
+              <div class="legend-bowtie-bar">
+                <span class="legend-bowtie-label">Trava</span>
+                <div class="legend-bowtie-gradient"></div>
+                <span class="legend-bowtie-label">Saudável</span>
+              </div>
+              <ul class="legend-bowtie-list">
+                <li><span class="legend-dot legend-dot--red"></span><strong>Vermelho</strong> — Menor CR do período (gargalo / restrição)</li>
+                <li><span class="legend-dot legend-dot--yellow"></span><strong>Âmbar</strong> — CRs intermediários (proporcional)</li>
+                <li><span class="legend-dot legend-dot--green"></span><strong>Verde</strong> — Maior CR do período (etapa mais saudável)</li>
+              </ul>
+              <div class="legend-section-desc" style="margin-top: 6px;">A escala recalcula automaticamente a cada período. A etapa COMMIT é sempre dourada (ponto de inflexão).</div>
+            </div>
           </div>
         </div>
         <VRefreshButton :loading="loading || refreshing" @click="handleRefresh" />
@@ -182,6 +198,19 @@
           <option v-for="s in stepOptions" :key="s" :value="s">{{ s }}</option>
         </select>
       </div>
+    </div>
+
+    <!-- Error State -->
+    <div v-if="error && !resolvedData" class="error-message">
+      <i data-lucide="alert-circle"></i>
+      <span>{{ error }}</span>
+    </div>
+
+    <!-- BowTie Model -->
+    <GtmBowTieChart :data="bowtieData" :loading="loading" />
+
+    <!-- KPI Toggles (above KPI grid) -->
+    <div class="kpi-toggles-bar">
       <div class="kpi-value-toggle">
         <button
           class="layout-btn"
@@ -226,12 +255,6 @@
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect x="0" y="1" width="14" height="4" rx="1" fill="currentColor"/><rect x="0" y="9" width="14" height="4" rx="1" fill="currentColor"/></svg>
         </button>
       </div>
-    </div>
-
-    <!-- Error State -->
-    <div v-if="error && !resolvedData" class="error-message">
-      <i data-lucide="alert-circle"></i>
-      <span>{{ error }}</span>
     </div>
 
     <!-- KPI Grid -->
@@ -399,13 +422,37 @@
       />
     </div>
 
+    <!-- Periodo Chart: oculto temporariamente enquanto ajustamos métricas -->
+    <!-- <GtmPeriodoChart
+      :data="periodoChartData"
+      :comparisonData="periodoComparisonData"
+      :loading="loading && !periodoChartData.length"
+    /> -->
+
     <!-- Funnel Table -->
     <div class="table-section">
       <div class="table-header">
         <h3 class="table-title">{{ tableTitle }}</h3>
-        <VToggleGroup v-model="tableDrilldown" :options="drilldownOptions" />
+        <div class="table-header-actions">
+          <button
+            class="mom-toggle-btn"
+            :class="{ active: momEnabled }"
+            @click="momEnabled = !momEnabled"
+            :title="momEnabled ? 'Comparando com: ' + compPeriodLabel : 'Ativar comparação mês a mês'"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 10L4 4L7 7L10 2L13 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+            MoM
+          </button>
+          <VToggleGroup v-model="tableDrilldown" :options="drilldownOptions" />
+        </div>
       </div>
-      <GtmFunnelTable :tiers="currentTiers" :loading="loading" :drilldown="tableDrilldown" />
+      <GtmFunnelTable
+        :tiers="currentTiers"
+        :loading="loading"
+        :drilldown="tableDrilldown"
+        :momEnabled="momEnabled"
+        :comparisonTiers="comparisonTiers"
+      />
     </div>
 
     <!-- Lista: Listagem de Prospects -->
@@ -413,6 +460,7 @@
       :rows="mvListagemData"
       :loading="loading"
     />
+
   </div>
 
   <!-- Modal: Confirmação de atualização -->
@@ -449,7 +497,9 @@ import GtmScorecard from './components/GtmScorecard.vue'
 import GtmFunnelTable from './components/GtmFunnelTable.vue'
 import VToggleGroup from '../../components/ui/VToggleGroup.vue'
 import MvListagemTable from '../MarketingVendas/components/MvListagemTable.vue'
-import { MOCK_DATA, CANAIS, MESES, QUARTERS } from './mock-data.js'
+// import GtmPeriodoChart from './components/GtmPeriodoChart.vue'  // oculto temporariamente
+import GtmBowTieChart from './components/GtmBowTieChart.vue'
+import { CANAIS, MESES, QUARTERS } from './mock-data.js'
 
 const { data, loading, error, fetchData } = useDashboardData('gtm-motion')
 
@@ -668,6 +718,7 @@ const stepOptions = computed(() => {
 
 // ── Table drill-down selector ───────────────────────────────────────────────
 const tableDrilldown = ref('step')
+const momEnabled = ref(false)
 const drilldownOptions = [
   { value: 'step', label: 'Step' },
   { value: 'closer', label: 'Closer' },
@@ -949,7 +1000,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           for (const subKey of subs) {
             if (!subKey) continue
             if (!acc.steps[subKey]) {
-              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, fee_rec: 0, fee_ot: 0, fee_mon: 0, fee_rec_mon: 0, fee_ot_mon: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
+              acc.steps[subKey] = { leads: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0, fee_value: 0, fee_rec: 0, fee_ot: 0, commit_for_fee: 0, fee_mon: 0, fee_rec_mon: 0, fee_ot_mon: 0, commit_for_fee_mon: 0, LT_sum: 0, LT_count: 0, CR_monetizacao: 0, booking_monetizacao: 0, aql_monetizacao: 0, sql_monetizacao: 0, sal_monetizacao: 0, commit_monetizacao: 0 }
             }
             const sa = acc.steps[subKey]
             sa.leads   += fLeads / n
@@ -962,9 +1013,11 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             sa.fee_value       += fFee / n
             sa.fee_rec         += fFeeRec / n
             sa.fee_ot          += fFeeOt / n
+            if (fFee > 0) sa.commit_for_fee += (fCommit + fCommitMon) / n
             sa.fee_mon         += fFeeMon / n
             sa.fee_rec_mon     += fFeeRecMon / n
             sa.fee_ot_mon      += fFeeOtMon / n
+            if (fFeeMon > 0) sa.commit_for_fee_mon += fCommitMon / n
             if (fLt > 0) { sa.LT_sum += fLt / n; sa.LT_count += 1 / n }
             sa.CR_monetizacao  += fCrMon / n
             sa.booking_monetizacao += fBkMon / n
@@ -1051,6 +1104,13 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           sa.booking += fBooking
           sa.investimento  += fInvest
           sa.fee_value     += fFee
+          sa.fee_rec       += fFeeRec
+          sa.fee_ot        += fFeeOt
+          if (fFee > 0) sa.commit_for_fee += fCommit + fCommitMon
+          sa.fee_mon       += fFeeMon
+          sa.fee_rec_mon   += fFeeRecMon
+          sa.fee_ot_mon    += fFeeOtMon
+          if (fFeeMon > 0) sa.commit_for_fee_mon += fCommitMon
           if (fLt > 0) { sa.LT_sum += fLt; sa.LT_count++ }
           sa.CR_monetizacao += fCrMon
           sa.booking_monetizacao += fBkMon
@@ -1250,15 +1310,15 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             sql_monetizacao: s.sql_monetizacao ?? 0,
             sal_monetizacao: s.sal_monetizacao ?? 0,
             commit_monetizacao: s.commit_monetizacao ?? 0,
-            avgTicket: (s.commit_for_fee ?? 0) > 0 ? Math.round(sFee / s.commit_for_fee) : 0,
-            avgBooking: (s.commit ?? 0) > 0 ? Math.round((s.booking ?? 0) / s.commit) : 0,
+            avgTicket: (s.commit_for_fee ?? 0) > 0 ? Math.round(sFee / s.commit_for_fee) : null,
+            avgBooking: (s.commit ?? 0) > 0 ? Math.round((s.booking ?? 0) / s.commit) : null,
             fee_rec: s.fee_rec ?? 0,
             fee_ot: s.fee_ot ?? 0,
             fee_mon: s.fee_mon ?? 0,
             fee_rec_mon: s.fee_rec_mon ?? 0,
             fee_ot_mon: s.fee_ot_mon ?? 0,
-            avgTicketMon: (s.commit_for_fee_mon ?? 0) > 0 ? Math.round((s.fee_mon ?? 0) / s.commit_for_fee_mon) : 0,
-            avgBookingMon: (s.commit_monetizacao ?? 0) > 0 ? Math.round((s.booking_monetizacao ?? 0) / s.commit_monetizacao) : 0,
+            avgTicketMon: (s.commit_for_fee_mon ?? 0) > 0 ? Math.round((s.fee_mon ?? 0) / s.commit_for_fee_mon) : null,
+            avgBookingMon: (s.commit_monetizacao ?? 0) > 0 ? Math.round((s.booking_monetizacao ?? 0) / s.commit_monetizacao) : null,
           }
         })
         if (drilldownBy === 'step') {
@@ -1282,15 +1342,15 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
           fee_total: tierFee,
           roas_booking: fi > 0 ? fb / fi : 0,
           roas_fee: fi > 0 ? tierFee / fi : 0,
-          avgTicket: (t.commit_for_fee ?? 0) > 0 ? Math.round(tierFee / t.commit_for_fee) : 0,
-          avgBooking: fc > 0 ? Math.round(fb / fc) : 0,
+          avgTicket: (t.commit_for_fee ?? 0) > 0 ? Math.round(tierFee / t.commit_for_fee) : null,
+          avgBooking: fc > 0 ? Math.round(fb / fc) : null,
           fee_rec: t.fee_rec ?? 0,
           fee_ot: t.fee_ot ?? 0,
           fee_mon: t.fee_mon ?? 0,
           fee_rec_mon: t.fee_rec_mon ?? 0,
           fee_ot_mon: t.fee_ot_mon ?? 0,
-          avgTicketMon: (t.commit_for_fee_mon ?? 0) > 0 ? Math.round((t.fee_mon ?? 0) / t.commit_for_fee_mon) : 0,
-          avgBookingMon: t.commit_monetizacao > 0 ? Math.round(t.booking_monetizacao / t.commit_monetizacao) : 0,
+          avgTicketMon: (t.commit_for_fee_mon ?? 0) > 0 ? Math.round((t.fee_mon ?? 0) / t.commit_for_fee_mon) : null,
+          avgBookingMon: t.commit_monetizacao > 0 ? Math.round(t.booking_monetizacao / t.commit_monetizacao) : null,
           cr1:    { val: cr1v, color: crColor(cr1v, 70, 50) },
           cr2:    { val: cr2v, color: crColor(cr2v, 25, 15) },
           cr3:    { val: cr3v, color: crColor(cr3v, 80, 65) },
@@ -1340,9 +1400,11 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
             ts.fee_total = (ts.fee_total ?? 0) + (step.fee_total ?? 0)
             ts.fee_rec = (ts.fee_rec ?? 0) + (step.fee_rec ?? 0)
             ts.fee_ot = (ts.fee_ot ?? 0) + (step.fee_ot ?? 0)
+            ts.commit_for_fee = (ts.commit_for_fee ?? 0) + (step.commit_for_fee ?? 0)
             ts.fee_mon = (ts.fee_mon ?? 0) + (step.fee_mon ?? 0)
             ts.fee_rec_mon = (ts.fee_rec_mon ?? 0) + (step.fee_rec_mon ?? 0)
             ts.fee_ot_mon = (ts.fee_ot_mon ?? 0) + (step.fee_ot_mon ?? 0)
+            ts.commit_for_fee_mon = (ts.commit_for_fee_mon ?? 0) + (step.commit_for_fee_mon ?? 0)
             ts.CR_monetizacao = (ts.CR_monetizacao ?? 0) + (step.CR_monetizacao ?? 0)
             ts.booking_monetizacao = (ts.booking_monetizacao ?? 0) + (step.booking_monetizacao ?? 0)
             ts.aql_monetizacao = (ts.aql_monetizacao ?? 0) + (step.aql_monetizacao ?? 0)
@@ -1357,10 +1419,10 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
         const inv = ts.investimento ?? 0
         ts.roas_booking = inv > 0 ? (ts.booking ?? 0) / inv : 0
         ts.roas_fee = inv > 0 ? (ts.fee_total ?? 0) / inv : 0
-        ts.avgTicket = (ts.commit_for_fee ?? 0) > 0 ? Math.round((ts.fee_total ?? 0) / ts.commit_for_fee) : 0
-        ts.avgBooking = (ts.commit ?? 0) > 0 ? Math.round((ts.booking ?? 0) / ts.commit) : 0
-        ts.avgTicketMon = (ts.commit_for_fee_mon ?? 0) > 0 ? Math.round((ts.fee_mon ?? 0) / ts.commit_for_fee_mon) : 0
-        ts.avgBookingMon = (ts.commit_monetizacao ?? 0) > 0 ? Math.round((ts.booking_monetizacao ?? 0) / ts.commit_monetizacao) : 0
+        ts.avgTicket = (ts.commit_for_fee ?? 0) > 0 ? Math.round((ts.fee_total ?? 0) / ts.commit_for_fee) : null
+        ts.avgBooking = (ts.commit ?? 0) > 0 ? Math.round((ts.booking ?? 0) / ts.commit) : null
+        ts.avgTicketMon = (ts.commit_for_fee_mon ?? 0) > 0 ? Math.round((ts.fee_mon ?? 0) / ts.commit_for_fee_mon) : null
+        ts.avgBookingMon = (ts.commit_monetizacao ?? 0) > 0 ? Math.round((ts.booking_monetizacao ?? 0) / ts.commit_monetizacao) : null
       }
       if (drilldownBy === 'step') {
         totalSteps.sort((a, b) => {
@@ -1519,13 +1581,7 @@ function transformApiData(rawData, mesIni, mesFim, closer, sdr, quarter = null, 
   return { channels, listagem: filteredListagem, rawKpis, rawFunil: rawFunil.filter(r => !r.is_empty_row && !r.is_total), agrupadas, taxa: rawTaxa }
 }
 
-const useMockData = computed(() => {
-  const params = new URLSearchParams(window.location.search)
-  return params.has('mock-data')
-})
-
 const resolvedData = computed(() => {
-  if (useMockData.value) return MOCK_DATA
   if (data.value) {
     if (periodMode.value === 'quarter') {
       return transformApiData(data.value, null, null, selectedCloser.value, selectedSdr.value, selectedQuarter.value, selectedStep.value, tableDrilldown.value, selectedChannel.value)
@@ -1537,7 +1593,7 @@ const resolvedData = computed(() => {
 
 // Comparison period data
 const comparisonData = computed(() => {
-  if (useMockData.value || !data.value) return null
+  if (!data.value) return null
   if (periodMode.value === 'quarter') {
     return transformApiData(data.value, null, null, selectedCloser.value, selectedSdr.value, compQuarter.value, selectedStep.value, tableDrilldown.value, selectedChannel.value)
   }
@@ -1556,6 +1612,10 @@ const activeChannelIds = computed(() => {
   const source = resolvedData.value
   return source?.channels ? Object.keys(source.channels) : ALL_CHANNEL_IDS
 })
+
+// ── Periodo chart data — oculto temporariamente ────────────────────────────
+// const periodoChartData = computed(() => { ... })
+// const periodoComparisonData = computed(() => { ... })
 
 function crColor(val, green, yellow) {
   return val >= green ? 'green' : val >= yellow ? 'yellow' : 'red'
@@ -1800,21 +1860,26 @@ const legendRedText = computed(() => {
   return `Mais de ${yellowPct}% abaixo da meta`
 })
 
-// Aggregate tiers from active channels
-const currentTiers = computed(() => {
-  const source = resolvedData.value
+// Aggregate tiers from source data
+function buildAggregatedTiers(source, channelIds) {
   if (!source) return []
   const tierMap   = {}
   // Track fee_sum per tier and step (fee = roas_fee * investimento per source row)
   const tierFeeSums = {} // { tierName: { fee: number, steps: { name: number } } }
+  // Track commit_for_fee per tier for correct avgTicket
+  const tierCommitForFee = {} // { tierName: { val: number, mon: number } }
   // Track LT weighted components per tier for re-averaging
   const tierLtSums = {} // { tierName: { sum: number, count: number, steps: { name: { sum, count } } } }
-  for (const channelId of activeChannelIds.value) {
+  for (const channelId of channelIds) {
     const tiers = source.channels?.[channelId]?.tiers ?? []
     for (const row of tiers) {
       if (!tierFeeSums[row.tier]) tierFeeSums[row.tier] = { fee: 0, steps: {} }
       const fs = tierFeeSums[row.tier]
-      fs.fee += (row.roas_fee ?? 0) * (row.investimento ?? 0)
+      fs.fee += (row.fee_total ?? 0)
+      // Track commit_for_fee per tier
+      if (!tierCommitForFee[row.tier]) tierCommitForFee[row.tier] = { val: 0, mon: 0 }
+      tierCommitForFee[row.tier].val += row.commit_for_fee ?? ((row.fee_total ?? 0) > 0 ? (row.commit ?? 0) : 0)
+      tierCommitForFee[row.tier].mon += row.commit_for_fee_mon ?? ((row.fee_mon ?? 0) > 0 ? (row.commit_monetizacao ?? 0) : 0)
       // LT weighted tracking
       if (!tierLtSums[row.tier]) tierLtSums[row.tier] = { sum: 0, count: 0, steps: {} }
       const ls = tierLtSums[row.tier]
@@ -1881,10 +1946,14 @@ const currentTiers = computed(() => {
         ex.sql_monetizacao = (ex.sql_monetizacao ?? 0) + (row.sql_monetizacao ?? 0)
         ex.sal_monetizacao = (ex.sal_monetizacao ?? 0) + (row.sal_monetizacao ?? 0)
         ex.commit_monetizacao = (ex.commit_monetizacao ?? 0) + (row.commit_monetizacao ?? 0)
-        // Recalcular avgTicket/avgBooking com fee_total acumulado
-        ex.avgTicket = ex.commit > 0 ? Math.round((ex.fee_total ?? 0) / ex.commit) : 0
+        // Recalcular avgTicket/avgBooking com commit_for_fee correto
+        const cff = tierCommitForFee[row.tier]?.val ?? 0
+        const cffMon = tierCommitForFee[row.tier]?.mon ?? 0
+        ex.avgTicket = cff > 0 ? Math.round((ex.fee_total ?? 0) / cff) : 0
+        ex.commit_for_fee = cff
         ex.avgBooking = ex.commit > 0 ? Math.round(ex.booking / ex.commit) : 0
-        ex.avgTicketMon = (ex.commit_monetizacao ?? 0) > 0 ? Math.round((ex.fee_mon ?? 0) / ex.commit_monetizacao) : 0
+        ex.avgTicketMon = cffMon > 0 ? Math.round((ex.fee_mon ?? 0) / cffMon) : 0
+        ex.commit_for_fee_mon = cffMon
         ex.avgBookingMon = (ex.commit_monetizacao ?? 0) > 0 ? Math.round((ex.booking_monetizacao ?? 0) / ex.commit_monetizacao) : 0
         const cr1v = ex.leads  > 0 ? (ex.mql    / ex.leads)  * 100 : 0
         const cr2v = ex.mql    > 0 ? (ex.sql    / ex.mql)    * 100 : 0
@@ -1926,9 +1995,11 @@ const currentTiers = computed(() => {
                 exStep.fee_total = (exStep.fee_total ?? 0) + (step.fee_total ?? 0)
                 exStep.fee_rec   = (exStep.fee_rec   ?? 0) + (step.fee_rec   ?? 0)
                 exStep.fee_ot    = (exStep.fee_ot    ?? 0) + (step.fee_ot    ?? 0)
+                exStep.commit_for_fee = (exStep.commit_for_fee ?? 0) + (step.commit_for_fee ?? 0)
                 exStep.fee_mon   = (exStep.fee_mon   ?? 0) + (step.fee_mon   ?? 0)
                 exStep.fee_rec_mon = (exStep.fee_rec_mon ?? 0) + (step.fee_rec_mon ?? 0)
                 exStep.fee_ot_mon  = (exStep.fee_ot_mon  ?? 0) + (step.fee_ot_mon  ?? 0)
+                exStep.commit_for_fee_mon = (exStep.commit_for_fee_mon ?? 0) + (step.commit_for_fee_mon ?? 0)
                 exStep.CR_monetizacao = (exStep.CR_monetizacao ?? 0) + (step.CR_monetizacao ?? 0)
                 exStep.booking_monetizacao = (exStep.booking_monetizacao ?? 0) + (step.booking_monetizacao ?? 0)
                 exStep.aql_monetizacao = (exStep.aql_monetizacao ?? 0) + (step.aql_monetizacao ?? 0)
@@ -1944,13 +2015,19 @@ const currentTiers = computed(() => {
       }
     }
   }
-  // Compute ROAS, fee_total and LT from aggregated totals
+  // Compute ROAS, fee_total, commit_for_fee and LT from aggregated totals
   for (const [name, ex] of Object.entries(tierMap)) {
     const inv = ex.investimento ?? 0
     ex.roas_booking = inv > 0 ? (ex.booking ?? 0) / inv : 0
     const fs = tierFeeSums[name]
     ex.fee_total = fs ? fs.fee : 0
     ex.roas_fee = inv > 0 && fs ? fs.fee / inv : 0
+    // commit_for_fee from tracking
+    const cff = tierCommitForFee[name]
+    ex.commit_for_fee = cff?.val ?? 0
+    ex.commit_for_fee_mon = cff?.mon ?? 0
+    ex.avgTicket = ex.commit_for_fee > 0 ? Math.round(ex.fee_total / ex.commit_for_fee) : null
+    ex.avgTicketMon = ex.commit_for_fee_mon > 0 ? Math.round((ex.fee_mon ?? 0) / ex.commit_for_fee_mon) : null
     // Recompute LT_medio as simple average of non-zero values
     const ls = tierLtSums[name]
     ex.LT_medio = ls && ls.count > 0 ? ls.sum / ls.count : 0
@@ -1958,8 +2035,8 @@ const currentTiers = computed(() => {
       for (const s of ex.steps) {
         const sInv = s.investimento ?? 0
         s.roas_booking = sInv > 0 ? (s.booking ?? 0) / sInv : 0
-        s.fee_total = fs?.steps[s.name] ?? 0
-        s.roas_fee = sInv > 0 && fs?.steps[s.name] ? fs.steps[s.name] / sInv : 0
+        s.fee_total = (s.fee_rec ?? 0) + (s.fee_ot ?? 0)
+        s.roas_fee = sInv > 0 ? s.fee_total / sInv : 0
         const sls = ls?.steps?.[s.name]
         s.LT_medio = sls && sls.count > 0 ? sls.sum / sls.count : 0
       }
@@ -2000,7 +2077,10 @@ const currentTiers = computed(() => {
     return (ia === -1 ? TIER_ORDER.length - 1 : ia) - (ib === -1 ? TIER_ORDER.length - 1 : ib)
   })
   return allNames.map(name => tierMap[name])
-})
+}
+
+const currentTiers = computed(() => buildAggregatedTiers(resolvedData.value, activeChannelIds.value))
+const comparisonTiers = computed(() => buildAggregatedTiers(comparisonData.value, activeChannelIds.value))
 
 // LTV do KPI = LTV do Total da tabela (mesma fonte, mesmo cálculo)
 const kpiLtv = computed(() => {
@@ -2013,7 +2093,133 @@ const tableTitle = computed(() => {
   return CANAIS.find((c) => c.id === selectedChannel.value)?.label ?? selectedChannel.value
 })
 
+const compPeriodLabel = computed(() => {
+  if (periodMode.value === 'quarter') return compQuarter.value
+  const ini = MESES.find(m => m.value === compMesInicial.value)?.label ?? compMesInicial.value
+  const fim = MESES.find(m => m.value === compMesFinal.value)?.label ?? compMesFinal.value
+  return ini === fim ? ini : `${ini} – ${fim}`
+})
+
 const mvListagemData = computed(() => resolvedData.value?.listagem ?? [])
+
+// ── BowTie Model data ─────────────────────────────────────────────────────
+// ── BowTie data: lê do array bowtie[] do webhook, aplica filtros, agrega ────
+const bowtieData = computed(() => {
+  const src = rawSource.value
+  const rawBowtie = src?.bowtie
+  if (!rawBowtie?.length) return null
+
+  // 1) Filtrar por período
+  let rows = [...rawBowtie]
+  if (periodMode.value === 'quarter') {
+    rows = rows.filter(r => r.quarter === selectedQuarter.value)
+  } else {
+    rows = rows.filter(r => r.mes >= mesInicial.value && r.mes <= mesFinal.value)
+  }
+
+  // 2) Filtrar por canal
+  if (!isConsolidado.value) {
+    const ch = selectedChannel.value
+    rows = rows.filter(r => {
+      const norm = r.canal?.toLowerCase().replace(/\s+/g, '-')
+      return norm === ch || r.canal === ch
+    })
+  }
+
+  // 3) Filtrar por closer
+  if (selectedCloser.value !== 'todos') {
+    const cl = selectedCloser.value.toLowerCase()
+    rows = rows.filter(r => r.closer?.toLowerCase() === cl)
+  }
+
+  // 4) Filtrar por SDR
+  if (selectedSdr.value !== 'todos') {
+    const sd = selectedSdr.value.toLowerCase()
+    rows = rows.filter(r => r.sdr?.toLowerCase() === sd)
+  }
+
+  // 5) Filtrar por step
+  if (selectedStep.value !== 'todos') {
+    const st = selectedStep.value.toLowerCase()
+    rows = rows.filter(r => {
+      const subs = r.subcategorias
+      if (!subs) return true
+      if (Array.isArray(subs)) return subs.some(s => s.toLowerCase() === st)
+      return String(subs).toLowerCase() === st
+    })
+  }
+
+  if (!rows.length) return null
+
+  // 6) Agregar volumes (soma)
+  const sum = {
+    prospects: 0, mql: 0, sql: 0, sal: 0, commit: 0, booking: 0, investimento: 0,
+    onboarding: 0, retention: 0,
+    aqlMon: 0, sqlMon: 0, salMon: 0, commitMon: 0, bookingMon: 0,
+  }
+  // DeltaT: acumular para média
+  const dtKeys = ['dt_prospects_mql', 'dt_mql_sql', 'dt_sql_sal', 'dt_sal_commit', 'dt_onboarding_retention', 'dt_aql_sql_mon', 'dt_sql_sal_mon', 'dt_sal_commit_mon']
+  const dtSums = {}
+  const dtCounts = {}
+  for (const k of dtKeys) { dtSums[k] = 0; dtCounts[k] = 0 }
+
+  for (const r of rows) {
+    sum.prospects += r.prospects ?? 0
+    sum.mql += r.mql ?? 0
+    sum.sql += r.sql ?? 0
+    sum.sal += r.sal ?? 0
+    sum.commit += r.commit ?? 0
+    sum.booking += r.booking ?? 0
+    sum.investimento += r.investimento ?? 0
+    sum.onboarding += r.onboarding ?? 0
+    sum.retention += r.retention ?? 0
+    sum.aqlMon += r.aql_mon ?? 0
+    sum.sqlMon += r.sql_mon ?? 0
+    sum.salMon += r.sal_mon ?? 0
+    sum.commitMon += r.commit_mon ?? 0
+    sum.bookingMon += r.booking_mon ?? 0
+    for (const k of dtKeys) {
+      if (r[k] != null && r[k] > 0) { dtSums[k] += r[k]; dtCounts[k]++ }
+    }
+  }
+
+  // 7) Calcular deltaT médio
+  const deltaT = {}
+  const dtMap = {
+    dt_prospects_mql: 'prospects_mql', dt_mql_sql: 'mql_sql',
+    dt_sql_sal: 'sql_sal', dt_sal_commit: 'sal_commit',
+    dt_onboarding_retention: 'onboarding_retention',
+    dt_aql_sql_mon: 'aql_sql_mon', dt_sql_sal_mon: 'sql_sal_mon', dt_sal_commit_mon: 'sal_commit_mon',
+  }
+  for (const [raw, key] of Object.entries(dtMap)) {
+    deltaT[key] = dtCounts[raw] > 0 ? Math.round(dtSums[raw] / dtCounts[raw]) : null
+  }
+
+  // 8) Calcular CRs
+  function crCalc(num, den, green, yellow) {
+    const val = den > 0 ? (num / den) * 100 : 0
+    return { val, color: crColor(val, green, yellow) }
+  }
+  const cr1 = crCalc(sum.mql, sum.prospects, 70, 50)
+  const cr2 = crCalc(sum.sql, sum.mql, 25, 15)
+  const cr3 = crCalc(sum.sal, sum.sql, 80, 65)
+  const cr4 = crCalc(sum.commit, sum.sal, 20, 12)
+  const cr5 = crCalc(sum.sqlMon, sum.aqlMon, 25, 15)
+  const cr6 = crCalc(sum.salMon, sum.sqlMon, 80, 65)
+  const cr7 = crCalc(sum.commitMon, sum.salMon, 20, 12)
+
+  // 9) avgTicket calculado no front
+  const avgTicket = sum.commit > 0 ? Math.round(sum.booking / sum.commit) : 0
+  const avgTicketMon = sum.commitMon > 0 ? Math.round(sum.bookingMon / sum.commitMon) : 0
+
+  return {
+    ...sum,
+    cr1, cr2, cr3, cr4, cr5, cr6, cr7,
+    deltaT,
+    avgTicket,
+    avgTicketMon,
+  }
+})
 
 const lastUpdateTime = ref(null)
 
@@ -2317,6 +2523,43 @@ onMounted(async () => {
 .legend-cr-table td:nth-child(4) { color: #fbbf24; }
 .legend-cr-table td:nth-child(5) { color: #ef4444; }
 
+/* BowTie legend section */
+.legend-bowtie-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+}
+.legend-bowtie-label {
+  font-size: 10px;
+  color: #888;
+  white-space: nowrap;
+}
+.legend-bowtie-gradient {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #c62828, #e53935, #ff7043, #ffa726, #ffee58, #c6ff00, #76ff03, #00e676, #00c853);
+}
+.legend-bowtie-list {
+  list-style: none;
+  padding: 0;
+  margin: 6px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.legend-bowtie-list li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: #999;
+}
+.legend-bowtie-list li strong {
+  color: #ccc;
+}
+
 /* Period range */
 .period-range {
   display: inline-flex;
@@ -2424,14 +2667,21 @@ onMounted(async () => {
   padding: 8px 12px;
 }
 
-/* KPI Layout Toggle */
+/* KPI Toggles Bar (between BowTie and KPI grid) */
+.kpi-toggles-bar {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
 .kpi-value-toggle {
   display: inline-flex;
   gap: 0;
   background: #1a1a1a;
   border-radius: 4px;
   padding: 3px;
-  margin-left: auto;
 }
 
 .kpi-layout-toggle {
@@ -2575,6 +2825,41 @@ onMounted(async () => {
   gap: 10px;
   padding: 14px 16px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.table-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.mom-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.mom-toggle-btn:hover {
+  color: #999;
+  border-color: #444;
+}
+
+.mom-toggle-btn.active {
+  color: #ff0000;
+  border-color: #ff0000;
+  background: rgba(255, 0, 0, 0.08);
 }
 
 .table-title {

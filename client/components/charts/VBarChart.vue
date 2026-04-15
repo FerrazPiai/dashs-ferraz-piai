@@ -155,14 +155,14 @@ const createChart = () => {
 
   // Process datasets with default colors
   const defaultColors = [
-    '#ff0000', // Red
-    '#3b82f6', // Blue
-    '#22c55e', // Green
-    '#fbbf24', // Yellow
-    '#ef4444', // Orange/Red
-    '#a855f7', // Purple
-    '#14b8a6', // Teal
-    '#f97316'  // Orange
+    '#22c55e', // Verde
+    '#f97316', // Laranja
+    '#fbbf24', // Amarelo
+    '#ff0000', // Vermelho
+    '#a855f7', // Roxo
+    '#84cc16', // Verde-limão
+    '#ec4899', // Rosa
+    '#999999'  // Cinza
   ]
 
   const processedDatasets = props.datasets.map((dataset, index) => ({
