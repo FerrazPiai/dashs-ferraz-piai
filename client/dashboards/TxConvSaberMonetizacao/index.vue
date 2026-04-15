@@ -49,7 +49,7 @@
     </div>
 
     <!-- Safra Chart -->
-    <VChartCard title="Evolução da Conversão Saber → Ter/Executar" :loading="loading">
+    <VChartCard title="Evolução da Conversão Saber → Ter/Executar (apenas projetos concluídos)" :loading="loading">
       <SafraChart v-if="!loading && safraData.length > 0" :data="safraData" />
     </VChartCard>
 
