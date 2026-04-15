@@ -867,7 +867,7 @@ const truncate = (s, l) => s && s.length > l ? s.substring(0, l) + '...' : s
 .spinner-lg { width: 28px; height: 28px; border-width: 3px; }
 @keyframes nps-spin { to { transform: rotate(360deg); } }
 .nps-table-count { font-size: 12px; color: #666; }
-.nps-table-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.nps-table-filters { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
 .nps-table-filters .search-wrapper { position: relative; flex: 1; min-width: 180px; max-width: 280px; }
 .nps-table-filters .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: #555; stroke-width: 2; pointer-events: none; }
 .nps-table-filters .search-input { width: 100%; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px; color: #ccc; font-size: 12px; font-family: inherit; padding: 6px 10px 6px 32px; outline: none; box-sizing: border-box; transition: border-color 0.15s; }
