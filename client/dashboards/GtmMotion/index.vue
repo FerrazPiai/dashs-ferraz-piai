@@ -662,35 +662,35 @@ const rawSource = computed(() => {
 
 const mesesDisponiveis = computed(() => {
   const src = rawSource.value
-  if (!src) return MESES
+  if (!src) return [...MESES].reverse()
   const rows = [...(src.kpis ?? []), ...(src.funil ?? [])]
   const set = new Set(rows.map(r => r.mes).filter(Boolean))
-  if (!set.size) return MESES
-  return MESES.filter(m => set.has(m.value))
+  if (!set.size) return [...MESES].reverse()
+  return MESES.filter(m => set.has(m.value)).reverse()
 })
 
 const quartersDisponiveis = computed(() => {
   const src = rawSource.value
-  if (!src) return QUARTERS
+  if (!src) return [...QUARTERS].reverse()
   const rows = [...(src.kpis ?? []), ...(src.funil ?? [])]
   const set = new Set(rows.map(r => r.quarter).filter(Boolean))
-  if (!set.size) return QUARTERS
-  return QUARTERS.filter(q => set.has(q.value))
+  if (!set.size) return [...QUARTERS].reverse()
+  return QUARTERS.filter(q => set.has(q.value)).reverse()
 })
 
 // Snap selections to available data when it loads
 watch(mesesDisponiveis, (available) => {
   if (!available.length) return
   const vals = available.map(m => m.value)
-  if (!vals.includes(mesInicial.value)) mesInicial.value = vals[vals.length - 1]
-  if (!vals.includes(mesFinal.value))   mesFinal.value   = vals[vals.length - 1]
+  if (!vals.includes(mesInicial.value)) mesInicial.value = vals[0]
+  if (!vals.includes(mesFinal.value))   mesFinal.value   = vals[0]
   if (mesInicial.value > mesFinal.value) mesInicial.value = mesFinal.value
 }, { immediate: false })
 
 watch(quartersDisponiveis, (available) => {
   if (!available.length) return
   const vals = available.map(q => q.value)
-  if (!vals.includes(selectedQuarter.value)) selectedQuarter.value = vals[vals.length - 1]
+  if (!vals.includes(selectedQuarter.value)) selectedQuarter.value = vals[0]
 }, { immediate: false })
 
 // ── Closer / SDR options (from raw API data) ─────────────────────────────────

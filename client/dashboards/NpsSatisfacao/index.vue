@@ -250,7 +250,7 @@ const quartersDisponiveis = computed(() => {
     const q = Math.ceil(Number(m) / 3)
     set.add(`${y}-Q${q}`)
   }
-  return [...set].sort().map(k => {
+  return [...set].sort().reverse().map(k => {
     const [y, q] = k.split('-')
     return { value: k, label: `${q} ${y}` }
   })
@@ -259,7 +259,7 @@ const quartersDisponiveis = computed(() => {
 watch(quartersDisponiveis, (available) => {
   if (!available.length) return
   const vals = available.map(q => q.value)
-  if (!vals.includes(selectedQuarter.value)) selectedQuarter.value = vals[vals.length - 1]
+  if (!vals.includes(selectedQuarter.value)) selectedQuarter.value = vals[0]
 }, { immediate: false })
 
 // ── Month range ─────────────────────────────────────────────────────────────
@@ -273,7 +273,7 @@ const mesesDisponiveis = computed(() => {
     const key = parseDataToMonth(r.Data)
     if (key) set.add(key)
   }
-  return [...set].sort().map(k => {
+  return [...set].sort().reverse().map(k => {
     const [y, m] = k.split('-')
     return { value: k, label: `${MES_LABELS[m]} ${y}` }
   })
@@ -286,8 +286,8 @@ const mesesFinalDisponiveis = computed(() =>
 watch(mesesDisponiveis, (available) => {
   if (!available.length) return
   const vals = available.map(m => m.value)
-  if (!mesInicial.value || !vals.includes(mesInicial.value)) mesInicial.value = vals[0]
-  if (!mesFinal.value || !vals.includes(mesFinal.value)) mesFinal.value = vals[vals.length - 1]
+  if (!mesInicial.value || !vals.includes(mesInicial.value)) mesInicial.value = vals[vals.length - 1]
+  if (!mesFinal.value || !vals.includes(mesFinal.value)) mesFinal.value = vals[0]
 }, { immediate: true })
 
 watch(mesInicial, (val) => {
