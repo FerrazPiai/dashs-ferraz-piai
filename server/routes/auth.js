@@ -18,7 +18,9 @@ router.post('/login', async (req, res) => {
   const envPass = process.env.USER_PASSWORD
   if (envUser && envPass && username === envUser && password === envPass) {
     req.session.user = { id: 0, email: 'admin@local', name: 'Admin', role: 'admin' }
-    return res.json({ authenticated: true, user: req.session.user })
+    return req.session.save(() => {
+      res.json({ authenticated: true, user: req.session.user })
+    })
   }
 
   // 2. Login via Postgres
@@ -39,7 +41,9 @@ router.post('/login', async (req, res) => {
     }
 
     req.session.user = { id: user.id, email: user.email, name: user.name, role: user.role, needsPassword: false }
-    res.json({ authenticated: true, user: req.session.user })
+    req.session.save(() => {
+      res.json({ authenticated: true, user: req.session.user })
+    })
   } catch (err) {
     console.error(`[${new Date().toISOString()}] Login DB error:`, err.message)
     res.status(500).json({ error: 'Erro interno ao autenticar' })
@@ -142,7 +146,10 @@ router.get('/google/callback', async (req, res) => {
 
     const needsPassword = !dbUser.password_hash
     req.session.user = { id: dbUser.id, email: dbUser.email, name: dbUser.name, role: dbUser.role, needsPassword }
-    res.redirect(needsPassword ? '/criar-senha' : '/')
+    // Salvar sessao no Postgres ANTES de redirecionar (evita race condition)
+    req.session.save(() => {
+      res.redirect(needsPassword ? '/criar-senha' : '/')
+    })
   } catch (err) {
     console.error(`[${new Date().toISOString()}] Google OAuth error:`, err.message)
     res.redirect('/login?error=oauth_server')
