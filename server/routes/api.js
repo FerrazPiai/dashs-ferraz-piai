@@ -4,6 +4,7 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { getCachedData, setCachedData, getCacheStatus } from '../lib/cache-manager.js'
 import { fetchData } from '../lib/api-client.js'
+import pool from '../lib/db.js'
 import { requireAuth } from '../middleware/requireAuth.js'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -127,7 +128,7 @@ router.get('/data/:dashboardId', async (req, res, next) => {
 
     // Verificar permissao de acesso
     const userRole = req.session?.user?.role || (req.session?.authenticated ? 'admin' : null)
-    if (!canAccessDashboard(dashboard, userRole)) {
+    if (!(await canAccessDashboard(dashboard, userRole))) {
       return res.status(403).json({
         error: {
           message: 'Acesso negado a este dashboard',
@@ -368,12 +369,40 @@ router.get('/:dashboardId/trigger-update', requireAuth, async (req, res, next) =
 
 /**
  * Verifica se o role do usuario pode acessar o dashboard.
- * Admin sempre pode. Se allowedRoles nao definido, todos podem.
+ * Consulta tabela profiles no DB. Fallback para allowedRoles do JSON se DB falhar.
+ * Admin sempre pode. allowed_dashboards vazio = acesso total.
  */
-function canAccessDashboard(dashboard, userRole) {
+let _profilesCache = null
+let _profilesCacheTime = 0
+const PROFILES_CACHE_TTL = 30000 // 30s
+
+async function getProfiles() {
+  if (_profilesCache && Date.now() - _profilesCacheTime < PROFILES_CACHE_TTL) return _profilesCache
+  try {
+    const result = await pool.query('SELECT name, allowed_dashboards FROM profiles')
+    _profilesCache = result.rows
+    _profilesCacheTime = Date.now()
+    return _profilesCache
+  } catch {
+    return null // fallback
+  }
+}
+
+async function canAccessDashboard(dashboard, userRole) {
   if (!userRole) return false
   if (userRole === 'admin') return true
-  if (!dashboard.allowedRoles) return true // backward-compatible
+
+  const profiles = await getProfiles()
+  if (profiles) {
+    const profile = profiles.find(p => p.name === userRole)
+    if (profile) {
+      if (!profile.allowed_dashboards || profile.allowed_dashboards.length === 0) return true
+      return profile.allowed_dashboards.includes(dashboard.id)
+    }
+  }
+
+  // Fallback: allowedRoles do dashboards.json
+  if (!dashboard.allowedRoles) return true
   return dashboard.allowedRoles.includes(userRole)
 }
 
@@ -386,18 +415,14 @@ router.get('/dashboards', async (req, res, next) => {
     const dashboards = await loadDashboardRegistry()
     const userRole = req.session?.user?.role || (req.session?.authenticated ? 'admin' : null)
 
-    res.json({
-      dashboards: dashboards
-        .filter(d => !d.hidden && canAccessDashboard(d, userRole))
-        .map(d => ({
-          id: d.id,
-          title: d.title,
-          icon: d.icon,
-          status: d.status,
-          statusMessage: d.statusMessage
-        })),
-      timestamp: new Date().toISOString()
-    })
+    const filtered = []
+    for (const d of dashboards) {
+      if (!d.hidden && (await canAccessDashboard(d, userRole))) {
+        filtered.push({ id: d.id, title: d.title, icon: d.icon, status: d.status, statusMessage: d.statusMessage })
+      }
+    }
+
+    res.json({ dashboards: filtered, timestamp: new Date().toISOString() })
   } catch (error) {
     next(error)
   }
