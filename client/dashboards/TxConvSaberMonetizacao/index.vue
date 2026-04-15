@@ -338,12 +338,24 @@ const consolidadoData = computed(() => {
 
 // Safra chart data (ordem CRESCENTE para gráfico de evolução)
 const safraData = computed(() => {
-  // Inverter a ordem do consolidadoData (que é DESC) para ficar ASC no gráfico
+  const parseSafra = (safra) => {
+    if (!safra) return null
+    const parts = safra.split('/').map(Number)
+    if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1])) return null
+    return { month: parts[0], year: parts[1] }
+  }
+
   return [...consolidadoData.value].sort((a, b) => {
-    const [monthA, yearA] = a.safra.split('/').map(Number)
-    const [monthB, yearB] = b.safra.split('/').map(Number)
-    if (yearA !== yearB) return yearA - yearB  // ASC
-    return monthA - monthB  // ASC
+    const dateA = parseSafra(a.safra)
+    const dateB = parseSafra(b.safra)
+
+    // Sem data vem primeiro
+    if (!dateA && !dateB) return 0
+    if (!dateA) return -1
+    if (!dateB) return 1
+
+    if (dateA.year !== dateB.year) return dateA.year - dateB.year  // ASC
+    return dateA.month - dateB.month  // ASC
   })
 })
 
