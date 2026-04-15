@@ -576,7 +576,7 @@ const PCOLORS = {
 }
 // Speeds tuned for visible difference: red = noticeably sluggish, green = flowing
 const PSPEEDS = { red: 0.2, yellow: 0.55, green: 1.1, accent: 0.35 }
-const PARTICLE_COUNT = 200
+const PARTICLE_COUNT = 120
 
 function spawnParticle(VW, VH, heats, startX) {
   const xNorm = Math.max(0, Math.min(1, startX / VW))
@@ -704,18 +704,36 @@ function handleResize() {
   resizeTimer = setTimeout(startAnimation, 200)
 }
 
+function safeStartAnimation() {
+  // Retry up to 5 times with increasing delay if body has no dimensions yet
+  let attempts = 0
+  function tryStart() {
+    const body = bodyRef.value
+    if (!body) return
+    const rect = body.getBoundingClientRect()
+    if (rect.width < 2 || rect.height < 2) {
+      if (attempts++ < 5) { setTimeout(tryStart, 100 * attempts); return }
+      return
+    }
+    startAnimation()
+  }
+  tryStart()
+}
+
 onMounted(() => {
   window.addEventListener('resize', handleResize)
-  nextTick(() => { if (hasData.value) startAnimation() })
+  nextTick(() => { if (hasData.value) safeStartAnimation() })
 })
 
-watch(hasData, (val) => { if (val) nextTick(startAnimation) })
+watch(hasData, (val) => { if (val) nextTick(safeStartAnimation) })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
   clearTimeout(resizeTimer)
   clearTimeout(hoverTimer)
   if (animId) cancelAnimationFrame(animId)
+  animId = null
+  particles = []
 })
 </script>
 

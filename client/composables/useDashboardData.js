@@ -1,4 +1,4 @@
-import { ref, computed } from 'vue'
+import { ref, shallowRef, computed } from 'vue'
 
 /**
  * Composable for fetching and managing dashboard data
@@ -6,7 +6,7 @@ import { ref, computed } from 'vue'
  * @returns {object} - { data, loading, error, fetchData, fromCache }
  */
 export function useDashboardData(dashboardId) {
-  const data = ref(null)
+  const data = shallowRef(null)
   const loading = ref(false)
   const error = ref(null)
   const fromCache = ref(false)

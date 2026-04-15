@@ -114,6 +114,14 @@ router.get('/google/callback', async (req, res) => {
     )
     let dbUser = result.rows[0]
 
+    // Bloquear dominios nao permitidos antes de auto-criar
+    const allowedDomains = (process.env.GOOGLE_ALLOWED_DOMAINS || 'v4company.com').split(',').map(d => d.trim().toLowerCase())
+    const emailDomain = googleUser.email.split('@')[1]?.toLowerCase()
+    if (!dbUser && !allowedDomains.includes(emailDomain)) {
+      console.warn(`[${new Date().toISOString()}] OAuth bloqueado: ${googleUser.email} (dominio nao permitido)`)
+      return res.redirect('/login?error=domain_not_allowed')
+    }
+
     // Auto-criar como 'operacao' se nao existe no banco
     if (!dbUser) {
       const insertResult = await pool.query(

@@ -641,7 +641,18 @@ const isConsolidado = computed(() => selectedChannel.value === 'consolidado')
 const rawSource = computed(() => {
   const raw = data.value
   if (!raw) return null
-  return Array.isArray(raw) ? raw[0]?.data : raw?.data
+  // Suporta multiplos formatos de resposta do webhook:
+  // { data: { kpis, funil, bowtie } } | [{ data: { ... } }] | { kpis, funil, bowtie } | [{ kpis, funil, bowtie }]
+  const unwrapped = Array.isArray(raw) ? raw[0] : raw
+  if (!unwrapped) return null
+  // Se tem .data com subarrays, usar .data; senao usar direto
+  if (unwrapped.data && (unwrapped.data.kpis || unwrapped.data.funil || unwrapped.data.bowtie)) {
+    return unwrapped.data
+  }
+  if (unwrapped.kpis || unwrapped.funil || unwrapped.bowtie) {
+    return unwrapped
+  }
+  return unwrapped.data ?? unwrapped
 })
 
 const mesesDisponiveis = computed(() => {

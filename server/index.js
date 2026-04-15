@@ -26,12 +26,22 @@ const sessionStore = process.env.DATABASE_URL
   ? new PgStore({ pool, schemaName: 'dashboards_hub', tableName: 'sessions' })
   : undefined // fallback MemoryStore se sem DATABASE_URL
 
+if (!process.env.SESSION_SECRET) {
+  console.error('FATAL: SESSION_SECRET nao definido. Defina a variavel de ambiente antes de iniciar.')
+  process.exit(1)
+}
+
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'dashboards-v4-secret',
+  secret: process.env.SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
   store: sessionStore,
-  cookie: { httpOnly: true, maxAge: 8 * 60 * 60 * 1000 } // 8h
+  cookie: {
+    httpOnly: true,
+    secure: NODE_ENV === 'production',
+    sameSite: 'lax',
+    maxAge: 8 * 60 * 60 * 1000 // 8h
+  }
 }))
 
 // Request logging
