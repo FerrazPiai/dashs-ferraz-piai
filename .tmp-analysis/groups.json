@@ -1,0 +1,298 @@
+{
+  "_total_items": 11,
+  "_embedded": {
+    "custom_field_groups": [
+      {
+        "id": "default",
+        "name": "Main",
+        "is_predefined": true,
+        "type": "custom_field_group",
+        "fields": [],
+        "entity_type": "leads",
+        "sort": 0,
+        "_links": {
+          "self": {
+            "href": "https://edisonv4companycom.kommo.com/api/v4/leads/custom_fields/groups/default"
+          }
+        }
+      },
+      {
+        "id": "statistic",
+        "name": "Statistics",
+        "is_predefined": true,
+        "type": "linked_group",
+        "fields": [],
+        "entity_type": "leads",
+        "sort": 1,
+        "_links": {
+          "self": {
+            "href": "https://edisonv4companycom.kommo.com/api/v4/leads/custom_fields/groups/statistic"
+          }
+        }
+      },
+      {
+        "id": "leads_55081765486234",
+        "name": "Status de Contato",
+        "is_predefined": false,
+        "type": "custom_field_group",
+        "fields": [
+          1989439,
+          1989441,
+          1988399,
+          1989753,
+          1989443,
+          1989445,
+          1989447,
+          1991151,
+          1991147,
+          1991149,
+          1991153,
+          1991155
+        ],
+        "entity_type": "leads",
+        "sort": 2,
+        "_links": {
+          "self": {
+            "href": "https://edisonv4companycom.kommo.com/api/v4/leads/custom_fields/groups/leads_55081765486234"
+          }
+        }
+      },
+      {
+        "id": "leads_87451765486535",
+        "name": "B.A.N.T",
+        "is_predefined": false,
+        "type": "custom_field_group",
+        "fields": [
+          1989473,
+          1989475,
+          1989477,
+          1989479,
+          1989755,
+          1989878,
+          1989880,
+          1989882,
+          1989888,
+          1989890,
+          1989892,
+          1989894,
+          1989896,
+          1989898,
+          1989900,
+          1989902,
+          1989904,
+          1989906,
+          1989908,
+          1989910,
+          1989914,
+          1989916,
+          1989918,
+          1989920,
+          1989922,
+          1990329,
+          1990441
+        ],
+        "entity_type": "leads",
+        "sort": 3,
+        "_links": {
+          "self": {
+            "href": "https://edisonv4companycom.kommo.com/api/v4/leads/custom_fields/groups/leads_87451765486535"
+          }
+        }
+      },
+      {
+        "id": "leads_38701765486734",
+        "name": "Negociação",
+        "is_predefined": false,
+        "type": "custom_field_group",
+        "fields": [
+          1989459,
+          1989481,
+          1989461,
+          1989765,
+          1989767,
+          1989793,
+          1989769,
+          1989771,
+          1989795,
+          1989773,
+          1989775,
+          1989797,
+          1989777,
+          1989779,
+          1989799,
+          1989781,
+          1989783,
+          1989465,
+          1990503,
+          1991145,
+          1989469,
+          1989471,
+          1989757,
+          1989787,
+          1989789,
+          1989958,
+          1989966,
+          1990062,
+          1989962,
+          1989964,
+          1990072,
+          1990074,
+          1990064,
+          1990068,
+          1990078,
+          1990080,
+          1990082,
+          1990353,
+          1990417,
+          1990515,
+          1990066,
+          1990076,
+          1990819
+        ],
+        "entity_type": "leads",
+        "sort": 4,
+        "_links": {
+          "self": {
+            "href": "https://edisonv4companycom.kommo.com/api/v4/leads/custom_fields/groups/leads_38701765486734"
+          }
+        }
+      },
+      {
+        "id": "leads_49431768587985",
+        "name": "Monetização",
+        "is_predefined": false,
+        "type": "custom_field_group",
+        "fields": [
+          1989928,
+          1989930,
+          1989954,
+          1989932,
+          1989934,
+          1989972,
+          1989938,
+          1990181,
+          1990229
+        ],
+        "entity_type": "leads",
+        "sort": 5,
+        "_links": {
+          "self": {
+            "href": "https://edisonv4companycom.kommo.com/api/v4/leads/custom_fields/groups/leads_49431768587985"
+          }
+        }
+      },
+      {
+        "id": "other_leads",
+        "name": "Related leads",
+        "is_predefined": false,
+        "type": "linked_group",
+        "fields": [],
+        "entity_type": "leads",
+        "sort": 6,
+        "_links": {
+          "self": {
+            "href": "https://edisonv4companycom.kommo.com/api/v4/leads/custom_fields/groups/other_leads"
+          }
+        }
+      },
+      {
+        "id": "leads_1871770334775",
+        "name": "Fabrica de Receita",
+        "is_predefined": false,
+        "type": "custom_field_group",
+        "fields": [
+          1990267,
+          1990431,
+          1990433,
+          1990435
+        ],
+        "entity_type": "leads",
+        "sort": 7,
+        "_links": {
+          "self": {
+            "href": "https://edisonv4companycom.kommo.com/api/v4/leads/custom_fields/groups/leads_1871770334775"
+          }
+        }
+      },
+      {
+        "id": "leads_97701770758809",
+        "name": "Saber",
+        "is_predefined": false,
+        "type": "custom_field_group",
+        "fields": [
+          1990387,
+          1990385,
+          1990357,
+          1990363,
+          1990611,
+          1990679,
+          1990369,
+          1990613,
+          1990681,
+          1990781,
+          1990783,
+          1990373,
+          1990615,
+          1990683,
+          1990377,
+          1990617,
+          1990685,
+          1990789,
+          1990791,
+          1990381,
+          1990619,
+          1990799
+        ],
+        "entity_type": "leads",
+        "sort": 8,
+        "_links": {
+          "self": {
+            "href": "https://edisonv4companycom.kommo.com/api/v4/leads/custom_fields/groups/leads_97701770758809"
+          }
+        }
+      },
+      {
+        "id": "leads_31011775840939",
+        "name": "Ter",
+        "is_predefined": false,
+        "type": "custom_field_group",
+        "fields": [
+          1991359,
+          1991361,
+          1991363,
+          1991365,
+          1991373,
+          1991377,
+          1991379,
+          1991367,
+          1991369,
+          1991375,
+          1991381,
+          1991383,
+          1991385
+        ],
+        "entity_type": "leads",
+        "sort": 9,
+        "_links": {
+          "self": {
+            "href": "https://edisonv4companycom.kommo.com/api/v4/leads/custom_fields/groups/leads_31011775840939"
+          }
+        }
+      },
+      {
+        "id": "leads_74601776186714",
+        "name": "Onboarding",
+        "is_predefined": false,
+        "type": "custom_field_group",
+        "fields": [],
+        "entity_type": "leads",
+        "sort": 10,
+        "_links": {
+          "self": {
+            "href": "https://edisonv4companycom.kommo.com/api/v4/leads/custom_fields/groups/leads_74601776186714"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,1424 @@
+[
+  {
+    "id": 1990267,
+    "name": "Coordenador",
+    "type": "text",
+    "group": "leads_1871770334775",
+    "enumsCount": 0,
+    "fill": 1,
+    "fillPct": 7,
+    "sample": "Marco Claro"
+  },
+  {
+    "id": 1990431,
+    "name": "Gestor de Projetos",
+    "type": "text",
+    "group": "leads_1871770334775",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990433,
+    "name": "Motivo de Perda",
+    "type": "textarea",
+    "group": "leads_1871770334775",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990435,
+    "name": "Valor do Fee",
+    "type": "monetary",
+    "group": "leads_1871770334775",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991359,
+    "name": "Projeto",
+    "type": "select",
+    "group": "leads_31011775840939",
+    "enumsCount": 8,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991361,
+    "name": "Valor Implementação",
+    "type": "monetary",
+    "group": "leads_31011775840939",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991363,
+    "name": "Data Início - Ter",
+    "type": "date",
+    "group": "leads_31011775840939",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991365,
+    "name": "Prazo Original",
+    "type": "date",
+    "group": "leads_31011775840939",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991367,
+    "name": "Link Contrato Ter",
+    "type": "url",
+    "group": "leads_31011775840939",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991369,
+    "name": "Link Planilha Acessos",
+    "type": "url",
+    "group": "leads_31011775840939",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991373,
+    "name": "Prazo Revisado",
+    "type": "date",
+    "group": "leads_31011775840939",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991375,
+    "name": "Link Doc. Comprovação",
+    "type": "url",
+    "group": "leads_31011775840939",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991377,
+    "name": "Data Entrega Real",
+    "type": "date",
+    "group": "leads_31011775840939",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991379,
+    "name": "Descritivo do Go Live",
+    "type": "textarea",
+    "group": "leads_31011775840939",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991381,
+    "name": "Motivo Atraso",
+    "type": "textarea",
+    "group": "leads_31011775840939",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991383,
+    "name": "Nota CSAT",
+    "type": "numeric",
+    "group": "leads_31011775840939",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991385,
+    "name": "Feedback CSAT",
+    "type": "textarea",
+    "group": "leads_31011775840939",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1989765,
+    "name": "Produto 1",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 31,
+    "fill": 15,
+    "fillPct": 100,
+    "sample": "Diagnóstico, planejamento e treinamento de CRM e Vendas"
+  },
+  {
+    "id": 1989793,
+    "name": "Categoria do Produto 1",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 4,
+    "fill": 15,
+    "fillPct": 100,
+    "sample": "Saber"
+  },
+  {
+    "id": 1989461,
+    "name": "Tier",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 5,
+    "fill": 14,
+    "fillPct": 93,
+    "sample": "Large - 50 a 480 Mi (Ano)"
+  },
+  {
+    "id": 1989469,
+    "name": "Link do Contrato 1",
+    "type": "url",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 14,
+    "fillPct": 93,
+    "sample": "http://n/a"
+  },
+  {
+    "id": 1989757,
+    "name": "Início do Projeto",
+    "type": "date",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 14,
+    "fillPct": 93,
+    "sample": 1772852400
+  },
+  {
+    "id": 1989767,
+    "name": "Valor Produto 1",
+    "type": "monetary",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 14,
+    "fillPct": 93,
+    "sample": "12000"
+  },
+  {
+    "id": 1989787,
+    "name": "Forma de Pagamento 1",
+    "type": "multiselect",
+    "group": "leads_38701765486734",
+    "enumsCount": 4,
+    "fill": 14,
+    "fillPct": 93,
+    "sample": "Cartão de Crédito"
+  },
+  {
+    "id": 1990353,
+    "name": "Data da Assinatura",
+    "type": "date",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 13,
+    "fillPct": 87,
+    "sample": 1768446000
+  },
+  {
+    "id": 1989789,
+    "name": "Parcelamento",
+    "type": "multiselect",
+    "group": "leads_38701765486734",
+    "enumsCount": 12,
+    "fill": 12,
+    "fillPct": 80,
+    "sample": "12x"
+  },
+  {
+    "id": 1989964,
+    "name": "Parcelamento",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 12,
+    "fill": 7,
+    "fillPct": 47,
+    "sample": "12x"
+  },
+  {
+    "id": 1989966,
+    "name": "Valor primeiro pagamento",
+    "type": "numeric",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 7,
+    "fillPct": 47,
+    "sample": "14745"
+  },
+  {
+    "id": 1989769,
+    "name": "Produto 2",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 26,
+    "fill": 6,
+    "fillPct": 40,
+    "sample": "Implementação de SDR-IA"
+  },
+  {
+    "id": 1989771,
+    "name": "Valor Produto 2",
+    "type": "monetary",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 6,
+    "fillPct": 40,
+    "sample": "12000"
+  },
+  {
+    "id": 1989459,
+    "name": "Status do Lead",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 3,
+    "fill": 5,
+    "fillPct": 33,
+    "sample": "Quente"
+  },
+  {
+    "id": 1989481,
+    "name": "Previsão de Fechamento",
+    "type": "date",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 5,
+    "fillPct": 33,
+    "sample": 1773802800
+  },
+  {
+    "id": 1989795,
+    "name": "Categoria do Produto 2",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 4,
+    "fill": 5,
+    "fillPct": 33,
+    "sample": "Saber"
+  },
+  {
+    "id": 1989958,
+    "name": "Primeiro pagamento",
+    "type": "date",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 5,
+    "fillPct": 33,
+    "sample": 1773975600
+  },
+  {
+    "id": 1990417,
+    "name": "Link da Proposa",
+    "type": "url",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 5,
+    "fillPct": 33,
+    "sample": "https://drive.google.com/drive/folders/1moykLim18l2d7w1Io0o_vhtDuGHepiEe?hl=pt-br"
+  },
+  {
+    "id": 1990515,
+    "name": "TCV",
+    "type": "text",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 5,
+    "fillPct": 33,
+    "sample": "142906"
+  },
+  {
+    "id": 1989465,
+    "name": "Valor Fee (Recorrente)",
+    "type": "monetary",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 4,
+    "fillPct": 27,
+    "sample": "9702"
+  },
+  {
+    "id": 1989471,
+    "name": "Acordos Especiais",
+    "type": "textarea",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 4,
+    "fillPct": 27,
+    "sample": "0"
+  },
+  {
+    "id": 1989773,
+    "name": "Produto 3",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 26,
+    "fill": 4,
+    "fillPct": 27,
+    "sample": "Implementação de Landing Pages"
+  },
+  {
+    "id": 1989775,
+    "name": "Valor Produto 3",
+    "type": "monetary",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 4,
+    "fillPct": 27,
+    "sample": "3349"
+  },
+  {
+    "id": 1989781,
+    "name": "Valor Bookado",
+    "type": "monetary",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 4,
+    "fillPct": 27,
+    "sample": "142906"
+  },
+  {
+    "id": 1989962,
+    "name": "Forma de Pagamento 2",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 4,
+    "fill": 4,
+    "fillPct": 27,
+    "sample": "Boleto"
+  },
+  {
+    "id": 1989777,
+    "name": "Produto 4",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 25,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "Implementação de CRM Vendas"
+  },
+  {
+    "id": 1989779,
+    "name": "Valor Produto 4",
+    "type": "monetary",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "7492"
+  },
+  {
+    "id": 1989783,
+    "name": "Qnt Meses Bookado",
+    "type": "numeric",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "12"
+  },
+  {
+    "id": 1989797,
+    "name": "Categoria do Produto 3",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 4,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "Ter"
+  },
+  {
+    "id": 1989799,
+    "name": "Categoria do Produto 4",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 4,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "Ter"
+  },
+  {
+    "id": 1990503,
+    "name": "Fee (One time)",
+    "type": "text",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "5043"
+  },
+  {
+    "id": 1990819,
+    "name": "Closed Won",
+    "type": "date",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 1,
+    "fillPct": 7,
+    "sample": 1774926000
+  },
+  {
+    "id": 1990062,
+    "name": "Link do Contrato 2",
+    "type": "url",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990064,
+    "name": "Link do Contrato 3",
+    "type": "url",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990066,
+    "name": "Início do Projeto2",
+    "type": "date",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990068,
+    "name": "Forma de Pagamento",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 4,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990072,
+    "name": "Primeiro Pagamento",
+    "type": "text",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990074,
+    "name": "Valor do Primeiro Pagamento",
+    "type": "monetary",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990076,
+    "name": "Início do Projeto3",
+    "type": "date",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990078,
+    "name": "Parcelamento",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 12,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990080,
+    "name": "Primeiro Pagamento",
+    "type": "date",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990082,
+    "name": "Valor Terceiro pagamento",
+    "type": "monetary",
+    "group": "leads_38701765486734",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991145,
+    "name": "Horas Alocadas",
+    "type": "select",
+    "group": "leads_38701765486734",
+    "enumsCount": 5,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1989938,
+    "name": "Squad",
+    "type": "select",
+    "group": "leads_49431768587985",
+    "enumsCount": 6,
+    "fill": 8,
+    "fillPct": 53,
+    "sample": "Deniz Oliveira"
+  },
+  {
+    "id": 1989972,
+    "name": "Flag",
+    "type": "select",
+    "group": "leads_49431768587985",
+    "enumsCount": 4,
+    "fill": 8,
+    "fillPct": 53,
+    "sample": "Safe"
+  },
+  {
+    "id": 1989928,
+    "name": "Link Kickoff Interno",
+    "type": "url",
+    "group": "leads_49431768587985",
+    "enumsCount": 0,
+    "fill": 7,
+    "fillPct": 47,
+    "sample": "http://https//:w"
+  },
+  {
+    "id": 1990229,
+    "name": "Account",
+    "type": "text",
+    "group": "leads_49431768587985",
+    "enumsCount": 0,
+    "fill": 7,
+    "fillPct": 47,
+    "sample": "Victor Santos"
+  },
+  {
+    "id": 1989932,
+    "name": "Dores",
+    "type": "textarea",
+    "group": "leads_49431768587985",
+    "enumsCount": 0,
+    "fill": 5,
+    "fillPct": 33,
+    "sample": "O cliente apresentou uma necessidade de controlar KPIs e controlar as informações de cliente, por canal, quantidade de propostas enviadas, entre outras informações. A dor identificada foi porque o cliente perdeu R$32 mi em proposta comercial. A reunião com o Pedro Miguel foi direcionada para o CRM Ploomes."
+  },
+  {
+    "id": 1989954,
+    "name": "Oportunidade Mapeada",
+    "type": "select",
+    "group": "leads_49431768587985",
+    "enumsCount": 2,
+    "fill": 5,
+    "fillPct": 33,
+    "sample": "Sim"
+  },
+  {
+    "id": 1989934,
+    "name": "Solução",
+    "type": "select",
+    "group": "leads_49431768587985",
+    "enumsCount": 30,
+    "fill": 4,
+    "fillPct": 27,
+    "sample": "Implementação CRM"
+  },
+  {
+    "id": 1990181,
+    "name": "E-mail do Coordenador",
+    "type": "text",
+    "group": "leads_49431768587985",
+    "enumsCount": 0,
+    "fill": 4,
+    "fillPct": 27,
+    "sample": "deniz_oliveira@v4company.com"
+  },
+  {
+    "id": 1989930,
+    "name": "Link Transcrição (Kickoff)",
+    "type": "text",
+    "group": "leads_49431768587985",
+    "enumsCount": 0,
+    "fill": 2,
+    "fillPct": 13,
+    "sample": "https://docs.google.com/document/d/1TgtrM8Pfgok6URHHDUz3IUOu2Bq4KXjOBp-PODeaQ68/edit?tab=t.0"
+  },
+  {
+    "id": 1988399,
+    "name": "Data da Reunião",
+    "type": "date_time",
+    "group": "leads_55081765486234",
+    "enumsCount": 0,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": 1772222400
+  },
+  {
+    "id": 1989753,
+    "name": "Link da Reunião 1:",
+    "type": "url",
+    "group": "leads_55081765486234",
+    "enumsCount": 0,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "https://meet.google.com/wqd-okzz-hxb"
+  },
+  {
+    "id": 1989439,
+    "name": "Contatado",
+    "type": "checkbox",
+    "group": "leads_55081765486234",
+    "enumsCount": 0,
+    "fill": 2,
+    "fillPct": 13,
+    "sample": true
+  },
+  {
+    "id": 1989441,
+    "name": "Conectado",
+    "type": "checkbox",
+    "group": "leads_55081765486234",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1989443,
+    "name": "Ocorrência",
+    "type": "select",
+    "group": "leads_55081765486234",
+    "enumsCount": 2,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1989445,
+    "name": "Qtd. Remarcações",
+    "type": "numeric",
+    "group": "leads_55081765486234",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1989447,
+    "name": "Qtd. No-shows",
+    "type": "numeric",
+    "group": "leads_55081765486234",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991147,
+    "name": "MQL",
+    "type": "date",
+    "group": "leads_55081765486234",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991149,
+    "name": "SQL",
+    "type": "date",
+    "group": "leads_55081765486234",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991151,
+    "name": "DT. ENTRADA",
+    "type": "date",
+    "group": "leads_55081765486234",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991153,
+    "name": "SAL",
+    "type": "date",
+    "group": "leads_55081765486234",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991155,
+    "name": "CLOSED WON",
+    "type": "text",
+    "group": "leads_55081765486234",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1989878,
+    "name": "Descrição da Empresa",
+    "type": "textarea",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "Descrição da empresa/Serviços oferecidos: Agência de viagens focada no nicho corporativo (B2B), eventos e viagens de lazer com gestão de milhas (B2C).\nDiferenciais e público-alvo:\n\n70% do faturamento vem do B2B. Atendem principalmente PMEs (Pequenas e Médias Empresas)."
+  },
+  {
+    "id": 1989880,
+    "name": "Objetivo da Empresa",
+    "type": "textarea",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "Estancar o prejuízo no marketing B2B e implementar a SDR IA para automação de scripts, cadência e agendamento de reuniões com decisores, além de ativar a base de leads do ERP."
+  },
+  {
+    "id": 1989882,
+    "name": "Instagram",
+    "type": "url",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "https://www.instagram.com/baroloviagens/"
+  },
+  {
+    "id": 1989888,
+    "name": "Site",
+    "type": "url",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "https://baroloviagens.com/"
+  },
+  {
+    "id": 1989890,
+    "name": "Cenário do Marketing",
+    "type": "select",
+    "group": "leads_87451765486535",
+    "enumsCount": 8,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "Agência"
+  },
+  {
+    "id": 1989892,
+    "name": "Consciência das Métricas",
+    "type": "select",
+    "group": "leads_87451765486535",
+    "enumsCount": 3,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "Alta"
+  },
+  {
+    "id": 1989894,
+    "name": "Investe em Tráfego",
+    "type": "select",
+    "group": "leads_87451765486535",
+    "enumsCount": 3,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "Sim, já investe"
+  },
+  {
+    "id": 1989896,
+    "name": "Verba em tráfego",
+    "type": "monetary",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "3000"
+  },
+  {
+    "id": 1989898,
+    "name": "Dores do Negócio",
+    "type": "textarea",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "O Inbound B2B não dá resultado; investimento \"queimado\" em tráfego sem conversão; e falta de braço comercial eficiente (está demitindo uma funcionária hunter por falta de resultados por não ter o inbound vindo da forma que esperou). Estancar o prejuízo no marketing B2B e implementar a SDR IA para automação\n\nTem muito mais retorno através do Outbound (prospecção ativa pelo sócio)"
+  },
+  {
+    "id": 1989900,
+    "name": "Canais de Vendas",
+    "type": "multiselect",
+    "group": "leads_87451765486535",
+    "enumsCount": 7,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "Inside Sales"
+  },
+  {
+    "id": 1989902,
+    "name": "Utiliza CRM",
+    "type": "select",
+    "group": "leads_87451765486535",
+    "enumsCount": 2,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "Sim"
+  },
+  {
+    "id": 1989904,
+    "name": "Stack de Ferramentas",
+    "type": "textarea",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "Utilizam um ERP que contém uma base robusta de leads, mas sentem falta de uma ferramenta de automação comercial como a SDR IA."
+  },
+  {
+    "id": 1989908,
+    "name": "Ticket Médio",
+    "type": "monetary",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "0"
+  },
+  {
+    "id": 1989910,
+    "name": "Lucro Líquido",
+    "type": "numeric",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "0"
+  },
+  {
+    "id": 1989914,
+    "name": "Participantes (Nome/Cargo)",
+    "type": "textarea",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "Rodrigo (Proprietário/Sócio)."
+  },
+  {
+    "id": 1989916,
+    "name": "Decisor na call",
+    "type": "select",
+    "group": "leads_87451765486535",
+    "enumsCount": 2,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "Sim"
+  },
+  {
+    "id": 1989918,
+    "name": "Urgência",
+    "type": "select",
+    "group": "leads_87451765486535",
+    "enumsCount": 4,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "Agora/Urgente"
+  },
+  {
+    "id": 1989920,
+    "name": "Perfil do lead",
+    "type": "multiselect",
+    "group": "leads_87451765486535",
+    "enumsCount": 4,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "D - Dominante"
+  },
+  {
+    "id": 1989922,
+    "name": "Detalhes do DISC",
+    "type": "textarea",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 11,
+    "fillPct": 73,
+    "sample": "Dominante (D) e Analítico (C). Participou do workshop, deu nota 10, é direto, conhece seus números e quer soluções tecnológicas de ponta."
+  },
+  {
+    "id": 1989906,
+    "name": "Faturamento",
+    "type": "select",
+    "group": "leads_87451765486535",
+    "enumsCount": 5,
+    "fill": 6,
+    "fillPct": 40,
+    "sample": "Large - 50 a 480 Mi"
+  },
+  {
+    "id": 1989473,
+    "name": "Budget (Orçamento)",
+    "type": "select",
+    "group": "leads_87451765486535",
+    "enumsCount": 2,
+    "fill": 5,
+    "fillPct": 33,
+    "sample": "Sim"
+  },
+  {
+    "id": 1989475,
+    "name": "Authority (Autoridade)",
+    "type": "select",
+    "group": "leads_87451765486535",
+    "enumsCount": 2,
+    "fill": 5,
+    "fillPct": 33,
+    "sample": "Sim"
+  },
+  {
+    "id": 1989477,
+    "name": "Need (Necessidade)",
+    "type": "select",
+    "group": "leads_87451765486535",
+    "enumsCount": 2,
+    "fill": 5,
+    "fillPct": 33,
+    "sample": "Sim"
+  },
+  {
+    "id": 1989479,
+    "name": "Timing (Urgência)",
+    "type": "select",
+    "group": "leads_87451765486535",
+    "enumsCount": 2,
+    "fill": 5,
+    "fillPct": 33,
+    "sample": "Sim"
+  },
+  {
+    "id": 1989755,
+    "name": "BANT",
+    "type": "file",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990329,
+    "name": "Nome da Empresa",
+    "type": "text",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990441,
+    "name": "Observação Complementar",
+    "type": "textarea",
+    "group": "leads_87451765486535",
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1990387,
+    "name": "Link da Pasta do Cliente",
+    "type": "url",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 6,
+    "fillPct": 40,
+    "sample": "https://drive.google.com/drive/folders/1syuqyD05h3yFERNUbadMH7sv0gqKsJzu"
+  },
+  {
+    "id": 1990357,
+    "name": "Fase 1 - Link Google Slides",
+    "type": "url",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 4,
+    "fillPct": 27,
+    "sample": "https://docs.google.com/presentation/d/1PGIeGDBrHyrjpcjfN0rB9y9wB7iGqHNxkVTCEzHv89Q/edit"
+  },
+  {
+    "id": 1990363,
+    "name": "Fase 1 - Link da Reunião",
+    "type": "url",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 4,
+    "fillPct": 27,
+    "sample": "https://drive.google.com/file/d/1XleMUtHl4MNW7Ufvk71_9SdONKvzTAGP/view"
+  },
+  {
+    "id": 1990369,
+    "name": "Fase 2 - Link da Reunião",
+    "type": "url",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 4,
+    "fillPct": 27,
+    "sample": "https://drive.google.com/file/d/1lwWQijDpOS5yFCMsEru8rtauWp5bVxfJ/view"
+  },
+  {
+    "id": 1990385,
+    "name": "Reunião de Kick-off",
+    "type": "url",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 4,
+    "fillPct": 27,
+    "sample": "https://drive.google.com/file/d/1dOtikBEt9RkhzKDeJSY7h8bpTJmZPzsD/view"
+  },
+  {
+    "id": 1990373,
+    "name": "Fase 3 - Link da Reunião",
+    "type": "url",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "https://drive.google.com/file/d/1BaKsu2NYrBoIeeRaP7BH7_N_ePOAnZrn/view"
+  },
+  {
+    "id": 1990377,
+    "name": "Fase 4 - Link da Reunião",
+    "type": "url",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "https://drive.google.com/file/d/1EVvLKMFQ0zHGM8laPDAsoHaIOBLYmFAe/view?usp=sharing"
+  },
+  {
+    "id": 1990381,
+    "name": "Fase 5 - Link da Reunião",
+    "type": "url",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "http://#"
+  },
+  {
+    "id": 1990611,
+    "name": "Fase 1 - Transcrição",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "http"
+  },
+  {
+    "id": 1990613,
+    "name": "Fase 2 - Transcrição",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "http"
+  },
+  {
+    "id": 1990615,
+    "name": "Fase 3 - Transcrição",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "http"
+  },
+  {
+    "id": 1990617,
+    "name": "Fase 4 - Transcrição",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "http"
+  },
+  {
+    "id": 1990619,
+    "name": "Fase 5 - Transcrição",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "#"
+  },
+  {
+    "id": 1990679,
+    "name": "Fase 2 - Link Google Slides",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "http"
+  },
+  {
+    "id": 1990681,
+    "name": "Fase 3 - Link Google Slides",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "http"
+  },
+  {
+    "id": 1990683,
+    "name": "Fase 4 - Link Google Slides",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "http"
+  },
+  {
+    "id": 1990685,
+    "name": "Fase 5 - Link Google Slides",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "http"
+  },
+  {
+    "id": 1990781,
+    "name": "Fase 3 - Link Figma",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "http"
+  },
+  {
+    "id": 1990783,
+    "name": "Fase 3 - Link Miro",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "http"
+  },
+  {
+    "id": 1990789,
+    "name": "Fase 5 - Link Figma",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "http"
+  },
+  {
+    "id": 1990791,
+    "name": "Fase 5 - Link Miro",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "http"
+  },
+  {
+    "id": 1990799,
+    "name": "Fase 5 - Sheets com o Cronograma de Entregas",
+    "type": "text",
+    "group": "leads_97701770758809",
+    "enumsCount": 0,
+    "fill": 3,
+    "fillPct": 20,
+    "sample": "#"
+  },
+  {
+    "id": 1989435,
+    "name": "Canal de Origem",
+    "type": "select",
+    "group": null,
+    "enumsCount": 9,
+    "fill": 15,
+    "fillPct": 100,
+    "sample": "Evento"
+  },
+  {
+    "id": 1988415,
+    "name": "Produtos Vendidos",
+    "type": "multiselect",
+    "group": null,
+    "enumsCount": 27,
+    "fill": 14,
+    "fillPct": 93,
+    "sample": "Diagnóstico e Planejamento de E-commerce"
+  },
+  {
+    "id": 1988407,
+    "name": "Closer",
+    "type": "select",
+    "group": null,
+    "enumsCount": 5,
+    "fill": 13,
+    "fillPct": 87,
+    "sample": "Lucas Cunha"
+  },
+  {
+    "id": 1988389,
+    "name": "Pré-vendas",
+    "type": "select",
+    "group": null,
+    "enumsCount": 6,
+    "fill": 12,
+    "fillPct": 80,
+    "sample": "Geovanna Correa"
+  },
+  {
+    "id": 1990299,
+    "name": "Faturamento",
+    "type": "select",
+    "group": null,
+    "enumsCount": 6,
+    "fill": 5,
+    "fillPct": 33,
+    "sample": "Medium - 201 mil a 4 Mi (mês)"
+  },
+  {
+    "id": 1989749,
+    "name": "Subcanais",
+    "type": "select",
+    "group": null,
+    "enumsCount": 8,
+    "fill": 2,
+    "fillPct": 13,
+    "sample": "Imersão Caup"
+  },
+  {
+    "id": 1990231,
+    "name": "Produto Origem",
+    "type": "select",
+    "group": null,
+    "enumsCount": 2,
+    "fill": 2,
+    "fillPct": 13,
+    "sample": "Saber"
+  },
+  {
+    "id": 1989751,
+    "name": "Campanha",
+    "type": "text",
+    "group": null,
+    "enumsCount": 0,
+    "fill": 1,
+    "fillPct": 7,
+    "sample": "Lead Broker"
+  },
+  {
+    "id": 1985077,
+    "name": "Status de Cobrança",
+    "type": "select",
+    "group": null,
+    "enumsCount": 4,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1985081,
+    "name": "Link para Pagamento / Boleto 1",
+    "type": "url",
+    "group": null,
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1985305,
+    "name": "Data de Pagamento",
+    "type": "date_time",
+    "group": null,
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1985307,
+    "name": "data automação",
+    "type": "date",
+    "group": null,
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1985807,
+    "name": "Link para Pagamento / Boleto 2",
+    "type": "url",
+    "group": null,
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1985809,
+    "name": "Link para Pagamento / Boleto 3",
+    "type": "url",
+    "group": null,
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1988611,
+    "name": "Evento",
+    "type": "text",
+    "group": null,
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1989437,
+    "name": "Custo do Lead",
+    "type": "monetary",
+    "group": null,
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  },
+  {
+    "id": 1991157,
+    "name": "Upcoming Appointment",
+    "type": "date_time",
+    "group": null,
+    "enumsCount": 0,
+    "fill": 0,
+    "fillPct": 0
+  }
+]

@@ -4,11 +4,15 @@ import { requireAuth } from '../middleware/requireAuth.js'
 import { enqueueJob } from '../services/tc-job-worker.js'
 import {
   createLead,
+  createLeadMultiProduto,
+  updateLeadCustomField,
   getCustomFieldValue,
+  getKommoCatalogos,
   CUSTOM_FIELD_IDS,
   STAGE_TO_FASE,
   STAGE_PRE_PROJETO,
-  PIPELINE_SABER
+  PIPELINE_SABER,
+  EDITABLE_MATERIAL_FIELD_IDS
 } from '../services/kommo-client.js'
 import { rodarSync, getSyncState } from '../services/kommo-sync.js'
 
@@ -299,6 +303,13 @@ router.get('/cliente/:id/fase/:faseId', async (req, res, next) => {
         WHERE projeto_fase_id = $1 ORDER BY versao DESC
       `, [projetoFaseId])
 
+      // Le ultima_falha para banner inline no SuperPainel
+      const { rows: [falhaRow] } = await pool.query(
+        `SELECT ultima_falha_em, ultima_falha_msg
+         FROM dashboards_hub.tc_projeto_fases WHERE id = $1`,
+        [projetoFaseId]
+      ).catch(() => ({ rows: [] }))
+
       res.json({
         fase: {
           id: projetoFaseId,
@@ -307,7 +318,9 @@ router.get('/cliente/:id/fase/:faseId', async (req, res, next) => {
           lead_id: leadId,
           fase_nome: stageInfo.nome,
           fase_slug: stageInfo.slug,
-          stage_id: stageId
+          stage_id: stageId,
+          ultima_falha_em: falhaRow?.ultima_falha_em || null,
+          ultima_falha_msg: falhaRow?.ultima_falha_msg || null
         },
         analises
       })
@@ -389,6 +402,110 @@ router.post('/kommo/lead', async (req, res, next) => {
     }
     const lead = await createLead(pipelineId, statusId, leadData)
     res.json({ lead })
+  } catch (err) { next(err) }
+})
+
+// Catalogos Kommo (produtos / categorias / solucoes) — usado pelo modal Kommo
+// e pelo frontend para renderizar dropdowns alinhados com a lista real.
+router.get('/catalogo-kommo', async (_req, res, next) => {
+  try {
+    res.json(getKommoCatalogos())
+  } catch (err) { next(err) }
+})
+
+// Cria lead no pipeline Expansao (12184212) com ate 4 produtos + campos herdados.
+// Sem selecao de etapa — Kommo joga na primeira etapa do pipeline automaticamente.
+router.post('/kommo/oportunidade', async (req, res, next) => {
+  try {
+    const { name, produtos = [], campos = {}, fonte = {} } = req.body || {}
+    if (!name || !Array.isArray(produtos) || produtos.length === 0) {
+      return res.status(400).json({ error: 'name e produtos[] obrigatorios' })
+    }
+    if (produtos.length > 4) {
+      return res.status(400).json({ error: 'Maximo 4 produtos por lead (slots Kommo)' })
+    }
+
+    const lead = await createLeadMultiProduto({ name, produtos, campos })
+
+    // Persiste rastreabilidade (analise -> lead Kommo)
+    try {
+      await pool.query(`
+        INSERT INTO dashboards_hub.tc_oportunidades_kommo
+          (analise_id, lead_origem_id, kommo_lead_id, produtos, valor_total, criado_por)
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `, [
+        fonte.analise_id || null,
+        fonte.lead_origem_id || null,
+        lead?.id,
+        JSON.stringify(produtos),
+        produtos.reduce((a, p) => a + (Number(p.valor) || 0), 0),
+        sessionUserId(req)
+      ])
+    } catch (err) {
+      console.warn(`[${new Date().toISOString()}] [oportunidade] falha ao persistir rastreabilidade:`, err.message)
+    }
+
+    res.json({
+      lead,
+      kommo_url: lead?.id ? `https://edisonv4companycom.kommo.com/leads/detail/${lead.id}` : null
+    })
+  } catch (err) { next(err) }
+})
+
+// Atualiza um unico custom field do lead (editor de materiais).
+// Somente admin/board podem editar. Whitelist de fields para evitar abuso.
+router.patch('/lead/:leadId/custom-field', async (req, res, next) => {
+  try {
+    if (!['admin', 'board'].includes(sessionRole(req))) {
+      return res.status(403).json({ error: 'somente admin ou board podem editar materiais' })
+    }
+    const leadId = parseInt(req.params.leadId, 10)
+    const fieldId = parseInt(req.body?.field_id, 10)
+    const value = req.body?.value ?? ''
+    if (!leadId || !fieldId) {
+      return res.status(400).json({ error: 'leadId e field_id obrigatorios' })
+    }
+    if (!EDITABLE_MATERIAL_FIELD_IDS.has(fieldId)) {
+      return res.status(403).json({ error: 'campo nao editavel via Hub' })
+    }
+
+    await updateLeadCustomField(leadId, fieldId, value)
+
+    // Atualiza cache local — merge do array custom_fields (se o campo existe, substitui;
+    // se nao existe ainda, adiciona). Usa COALESCE para leads que nunca tiveram CF.
+    await pool.query(`
+      UPDATE dashboards_hub.tc_kommo_leads
+      SET custom_fields = (
+        SELECT
+          CASE
+            WHEN EXISTS (
+              SELECT 1 FROM jsonb_array_elements(COALESCE(custom_fields, '[]'::jsonb)) item
+              WHERE (item->>'field_id')::bigint = $1
+            )
+            THEN (
+              SELECT jsonb_agg(
+                CASE WHEN (item->>'field_id')::bigint = $1
+                  THEN jsonb_set(item, '{values}', jsonb_build_array(jsonb_build_object('value', $2::text)))
+                  ELSE item
+                END
+              )
+              FROM jsonb_array_elements(COALESCE(custom_fields, '[]'::jsonb)) item
+            )
+            ELSE COALESCE(custom_fields, '[]'::jsonb) || jsonb_build_array(
+              jsonb_build_object(
+                'field_id', $1::bigint,
+                'values', jsonb_build_array(jsonb_build_object('value', $2::text))
+              )
+            )
+          END
+      ),
+      updated_at = NOW()
+      WHERE id = $3
+    `, [fieldId, String(value), leadId]).catch(err => {
+      console.warn(`[${new Date().toISOString()}] [custom-field] falha no cache local:`, err.message)
+    })
+
+    res.json({ ok: true, field_id: fieldId, value: String(value) })
   } catch (err) { next(err) }
 })
 
@@ -505,12 +622,12 @@ router.get('/painel-geral', async (req, res, next) => {
     `, [ids])
 
     const oportunidades = await pool.query(`
-      SELECT status, COUNT(*) AS total, COALESCE(SUM(valor_estimado), 0) AS valor
+      SELECT o.status AS status, COUNT(*) AS total, COALESCE(SUM(o.valor_estimado), 0) AS valor
       FROM dashboards_hub.tc_oportunidades o
       JOIN dashboards_hub.tc_projeto_fases pf ON pf.id = o.projeto_fase_id
       JOIN dashboards_hub.tc_projetos p ON p.id = pf.projeto_id
       WHERE p.cliente_id = ANY($1)
-      GROUP BY status
+      GROUP BY o.status
     `, [ids])
 
     const heatmap = await pool.query(`

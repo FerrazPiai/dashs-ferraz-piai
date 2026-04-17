@@ -79,6 +79,30 @@ export function useTorreControle() {
     })
   }
 
+  // Cria oportunidade no pipeline Expansao (multi-produto, sem etapa manual)
+  async function criarOportunidadeKommo(payload) {
+    return apiFetch('/kommo/oportunidade', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    })
+  }
+
+  // Catalogos Kommo (produtos/categorias/solucoes) — cache in-memory durante a sessao
+  const catalogoKommo = shallowRef(null)
+  async function carregarCatalogoKommo() {
+    if (catalogoKommo.value) return catalogoKommo.value
+    catalogoKommo.value = await apiFetch('/catalogo-kommo')
+    return catalogoKommo.value
+  }
+
+  // Atualiza um custom field do lead no Kommo via API (editor de materiais)
+  async function atualizarCustomFieldLead(leadId, fieldId, value) {
+    return apiFetch(`/lead/${leadId}/custom-field`, {
+      method: 'PATCH',
+      body: JSON.stringify({ field_id: fieldId, value })
+    })
+  }
+
   function pollJob(jobId) {
     if (activeJobs.value.has(jobId)) return
     activeJobs.value.set(jobId, { id: jobId, status: 'pending', progresso: {} })
@@ -166,7 +190,10 @@ export function useTorreControle() {
     matriz, painelGeral, loading, error,
     activeJobs, jobsEmAndamento,
     carregarMatriz, carregarPainelGeral, carregarDetalheFase,
-    analisar, analisarFinal, analisarMassa, criarLeadKommo,
+    analisar, analisarFinal, analisarMassa,
+    criarLeadKommo, criarOportunidadeKommo,
+    catalogoKommo, carregarCatalogoKommo,
+    atualizarCustomFieldLead,
     syncStatus, carregarStatusSync, dispararAtualizacao, iniciarPollingSync, pararPollingSync
   }
 }

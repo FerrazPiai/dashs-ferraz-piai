@@ -54,6 +54,7 @@ async function updateProgress(jobId, progresso) {
 
 async function processJob(job) {
   const onProgress = (data) => updateProgress(job.id, data).catch(() => {})
+  const projetoFaseId = job.progresso?.payload?.projetoFaseId || null
   try {
     let resultado
     if (job.tipo === 'analyze_phase') {
@@ -92,6 +93,16 @@ async function processJob(job) {
        WHERE id = $2`,
       [JSON.stringify(resultado), job.id]
     )
+
+    // Sucesso: limpa ultima_falha da fase (se era analyze_phase/final)
+    if (projetoFaseId && (job.tipo === 'analyze_phase' || job.tipo === 'analyze_final')) {
+      await pool.query(
+        `UPDATE dashboards_hub.tc_projeto_fases
+         SET ultima_falha_em = NULL, ultima_falha_msg = NULL
+         WHERE id = $1`,
+        [projetoFaseId]
+      ).catch(() => {})
+    }
   } catch (err) {
     console.error(`[${new Date().toISOString()}] [worker] job ${job.id} falhou:`, err.message)
     const proxima = job.tentativas + 1 >= MAX_RETRIES ? 'failed' : 'pending'
@@ -102,6 +113,16 @@ async function processJob(job) {
        WHERE id = $3`,
       [proxima, JSON.stringify({ ultimo_erro: err.message }), job.id]
     )
+
+    // Persiste ultima_falha na fase para banner inline no SuperPainel
+    if (projetoFaseId && (job.tipo === 'analyze_phase' || job.tipo === 'analyze_final')) {
+      await pool.query(
+        `UPDATE dashboards_hub.tc_projeto_fases
+         SET ultima_falha_em = NOW(), ultima_falha_msg = $1
+         WHERE id = $2`,
+        [String(err.message || err).slice(0, 1000), projetoFaseId]
+      ).catch(() => {})
+    }
   }
 }
 

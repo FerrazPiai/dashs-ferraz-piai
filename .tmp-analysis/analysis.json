@@ -1,0 +1,2447 @@
+{
+  "leadsCount": 96,
+  "rows": [
+    {
+      "id": 1989757,
+      "name": "Início do Projeto",
+      "type": "date",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 78,
+      "pct": 81,
+      "distinct": 58,
+      "topVals": [
+        "1764558000(5)",
+        "1768273200(3)",
+        "1770087600(3)",
+        "1771815600(2)",
+        "1770778800(2)"
+      ]
+    },
+    {
+      "id": 1989938,
+      "name": "Squad",
+      "type": "select",
+      "group": "leads_49431768587985",
+      "enumsTotal": 6,
+      "fill": 78,
+      "pct": 81,
+      "distinct": 4,
+      "topVals": [
+        "Marco Claro(58)",
+        "Deniz Oliveira(9)",
+        "Gabriela Campos(7)",
+        "Silvania Fraga(4)"
+      ]
+    },
+    {
+      "id": 1989461,
+      "name": "Tier",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 5,
+      "fill": 76,
+      "pct": 79,
+      "distinct": 5,
+      "topVals": [
+        "Medium - 2.4 a 50 Mi (Ano)(34)",
+        "Small - 1.2 a 2.4 Mi(20)",
+        "Tiny - Ate 1.2 Mi(15)",
+        "Large - 50 a 480 Mi (Ano)(6)",
+        "Enterprise - 480 Mi (Ano)(1)"
+      ]
+    },
+    {
+      "id": 1990353,
+      "name": "Data da Assinatura",
+      "type": "date",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 76,
+      "pct": 79,
+      "distinct": 58,
+      "topVals": [
+        "1774839600(3)",
+        "1772161200(3)",
+        "1770087600(3)",
+        "1768273200(2)",
+        "1774494000(2)"
+      ]
+    },
+    {
+      "id": 1989928,
+      "name": "Link Kickoff Interno",
+      "type": "url",
+      "group": "leads_49431768587985",
+      "enumsTotal": 0,
+      "fill": 75,
+      "pct": 78,
+      "distinct": 44,
+      "topVals": [
+        "http://#(11)",
+        "http://https.com(10)",
+        "http://.(8)",
+        "http://-(3)",
+        "https://drive.google.com/file/d/11cTPmEMp0g0A-PKYpqkYmOSeXCfCuTAy/view?usp=sharing(2)"
+      ]
+    },
+    {
+      "id": 1990387,
+      "name": "Link da Pasta do Cliente",
+      "type": "url",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 70,
+      "pct": 73,
+      "distinct": 57,
+      "topVals": [
+        "http://#(12)",
+        "http://https://(2)",
+        "https://drive.google.com/drive/folders/1SY1sV1-rExgFTyGxFI3HEMRESiLYzZ-t(2)",
+        "https://drive.google.com/drive/folders/1syuqyD05h3yFERNUbadMH7sv0gqKsJzu(1)",
+        "https://drive.google.com/drive/folders/1eKneynK3IeNVeEPtegph44cOrv2xxIK_(1)"
+      ]
+    },
+    {
+      "id": 1990357,
+      "name": "Fase 1 - Link Google Slides",
+      "type": "url",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 68,
+      "pct": 71,
+      "distinct": 49,
+      "topVals": [
+        "http://#(13)",
+        "http://na(4)",
+        "http://.(3)",
+        "http://https://(2)",
+        "http://http(2)"
+      ]
+    },
+    {
+      "id": 1990363,
+      "name": "Fase 1 - Link da Reunião",
+      "type": "url",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 68,
+      "pct": 71,
+      "distinct": 49,
+      "topVals": [
+        "http://#(15)",
+        "http://na(4)",
+        "http://.(3)",
+        "https://drive.google.com/file/d/1XleMUtHl4MNW7Ufvk71_9SdONKvzTAGP/view(1)",
+        "http://Churn(1)"
+      ]
+    },
+    {
+      "id": 1990385,
+      "name": "Reunião de Kick-off",
+      "type": "url",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 68,
+      "pct": 71,
+      "distinct": 49,
+      "topVals": [
+        "http://#(15)",
+        "http://na(4)",
+        "http://.(3)",
+        "https://drive.google.com/file/d/1dOtikBEt9RkhzKDeJSY7h8bpTJmZPzsD/view(1)",
+        "http://Churn(1)"
+      ]
+    },
+    {
+      "id": 1989765,
+      "name": "Produto 1",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 31,
+      "fill": 66,
+      "pct": 69,
+      "distinct": 9,
+      "topVals": [
+        "Diagnóstico e Planejamento de Marketing e Vendas no digital(42)",
+        "Diagnóstico, planejamento e treinamento de CRM e Vendas(6)",
+        "Estruturação Comercial(5)",
+        "Branding(4)",
+        "Mapa Estratégico(3)"
+      ]
+    },
+    {
+      "id": 1989767,
+      "name": "Valor Produto 1",
+      "type": "monetary",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 64,
+      "pct": 67,
+      "distinct": 46,
+      "topVals": [
+        "20232(4)",
+        "12000(3)",
+        "17984(3)",
+        "16298(3)",
+        "23604(2)"
+      ]
+    },
+    {
+      "id": 1989793,
+      "name": "Categoria do Produto 1",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 4,
+      "fill": 64,
+      "pct": 67,
+      "distinct": 3,
+      "topVals": [
+        "Saber(56)",
+        "Ter(5)",
+        "Executar(3)"
+      ]
+    },
+    {
+      "id": 1990369,
+      "name": "Fase 2 - Link da Reunião",
+      "type": "url",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 63,
+      "pct": 66,
+      "distinct": 50,
+      "topVals": [
+        "http://#(12)",
+        "http://na(3)",
+        "https://drive.google.com/file/d/1lwWQijDpOS5yFCMsEru8rtauWp5bVxfJ/view(1)",
+        "https://drive.google.com/file/d/19AhrTD3ZDJNnyY3pY0Vf3KRRivQ__A3A/view?usp=sharing(1)",
+        "http://Churn(1)"
+      ]
+    },
+    {
+      "id": 1989435,
+      "name": "Canal de Origem",
+      "type": "select",
+      "group": null,
+      "enumsTotal": 9,
+      "fill": 57,
+      "pct": 59,
+      "distinct": 7,
+      "topVals": [
+        "Black box(32)",
+        "Evento(10)",
+        "Lead Broker(7)",
+        "Indicação(3)",
+        "Voefly Camp(2)"
+      ]
+    },
+    {
+      "id": 1990611,
+      "name": "Fase 1 - Transcrição",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 56,
+      "pct": 58,
+      "distinct": 40,
+      "topVals": [
+        ".(7)",
+        "http://#(7)",
+        "http(3)",
+        "#(2)",
+        "http://na(2)"
+      ]
+    },
+    {
+      "id": 1988415,
+      "name": "Produtos Vendidos",
+      "type": "multiselect",
+      "group": null,
+      "enumsTotal": 27,
+      "fill": 55,
+      "pct": 57,
+      "distinct": 15,
+      "topVals": [
+        "Diagnóstico e Planejamento de Marketing e Vendas no digital (16K)(38)",
+        "Diagnóstico, planejamento e treinamento de CRM e Vendas(10)",
+        "Implementação de CRM Vendas(4)",
+        "Diagnóstico e Planejamento de E-commerce(3)",
+        "Profissional de Google Ads(3)"
+      ]
+    },
+    {
+      "id": 1988407,
+      "name": "Closer",
+      "type": "select",
+      "group": null,
+      "enumsTotal": 5,
+      "fill": 54,
+      "pct": 56,
+      "distinct": 4,
+      "topVals": [
+        "Lucas Cunha(26)",
+        "Guilherme Brufato(18)",
+        "Paulo Infante(7)",
+        "Gerson Braz(3)"
+      ]
+    },
+    {
+      "id": 1990373,
+      "name": "Fase 3 - Link da Reunião",
+      "type": "url",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 54,
+      "pct": 56,
+      "distinct": 41,
+      "topVals": [
+        "http://#(12)",
+        "http://na(3)",
+        "https://drive.google.com/file/d/1BaKsu2NYrBoIeeRaP7BH7_N_ePOAnZrn/view(1)",
+        "http://Churn(1)",
+        "https://drive.google.com/file/d/17Pvz6aEVILqzH1jpvGL9r6saxAzXh_Lk/view(1)"
+      ]
+    },
+    {
+      "id": 1989469,
+      "name": "Link do Contrato 1",
+      "type": "url",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 52,
+      "pct": 54,
+      "distinct": 41,
+      "topVals": [
+        "https://drive.google.com/drive/folders/1_8tJEExH_wAsP9MW88w0HjEDUn7c5Oh0(11)",
+        "http://n/a(2)",
+        "https://assinador.somosb4.com.br/document/key/B6ENMGMA987GG7V8J26U/sign?ticket=d7a7f620-619f-4450-bf51-b94fe63bed18(1)",
+        "https://assinador.somosb4.com.br/document/key/UAHTPXJFAWP5L7LG9EV4/sign?ticket=c789781f-bf7f-46fe-9a06-81a91b089f91(1)",
+        "https://assinador.somosb4.com.br/document/key/4AHN6JP96KS3JR3ESUYF/sign?ticket=5a3870f6-fb86-4619-a1fc-56d6a44fbcfa(1)"
+      ]
+    },
+    {
+      "id": 1989787,
+      "name": "Forma de Pagamento 1",
+      "type": "multiselect",
+      "group": "leads_38701765486734",
+      "enumsTotal": 4,
+      "fill": 52,
+      "pct": 54,
+      "distinct": 4,
+      "topVals": [
+        "Cartão de Crédito(44)",
+        "Boleto(6)",
+        "Pix(2)",
+        "Cheque(1)"
+      ]
+    },
+    {
+      "id": 1990613,
+      "name": "Fase 2 - Transcrição",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 52,
+      "pct": 54,
+      "distinct": 40,
+      "topVals": [
+        "http://#(6)",
+        ".(4)",
+        "http(3)",
+        "#(2)",
+        "http://na(2)"
+      ]
+    },
+    {
+      "id": 1990679,
+      "name": "Fase 2 - Link Google Slides",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 52,
+      "pct": 54,
+      "distinct": 40,
+      "topVals": [
+        "http://#(6)",
+        ".(4)",
+        "http(3)",
+        "#(2)",
+        "http://na(2)"
+      ]
+    },
+    {
+      "id": 1989972,
+      "name": "Flag",
+      "type": "select",
+      "group": "leads_49431768587985",
+      "enumsTotal": 4,
+      "fill": 51,
+      "pct": 53,
+      "distinct": 3,
+      "topVals": [
+        "Safe(33)",
+        "Care(15)",
+        "Danger(3)"
+      ]
+    },
+    {
+      "id": 1989954,
+      "name": "Oportunidade Mapeada",
+      "type": "select",
+      "group": "leads_49431768587985",
+      "enumsTotal": 2,
+      "fill": 49,
+      "pct": 51,
+      "distinct": 2,
+      "topVals": [
+        "Sim(46)",
+        "Não(3)"
+      ]
+    },
+    {
+      "id": 1988389,
+      "name": "Pré-vendas",
+      "type": "select",
+      "group": null,
+      "enumsTotal": 6,
+      "fill": 48,
+      "pct": 50,
+      "distinct": 5,
+      "topVals": [
+        "Geovanna Correa(39)",
+        "Gabriella Wudarski(4)",
+        "Gustavo Bonifacio(3)",
+        "Paulo Infante(1)",
+        "Lucas Cunha(1)"
+      ]
+    },
+    {
+      "id": 1989789,
+      "name": "Parcelamento",
+      "type": "multiselect",
+      "group": "leads_38701765486734",
+      "enumsTotal": 12,
+      "fill": 48,
+      "pct": 50,
+      "distinct": 7,
+      "topVals": [
+        "12x(36)",
+        "6x(4)",
+        "10x(2)",
+        "2x(2)",
+        "4x(2)"
+      ]
+    },
+    {
+      "id": 1988399,
+      "name": "Data da Reunião",
+      "type": "date_time",
+      "group": "leads_55081765486234",
+      "enumsTotal": 0,
+      "fill": 45,
+      "pct": 47,
+      "distinct": 42,
+      "topVals": [
+        "1774962000(2)",
+        "1771882200(2)",
+        "1773835200(2)",
+        "1772222400(1)",
+        "1771507800(1)"
+      ]
+    },
+    {
+      "id": 1990377,
+      "name": "Fase 4 - Link da Reunião",
+      "type": "url",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 45,
+      "pct": 47,
+      "distinct": 36,
+      "topVals": [
+        "http://#(10)",
+        "https://drive.google.com/file/d/1EVvLKMFQ0zHGM8laPDAsoHaIOBLYmFAe/view?usp=sharing(1)",
+        "http://Churn(1)",
+        "https://drive.google.com/file/d/1WUKH3mIVaMiE_jjkDgdiGrGb0Z3n_mJd/view(1)",
+        "https://drive.google.com/file/d/1ACZYUum2IaYz4rGAlE2eeruv06BTBijF/view(1)"
+      ]
+    },
+    {
+      "id": 1990615,
+      "name": "Fase 3 - Transcrição",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 44,
+      "pct": 46,
+      "distinct": 32,
+      "topVals": [
+        "http://#(6)",
+        "http(3)",
+        ".(3)",
+        "https://docs.google.com/document/d/17WnvU0OFd2P7K8bbmxRlhowsCQOMaVkQlALeDP5dP9I/edit?tab=t.p29zjfglz1dx(2)",
+        "#(2)"
+      ]
+    },
+    {
+      "id": 1989753,
+      "name": "Link da Reunião 1:",
+      "type": "url",
+      "group": "leads_55081765486234",
+      "enumsTotal": 0,
+      "fill": 43,
+      "pct": 45,
+      "distinct": 42,
+      "topVals": [
+        "http://V4 COMPANY / AÇAI & SORVETES ME GUSTA   Segunda-feira, 23 de fevereiro · 6:00 – 7:00pm Fuso horário: America/Sao_Paulo Como participar do Google Meet Link da videochamada: https://meet.google.com/ace-ouih-wqv Ou disque: ‪(BR) +55 11 4935-6569‬ PIN: ‪317 176 862‬# Outros números de telefone: https://tel.meet/ace-ouih-wqv?pin=6939134361738(2)",
+        "https://meet.google.com/wqd-okzz-hxb(1)",
+        "https://meet.google.com/rmo-pdrf-pgm?authuser=0&hs=122&ijlm=1771437346165(1)",
+        "https://drive.google.com/file/d/1sOOv8n1JtUwe3w0AGWhc_umNb8qbQoFq/view(1)",
+        "http://V4 COMPANY / NBX NEGÓCIOS IMOBLIARIOS   Terça-feira, 10 de fevereiro · 6:00 – 7:00pm Fuso horário: America/Sao_Paulo Como participar do Google Meet Link da videochamada: https://meet.google.com/hat-nzst-rxa Ou disque: ‪(BR) +55 11 4935-6557‬ PIN: ‪953 386 947‬# Outros números de telefone: https://tel.meet/hat-nzst-rxa?pin=1542843351841(1)"
+      ]
+    },
+    {
+      "id": 1990681,
+      "name": "Fase 3 - Link Google Slides",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 43,
+      "pct": 45,
+      "distinct": 30,
+      "topVals": [
+        "http://#(6)",
+        ".(5)",
+        "http(3)",
+        "#(2)",
+        "http://na(2)"
+      ]
+    },
+    {
+      "id": 1990781,
+      "name": "Fase 3 - Link Figma",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 43,
+      "pct": 45,
+      "distinct": 17,
+      "topVals": [
+        ".(16)",
+        "http://#(6)",
+        "#(4)",
+        "http(3)",
+        "http://na(2)"
+      ]
+    },
+    {
+      "id": 1990783,
+      "name": "Fase 3 - Link Miro",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 43,
+      "pct": 45,
+      "distinct": 14,
+      "topVals": [
+        ".(17)",
+        "http://#(6)",
+        "#(4)",
+        "http(3)",
+        "https://docs.google.com/document/d/14DorCR7JLkQ2hNdSvr8-M8vvNLZ6QIzjlbK9pPjmQic/edit?tab=t.sbpstqjjvxnx(2)"
+      ]
+    },
+    {
+      "id": 1989932,
+      "name": "Dores",
+      "type": "textarea",
+      "group": "leads_49431768587985",
+      "enumsTotal": 0,
+      "fill": 42,
+      "pct": 44,
+      "distinct": 42,
+      "topVals": [
+        "O cliente apresentou uma necessidade de controlar KPIs e controlar as informações de cliente, por canal, quantidade de propostas enviadas, entre outras informações. A dor identificada foi porque o cliente perdeu R$32 mi em proposta comercial. A reunião com o Pedro Miguel foi direcionada para o CRM Ploomes.(1)",
+        "SEO, Social Media Linkedin, Catálogo, Social Media., E.C., GT, Designer, AI, LP(1)",
+        "Com base nas Etapas 3 e 4 do projeto, ficou evidente que a principal oportunidade de monetização da KANASTRA REAL está em destravar o canal B2C, hoje ainda pouco estruturado, mas com alto potencial de impacto em receita.\n\nAtualmente, o cliente não possui atendimento estruturado, processo comercial definido nem uso estratégico de ferramentas, especialmente considerando a ambição de crescimento direto ao consumidor. A Etapa 4 foi adaptada justamente para evidenciar esses gaps e apontar caminhos práticos de monetização.\n\nPrioridade 1 — BU de Marketplaces\nO primeiro e mais imediato produto a ser ofertado é a BU de Marketplaces.\nMotivos:\n\nPrioridade 2 - CRM\n\nPrioridade 3 - Site(1)",
+        "Estão trocando de nome, precisam de rebranding(1)",
+        "Dores da Cliente (Cláudia - Pompei Tecidos)\nCom base na transcrição da reunião, as principais dores identificadas são:\n\nDores Operacionais\nFalta de estrutura digital: Após a saída da sobrinha há 2 anos, o lado digital ficou \"deteriorado\" e \"largado\", operando de forma \"rústica\". Não consegue lançar novos produtos nas plataformas digitais, mesmo tendo uma coleção nova com cerca de 70 cores de corvinho que está vendendo bem na loja física.\n​\nDificuldade com mão de obra: Problema recorrente para contratar e manter funcionários qualificados, mesmo oferecendo registro, salário em dia, vale transporte e cesta básica. Não consegue ter equipe suficiente para dar conta das operações.\n​\nSobrecarga no dia a dia: Consome o tempo todo resolvendo problemas operacionais (falta de mercadoria, nota fiscal, devoluções, gestão de estoque, problemas com funcionários) sem conseguir trabalhar estrategicamente. Menciona que \"passa o dia e não fez nada\".\n\nDores Financeiras\nQueda nas vendas: Vendas caíram muito, situação chegou ao ponto de \"vender o almoço para comprar a janta\". Está \"descapitalizada\" embora não tenha dívidas ou protestos.\n​\nFalta de capital de giro: Precisa que as vendas melhorem para gerar capital de giro e reinvestimento.\n​\nInvestimento sem retorno previsível: Já investe sem saber \"se vai voltar, quanto que vai voltar, quanto tempo vai voltar\".\n​\nDores Estratégicas\nFalta de direcionamento: Não tem \"norte\", não sabe \"o caminho\", sente uma \"ignorância\" sobre como agir estrategicamente. Opera no \"dia a dia\" sem ações planejadas de marketing ou vendas.\n​\nAusência de previsibilidade: Não tem controle sobre as decisões, não consegue prever faturamento. Trabalha na base do \"vamos, amanhã vai ser bom\", quase que \"rezando\".\n​\nPerda de posicionamento em marketplaces: Era Mercado Líder no Mercado Livre, agora está \"lá embaixo\" sem saber em que momento isso aconteceu.\n​\nIncapacidade de competir digitalmente: Sente que ficou para trás na \"nova onda de vendas online\" enquanto a concorrência avança.\n​\nDores Emocionais\nEsgotamento: Sente-se \"cansada\", \"estressante\", e o cenário está \"corroendo\" ela. Menciona estar emocionalmente afetada pela situação.\n​\nFrustração com a falta de controle: Reconhece que precisa \"assumir responsabilidade\" mas não consegue identificar onde estão os erros específicos.\n​\nMedo de fechar após 20 anos: Expressa preocupação real de ter que fechar o negócio depois de duas décadas de investimento.\n​\nDor Central\nA dor mais profunda que Cláudia expressa é: \"Não saber exatamente o que fazer para mudar isso, não ter controle, não saber o caminho\". Ela afirma que a maior angústia não é faturar menos, mas sim não saber o que fazer estrategicamente para reverter a situação.(1)"
+      ]
+    },
+    {
+      "id": 1990229,
+      "name": "Account",
+      "type": "text",
+      "group": "leads_49431768587985",
+      "enumsTotal": 0,
+      "fill": 42,
+      "pct": 44,
+      "distinct": 20,
+      "topVals": [
+        "Lucas Gabriel(11)",
+        "Gustavo Ribeiro(10)",
+        "Victor Santos(2)",
+        "Gabriel(2)",
+        "Nelson(2)"
+      ]
+    },
+    {
+      "id": 1990381,
+      "name": "Fase 5 - Link da Reunião",
+      "type": "url",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 41,
+      "pct": 43,
+      "distinct": 28,
+      "topVals": [
+        "http://#(14)",
+        "http://Churn(1)",
+        "https://drive.google.com/file/d/1L_qqCLD1uSTFzYxr2igDnPLAUyRvWbjS/view?usp=sharing(1)",
+        "https://drive.google.com/file/d/1U-aOuZayx1YBBgEVwTnqCwHzotJpljGp/view(1)",
+        "https://drive.google.com/file/d/1wGc14jvFAzl5L0CBM9j4NFcSi68FrB-7/view(1)"
+      ]
+    },
+    {
+      "id": 1989890,
+      "name": "Cenário do Marketing",
+      "type": "select",
+      "group": "leads_87451765486535",
+      "enumsTotal": 8,
+      "fill": 40,
+      "pct": 42,
+      "distinct": 6,
+      "topVals": [
+        "Time interno(11)",
+        "Sozinho(10)",
+        "Agência(8)",
+        "Não tem(8)",
+        "Pessoa terceirizada(2)"
+      ]
+    },
+    {
+      "id": 1989902,
+      "name": "Utiliza CRM",
+      "type": "select",
+      "group": "leads_87451765486535",
+      "enumsTotal": 2,
+      "fill": 40,
+      "pct": 42,
+      "distinct": 2,
+      "topVals": [
+        "Não(29)",
+        "Sim(11)"
+      ]
+    },
+    {
+      "id": 1990683,
+      "name": "Fase 4 - Link Google Slides",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 40,
+      "pct": 42,
+      "distinct": 30,
+      "topVals": [
+        "http://#(6)",
+        "http(3)",
+        ".(2)",
+        "#(2)",
+        "http://na(2)"
+      ]
+    },
+    {
+      "id": 1989459,
+      "name": "Status do Lead",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 3,
+      "fill": 39,
+      "pct": 41,
+      "distinct": 3,
+      "topVals": [
+        "Quente(27)",
+        "Morno(9)",
+        "Frio(3)"
+      ]
+    },
+    {
+      "id": 1989878,
+      "name": "Descrição da Empresa",
+      "type": "textarea",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 39,
+      "pct": 41,
+      "distinct": 38,
+      "topVals": [
+        ".(2)",
+        "Descrição da empresa/Serviços oferecidos: Agência de viagens focada no nicho corporativo (B2B), eventos e viagens de lazer com gestão de milhas (B2C).\nDiferenciais e público-alvo:\n\n70% do faturamento vem do B2B. Atendem principalmente PMEs (Pequenas e Médias Empresas).(1)",
+        "Loja de decoração e interiores com quase 30 anos de mercado. Atuam com a venda e instalação de produtos, incluindo marcas de alto padrão como Hunter Douglas.\n\nDiferenciais e público-alvo: Empresa tradicional na região, com forte relacionamento com arquitetos e parcerias com núcleos de decoração. O público-alvo são clientes que buscam cortinas e itens de decoração de alta qualidade.(1)",
+        "Rede de 20 clínicas especializadas em transplante capilar e tratamentos para calvície. O foco principal é a técnica FUE (Follicular Unit Extraction).\n\nDiferenciais e público-alvo: Presença nacional com 20 unidades. O público-alvo são homens e mulheres que buscam restauração capilar e estética de alto padrão.(1)",
+        "Modelo de atuação: Pedro atua de forma terceirizada\npara imobiliárias e construtoras, utilizando sua\nimagem e posicionamento para geração de\nnegócios. A NBX Negócios Imobiliários atua na\nintermediação e comercialização de imóveis,\nprestando serviço para imobiliárias e construtoras.\nO negócio já possui operação ativa, faturamento\nrecorrente e time de atendimento estruturado para\nreceber e trabalhar os leads gerados.\nDiferenciais e público-alvo\n● Forte dependência do posicionamento pessoal\ndo Pedro no Instagram\n● Público-alvo composto por compradores de\nimóveis (perfil final) e empresas do setor\nimobiliário (imobiliárias/construtoras)\n● Necessidade de conteúdo mais estratégico e\nposicionado, não apenas postagens genéricas(1)"
+      ]
+    },
+    {
+      "id": 1989880,
+      "name": "Objetivo da Empresa",
+      "type": "textarea",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 39,
+      "pct": 41,
+      "distinct": 37,
+      "topVals": [
+        ".(3)",
+        "Estancar o prejuízo no marketing B2B e implementar a SDR IA para automação de scripts, cadência e agendamento de reuniões com decisores, além de ativar a base de leads do ERP.(1)",
+        "Alavancar as vendas e sair da estagnação de faturamento, buscando novos clientes e melhor posicionamento para justificar o preço de produtos premium.(1)",
+        "Gerar leads qualificados em larga escala para todas as unidades (ou as 10 prioritárias), melhorar o posicionamento de marca e implementar um CRM para organizar o fluxo de vendas e recuperar o faturamento.(1)",
+        "Ele deseja melhorar o posicionamento\nestratégico no Instagram\nTer postagens mais alinhadas à proposta de\nvalor e ao público correto\nAumentar a qualidade dos leads\nDiminuir a sobrecarga do Pedro na criação de\ncriativos\nEstruturar uma comunicação que gere mais\nautoridade, visibilidade e conversão(1)"
+      ]
+    },
+    {
+      "id": 1989882,
+      "name": "Instagram",
+      "type": "url",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 39,
+      "pct": 41,
+      "distinct": 37,
+      "topVals": [
+        "http://.(3)",
+        "https://www.instagram.com/baroloviagens/(1)",
+        "https://www.instagram.com/ambidecor_/(1)",
+        "https://www.instagram.com/capilarbrasil.fue?igsh=YW80Z2l1bzdxdndz(1)",
+        "https://www.instagram.com/nbx_negociosimobiliarios/(1)"
+      ]
+    },
+    {
+      "id": 1989888,
+      "name": "Site",
+      "type": "url",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 39,
+      "pct": 41,
+      "distinct": 37,
+      "topVals": [
+        "http://.(3)",
+        "https://baroloviagens.com/(1)",
+        "https://www.instagram.com/ambidecor_/(1)",
+        "https://www.instagram.com/capilarbrasil.fue?igsh=YW80Z2l1bzdxdndz(1)",
+        "https://www.instagram.com/nbx_negociosimobiliarios/(1)"
+      ]
+    },
+    {
+      "id": 1989892,
+      "name": "Consciência das Métricas",
+      "type": "select",
+      "group": "leads_87451765486535",
+      "enumsTotal": 3,
+      "fill": 39,
+      "pct": 41,
+      "distinct": 3,
+      "topVals": [
+        "Média(25)",
+        "Baixa(11)",
+        "Alta(3)"
+      ]
+    },
+    {
+      "id": 1989894,
+      "name": "Investe em Tráfego",
+      "type": "select",
+      "group": "leads_87451765486535",
+      "enumsTotal": 3,
+      "fill": 39,
+      "pct": 41,
+      "distinct": 3,
+      "topVals": [
+        "Não, nunca investiu(16)",
+        "Sim, já investe(15)",
+        "Não, mas já investiu(8)"
+      ]
+    },
+    {
+      "id": 1989898,
+      "name": "Dores do Negócio",
+      "type": "textarea",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 39,
+      "pct": 41,
+      "distinct": 37,
+      "topVals": [
+        ".(3)",
+        "O Inbound B2B não dá resultado; investimento \"queimado\" em tráfego sem conversão; e falta de braço comercial eficiente (está demitindo uma funcionária hunter por falta de resultados por não ter o inbound vindo da forma que esperou). Estancar o prejuízo no marketing B2B e implementar a SDR IA para automação\n\nTem muito mais retorno através do Outbound (prospecção ativa pelo sócio)(1)",
+        "Faturamento estagnado há 5 anos; perda de orçamentos por conta do preço elevado dos produtos; e falta de novos clientes qualificados.(1)",
+        "Queda de faturamento em unidades específicas, falta de braço estratégico (dependência de um único terceirizado), ausência de CRM e necessidade de posicionamento de autoridade.(1)",
+        "Geração de criativos depende quase exclusivamente do\nPedro\n● Sobrecarga operacional\n● Leads com qualidade abaixo do esperado\n● Marketing pouco estratégico e mais “milindroso” do que\nagressivo/posicionado\n● Insatisfação parcial com a agência atual\n● Forte necessidade de Social Media estratégico(1)"
+      ]
+    },
+    {
+      "id": 1989900,
+      "name": "Canais de Vendas",
+      "type": "multiselect",
+      "group": "leads_87451765486535",
+      "enumsTotal": 7,
+      "fill": 39,
+      "pct": 41,
+      "distinct": 7,
+      "topVals": [
+        "Inside Sales(20)",
+        "Ponto Físico(20)",
+        "Outros(6)",
+        "Mídias Sociais(3)",
+        "Representantes Comerciais(3)"
+      ]
+    },
+    {
+      "id": 1989914,
+      "name": "Participantes (Nome/Cargo)",
+      "type": "textarea",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 39,
+      "pct": 41,
+      "distinct": 38,
+      "topVals": [
+        ".(2)",
+        "Rodrigo (Proprietário/Sócio).(1)",
+        "Liliane- decisor e responsável.(1)",
+        "Gerente Comercial e Katiussa (Sócia Majoritária).(1)",
+        "DANIEL - DECISOR(1)"
+      ]
+    },
+    {
+      "id": 1989916,
+      "name": "Decisor na call",
+      "type": "select",
+      "group": "leads_87451765486535",
+      "enumsTotal": 2,
+      "fill": 39,
+      "pct": 41,
+      "distinct": 1,
+      "topVals": [
+        "Sim(39)"
+      ]
+    },
+    {
+      "id": 1989918,
+      "name": "Urgência",
+      "type": "select",
+      "group": "leads_87451765486535",
+      "enumsTotal": 4,
+      "fill": 39,
+      "pct": 41,
+      "distinct": 2,
+      "topVals": [
+        "Agora/Urgente(38)",
+        "Nesse mês(1)"
+      ]
+    },
+    {
+      "id": 1989920,
+      "name": "Perfil do lead",
+      "type": "multiselect",
+      "group": "leads_87451765486535",
+      "enumsTotal": 4,
+      "fill": 39,
+      "pct": 41,
+      "distinct": 4,
+      "topVals": [
+        "D - Dominante(19)",
+        "C - Conforme(18)",
+        "S - Estável(16)",
+        "I - Influente(8)"
+      ]
+    },
+    {
+      "id": 1989896,
+      "name": "Verba em tráfego",
+      "type": "monetary",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 38,
+      "pct": 40,
+      "distinct": 7,
+      "topVals": [
+        "0(26)",
+        "1000(5)",
+        "10000(3)",
+        "3000(1)",
+        "2000(1)"
+      ]
+    },
+    {
+      "id": 1989904,
+      "name": "Stack de Ferramentas",
+      "type": "textarea",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 38,
+      "pct": 40,
+      "distinct": 11,
+      "topVals": [
+        ".(28)",
+        "Utilizam um ERP que contém uma base robusta de leads, mas sentem falta de uma ferramenta de automação comercial como a SDR IA.(1)",
+        ",(1)",
+        "Olist(1)",
+        "RECUPERAÇÃO LUCAS(1)"
+      ]
+    },
+    {
+      "id": 1989908,
+      "name": "Ticket Médio",
+      "type": "monetary",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 38,
+      "pct": 40,
+      "distinct": 4,
+      "topVals": [
+        "0(35)",
+        "180000(1)",
+        "10000(1)",
+        "7000(1)"
+      ]
+    },
+    {
+      "id": 1989910,
+      "name": "Lucro Líquido",
+      "type": "numeric",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 38,
+      "pct": 40,
+      "distinct": 2,
+      "topVals": [
+        "0(37)",
+        "20(1)"
+      ]
+    },
+    {
+      "id": 1989922,
+      "name": "Detalhes do DISC",
+      "type": "textarea",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 38,
+      "pct": 40,
+      "distinct": 36,
+      "topVals": [
+        ".(3)",
+        "Dominante (D) e Analítico (C). Participou do workshop, deu nota 10, é direto, conhece seus números e quer soluções tecnológicas de ponta.(1)",
+        "S (Estabilidade). Proprietária de longa data que valoriza a tradição, mas sente a insegurança de estar estagnada e reconhece a necessidade de processos mais modernos para competir por valor e não por preço.(1)",
+        "Dominante (D). Focada em resultados rápidos, objetiva e com poder de decisão centralizado.(1)",
+        "● D (Dominância) com traços de I\n(Influência)\n● Perfil executor, prático, mas\nsobrecarregado\n● Busca eficiência, clareza e resultado\nvisível(1)"
+      ]
+    },
+    {
+      "id": 1989934,
+      "name": "Solução",
+      "type": "select",
+      "group": "leads_49431768587985",
+      "enumsTotal": 30,
+      "fill": 38,
+      "pct": 40,
+      "distinct": 13,
+      "topVals": [
+        "Implementação CRM(11)",
+        "Profissional Gestão de Mídia Paga(7)",
+        "Branding(6)",
+        "SDR IA(3)",
+        "Landing Page(2)"
+      ]
+    },
+    {
+      "id": 1990617,
+      "name": "Fase 4 - Transcrição",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 35,
+      "pct": 36,
+      "distinct": 25,
+      "topVals": [
+        "http://#(6)",
+        "http(3)",
+        ".(2)",
+        "#(2)",
+        "http://na(2)"
+      ]
+    },
+    {
+      "id": 1990685,
+      "name": "Fase 5 - Link Google Slides",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 35,
+      "pct": 36,
+      "distinct": 27,
+      "topVals": [
+        "http://#(6)",
+        "http(2)",
+        "#(2)",
+        "http://na(2)",
+        "Churn(1)"
+      ]
+    },
+    {
+      "id": 1990181,
+      "name": "E-mail do Coordenador",
+      "type": "text",
+      "group": "leads_49431768587985",
+      "enumsTotal": 0,
+      "fill": 34,
+      "pct": 35,
+      "distinct": 7,
+      "topVals": [
+        "marco.claro@v4company.com(23)",
+        "deniz_oliveira@v4company.com(3)",
+        "gabriela_campos@v4company.com(3)",
+        "silvania_fraga@v4company.com(2)",
+        "Lucas Gabriel(1)"
+      ]
+    },
+    {
+      "id": 1990789,
+      "name": "Fase 5 - Link Figma",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 32,
+      "pct": 33,
+      "distinct": 14,
+      "topVals": [
+        ".(10)",
+        "http://#(5)",
+        "http(3)",
+        "https(2)",
+        "#(2)"
+      ]
+    },
+    {
+      "id": 1990791,
+      "name": "Fase 5 - Link Miro",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 32,
+      "pct": 33,
+      "distinct": 13,
+      "topVals": [
+        ".(10)",
+        "http://#(6)",
+        "http(3)",
+        "https(2)",
+        "#(2)"
+      ]
+    },
+    {
+      "id": 1990619,
+      "name": "Fase 5 - Transcrição",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 31,
+      "pct": 32,
+      "distinct": 22,
+      "topVals": [
+        "http://#(6)",
+        "#(4)",
+        "http://na(2)",
+        "Churn(1)",
+        "https://docs.google.com/document/d/1qnAizbR2pF0yN9I3j3NaLTHwnBUkZwaSRJ-8XGXTIW4/edit?usp=sharing(1)"
+      ]
+    },
+    {
+      "id": 1990799,
+      "name": "Fase 5 - Sheets com o Cronograma de Entregas",
+      "type": "text",
+      "group": "leads_97701770758809",
+      "enumsTotal": 0,
+      "fill": 31,
+      "pct": 32,
+      "distinct": 18,
+      "topVals": [
+        "http://#(6)",
+        ".(5)",
+        "#(4)",
+        "http://na(2)",
+        "Churn(1)"
+      ]
+    },
+    {
+      "id": 1989481,
+      "name": "Previsão de Fechamento",
+      "type": "date",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 28,
+      "pct": 29,
+      "distinct": 19,
+      "topVals": [
+        "1774926000(5)",
+        "1774234800(3)",
+        "1773630000(2)",
+        "1774580400(2)",
+        "1773975600(2)"
+      ]
+    },
+    {
+      "id": 1989966,
+      "name": "Valor primeiro pagamento",
+      "type": "numeric",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 28,
+      "pct": 29,
+      "distinct": 27,
+      "topVals": [
+        "1.686(2)",
+        "14745(1)",
+        "740(1)",
+        "20831(1)",
+        "2.023(1)"
+      ]
+    },
+    {
+      "id": 1989473,
+      "name": "Budget (Orçamento)",
+      "type": "select",
+      "group": "leads_87451765486535",
+      "enumsTotal": 2,
+      "fill": 24,
+      "pct": 25,
+      "distinct": 2,
+      "topVals": [
+        "Sim(23)",
+        "Não(1)"
+      ]
+    },
+    {
+      "id": 1989475,
+      "name": "Authority (Autoridade)",
+      "type": "select",
+      "group": "leads_87451765486535",
+      "enumsTotal": 2,
+      "fill": 24,
+      "pct": 25,
+      "distinct": 2,
+      "topVals": [
+        "Sim(22)",
+        "Não(2)"
+      ]
+    },
+    {
+      "id": 1989477,
+      "name": "Need (Necessidade)",
+      "type": "select",
+      "group": "leads_87451765486535",
+      "enumsTotal": 2,
+      "fill": 24,
+      "pct": 25,
+      "distinct": 1,
+      "topVals": [
+        "Sim(24)"
+      ]
+    },
+    {
+      "id": 1989479,
+      "name": "Timing (Urgência)",
+      "type": "select",
+      "group": "leads_87451765486535",
+      "enumsTotal": 2,
+      "fill": 24,
+      "pct": 25,
+      "distinct": 2,
+      "topVals": [
+        "Sim(23)",
+        "Não(1)"
+      ]
+    },
+    {
+      "id": 1989964,
+      "name": "Parcelamento",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 12,
+      "fill": 24,
+      "pct": 25,
+      "distinct": 5,
+      "topVals": [
+        "12x(18)",
+        "10x(2)",
+        "2x(2)",
+        "6x(1)",
+        "5x(1)"
+      ]
+    },
+    {
+      "id": 1989958,
+      "name": "Primeiro pagamento",
+      "type": "date",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 23,
+      "pct": 24,
+      "distinct": 17,
+      "topVals": [
+        "1775098800(2)",
+        "1775444400(2)",
+        "1774580400(2)",
+        "1774494000(2)",
+        "1773802800(2)"
+      ]
+    },
+    {
+      "id": 1990515,
+      "name": "TCV",
+      "type": "text",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 22,
+      "pct": 23,
+      "distinct": 16,
+      "topVals": [
+        ".(6)",
+        "20.232(2)",
+        "142906(1)",
+        "20831,32(1)",
+        "18546(1)"
+      ]
+    },
+    {
+      "id": 1990417,
+      "name": "Link da Proposa",
+      "type": "url",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 21,
+      "pct": 22,
+      "distinct": 13,
+      "topVals": [
+        "http://.(9)",
+        "https://drive.google.com/drive/folders/1moykLim18l2d7w1Io0o_vhtDuGHepiEe?hl=pt-br(1)",
+        "https://assinador.somosb4.com.br/document/key/T28GB779Q938L7T4YFF5/sign?ticket=703af641-6cea-470d-9306-65a808d0712e(1)",
+        "http://docs.google.com/presentation/d/1C2Eo2eSwKM9rqhztnbl3m2NUw-AXotlIe9tLPGfngQs/edit(1)",
+        "https://assinador.somosb4.com.br/document/key/77GW4CS43E49WVD2UQF3/sign?ticket=11609039-7738-4a6a-a1c8-00d9b11a3c72(1)"
+      ]
+    },
+    {
+      "id": 1990299,
+      "name": "Faturamento",
+      "type": "select",
+      "group": null,
+      "enumsTotal": 6,
+      "fill": 20,
+      "pct": 21,
+      "distinct": 4,
+      "topVals": [
+        "Medium - 201 mil a 4 Mi (mês)(12)",
+        "Sem informação(3)",
+        "Small - 101 a 200 Mil (mês)(3)",
+        "Tiny - 51 a 100 Mil (mês)(2)"
+      ]
+    },
+    {
+      "id": 1989906,
+      "name": "Faturamento",
+      "type": "select",
+      "group": "leads_87451765486535",
+      "enumsTotal": 5,
+      "fill": 19,
+      "pct": 20,
+      "distinct": 4,
+      "topVals": [
+        "Tiny - Ate 1.2 Mi(7)",
+        "Small - 1.2 a 2.4 Mi(6)",
+        "Medium - 2.4 a 50 Mi(4)",
+        "Large - 50 a 480 Mi(2)"
+      ]
+    },
+    {
+      "id": 1989769,
+      "name": "Produto 2",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 26,
+      "fill": 15,
+      "pct": 16,
+      "distinct": 10,
+      "topVals": [
+        "Profissional de Comunição (Social Media/Copy)(2)",
+        "Profissional de Google Ads(2)",
+        "Implementação de CRM Vendas(2)",
+        "Profissional de Criativos (design)(2)",
+        "Implementação E-commerce(2)"
+      ]
+    },
+    {
+      "id": 1989771,
+      "name": "Valor Produto 2",
+      "type": "monetary",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 15,
+      "pct": 16,
+      "distinct": 14,
+      "topVals": [
+        "5000(2)",
+        "12000(1)",
+        "9174(1)",
+        "21271(1)",
+        "15831(1)"
+      ]
+    },
+    {
+      "id": 1989781,
+      "name": "Valor Bookado",
+      "type": "monetary",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 14,
+      "pct": 15,
+      "distinct": 14,
+      "topVals": [
+        "142906(1)",
+        "20831(1)",
+        "17076(1)",
+        "43823(1)",
+        "31400(1)"
+      ]
+    },
+    {
+      "id": 1989795,
+      "name": "Categoria do Produto 2",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 4,
+      "fill": 14,
+      "pct": 15,
+      "distinct": 3,
+      "topVals": [
+        "Executar(6)",
+        "Ter(6)",
+        "Saber(2)"
+      ]
+    },
+    {
+      "id": 1989930,
+      "name": "Link Transcrição (Kickoff)",
+      "type": "text",
+      "group": "leads_49431768587985",
+      "enumsTotal": 0,
+      "fill": 14,
+      "pct": 15,
+      "distinct": 13,
+      "topVals": [
+        "https://docs.google.com/document/d/17nyL2pT2Tj6F7KEhTZIK2SpIF3sQxWg17FB7sCgDEKQ/edit?usp=sharing(2)",
+        "https://docs.google.com/document/d/1TgtrM8Pfgok6URHHDUz3IUOu2Bq4KXjOBp-PODeaQ68/edit?tab=t.0(1)",
+        "https://drive.google.com/file/d/1kb8watcVXe2qyRa43ytIzWJE6s4NDYCx/view?usp=sharing(1)",
+        "https://docs.google.com/document/d/1FLlm6PrqABb9mMV4iTGfycjGb1bvs-DWq_5-iZmbknk/edit?usp=sharing(1)",
+        "https://docs.google.com/document/d/1djdtBLxCYx0TdsiRwPpo2CmkzxFDQ_ddqD-iGk8TaXE/edit?tab=t.7go8snsmo518(1)"
+      ]
+    },
+    {
+      "id": 1989962,
+      "name": "Forma de Pagamento 2",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 4,
+      "fill": 13,
+      "pct": 14,
+      "distinct": 3,
+      "topVals": [
+        "Cartão de Crédito(10)",
+        "Boleto(2)",
+        "Pix(1)"
+      ]
+    },
+    {
+      "id": 1989471,
+      "name": "Acordos Especiais",
+      "type": "textarea",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 12,
+      "pct": 13,
+      "distinct": 11,
+      "topVals": [
+        "N/D(2)",
+        "0(1)",
+        "nada feito(1)",
+        "Iniciar a Estruturação após a entrega da E.E(1)",
+        "8 meses de execução, pagamento da E.E. parcelados em 2x (28/02 + 28/03). Além disso, os pagamentos da execução serão em 3 boletos no valor de R$14.607,67 nas datas: 28/04, 28/05, 28/06)(1)"
+      ]
+    },
+    {
+      "id": 1989749,
+      "name": "Subcanais",
+      "type": "select",
+      "group": null,
+      "enumsTotal": 8,
+      "fill": 10,
+      "pct": 10,
+      "distinct": 4,
+      "topVals": [
+        "Imersão Caup(6)",
+        "Summit Caup(2)",
+        "Ferraz Piai(1)",
+        "Palestra Caup(1)"
+      ]
+    },
+    {
+      "id": 1989465,
+      "name": "Valor Fee (Recorrente)",
+      "type": "monetary",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 9,
+      "pct": 9,
+      "distinct": 7,
+      "topVals": [
+        "0(3)",
+        "9702(1)",
+        "2464(1)",
+        "14607(1)",
+        "2822(1)"
+      ]
+    },
+    {
+      "id": 1989783,
+      "name": "Qnt Meses Bookado",
+      "type": "numeric",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 9,
+      "pct": 9,
+      "distinct": 5,
+      "topVals": [
+        "12(3)",
+        "6(3)",
+        "8(1)",
+        "1(1)",
+        "22758(1)"
+      ]
+    },
+    {
+      "id": 1989439,
+      "name": "Contatado",
+      "type": "checkbox",
+      "group": "leads_55081765486234",
+      "enumsTotal": 0,
+      "fill": 8,
+      "pct": 8,
+      "distinct": 1,
+      "topVals": [
+        "true(8)"
+      ]
+    },
+    {
+      "id": 1989773,
+      "name": "Produto 3",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 26,
+      "fill": 8,
+      "pct": 8,
+      "distinct": 6,
+      "topVals": [
+        "Implementação de CRM Vendas(3)",
+        "Implementação de Landing Pages(1)",
+        "Profissional de Comunição (Social Media/Copy)(1)",
+        "Implementação de SDR-IA(1)",
+        "Profissional de CRM Marketing(1)"
+      ]
+    },
+    {
+      "id": 1989751,
+      "name": "Campanha",
+      "type": "text",
+      "group": null,
+      "enumsTotal": 0,
+      "fill": 7,
+      "pct": 7,
+      "distinct": 6,
+      "topVals": [
+        "PITCH LUCAS(2)",
+        "Lead Broker(1)",
+        "Pitch Lucas - Março(1)",
+        "THYAGO - VORCARE(1)",
+        "Novembro 2025(1)"
+      ]
+    },
+    {
+      "id": 1989775,
+      "name": "Valor Produto 3",
+      "type": "monetary",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 7,
+      "pct": 7,
+      "distinct": 7,
+      "topVals": [
+        "3349(1)",
+        "5000(1)",
+        "821(1)",
+        "7304(1)",
+        "6772(1)"
+      ]
+    },
+    {
+      "id": 1989797,
+      "name": "Categoria do Produto 3",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 4,
+      "fill": 7,
+      "pct": 7,
+      "distinct": 2,
+      "topVals": [
+        "Executar(4)",
+        "Ter(3)"
+      ]
+    },
+    {
+      "id": 1989441,
+      "name": "Conectado",
+      "type": "checkbox",
+      "group": "leads_55081765486234",
+      "enumsTotal": 0,
+      "fill": 6,
+      "pct": 6,
+      "distinct": 1,
+      "topVals": [
+        "true(6)"
+      ]
+    },
+    {
+      "id": 1989777,
+      "name": "Produto 4",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 25,
+      "fill": 5,
+      "pct": 5,
+      "distinct": 5,
+      "topVals": [
+        "Implementação de CRM Vendas(1)",
+        "Profissional de Criativos (design)(1)",
+        "Profissional de CRM Marketing(1)",
+        "Profissional de Comunicação (Social Media/Copy)(1)",
+        "Implementação E-commerce(1)"
+      ]
+    },
+    {
+      "id": 1989799,
+      "name": "Categoria do Produto 4",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 4,
+      "fill": 5,
+      "pct": 5,
+      "distinct": 2,
+      "topVals": [
+        "Executar(3)",
+        "Ter(2)"
+      ]
+    },
+    {
+      "id": 1989779,
+      "name": "Valor Produto 4",
+      "type": "monetary",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 4,
+      "pct": 4,
+      "distinct": 4,
+      "topVals": [
+        "7492(1)",
+        "821(1)",
+        "7304(1)",
+        "6772(1)"
+      ]
+    },
+    {
+      "id": 1990503,
+      "name": "Fee (One time)",
+      "type": "text",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 4,
+      "pct": 4,
+      "distinct": 4,
+      "topVals": [
+        "5043(1)",
+        "20.831(1)",
+        "14612(1)",
+        "31400(1)"
+      ]
+    },
+    {
+      "id": 1990231,
+      "name": "Produto Origem",
+      "type": "select",
+      "group": null,
+      "enumsTotal": 2,
+      "fill": 3,
+      "pct": 3,
+      "distinct": 1,
+      "topVals": [
+        "Saber(3)"
+      ]
+    },
+    {
+      "id": 1990819,
+      "name": "Closed Won",
+      "type": "date",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 3,
+      "pct": 3,
+      "distinct": 3,
+      "topVals": [
+        "1774926000(1)",
+        "1774234800(1)",
+        "1764298800(1)"
+      ]
+    },
+    {
+      "id": 1990066,
+      "name": "Início do Projeto2",
+      "type": "date",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 2,
+      "pct": 2,
+      "distinct": 1,
+      "topVals": [
+        "1761534000(2)"
+      ]
+    },
+    {
+      "id": 1990267,
+      "name": "Coordenador",
+      "type": "text",
+      "group": "leads_1871770334775",
+      "enumsTotal": 0,
+      "fill": 2,
+      "pct": 2,
+      "distinct": 2,
+      "topVals": [
+        "Marco Claro(1)",
+        "Deniz(1)"
+      ]
+    },
+    {
+      "id": 1990080,
+      "name": "Primeiro Pagamento",
+      "type": "date",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 1,
+      "pct": 1,
+      "distinct": 1,
+      "topVals": [
+        "1765940400(1)"
+      ]
+    },
+    {
+      "id": 1985077,
+      "name": "Status de Cobrança",
+      "type": "select",
+      "group": null,
+      "enumsTotal": 4,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1985081,
+      "name": "Link para Pagamento / Boleto 1",
+      "type": "url",
+      "group": null,
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1985305,
+      "name": "Data de Pagamento",
+      "type": "date_time",
+      "group": null,
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1985307,
+      "name": "data automação",
+      "type": "date",
+      "group": null,
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1985807,
+      "name": "Link para Pagamento / Boleto 2",
+      "type": "url",
+      "group": null,
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1985809,
+      "name": "Link para Pagamento / Boleto 3",
+      "type": "url",
+      "group": null,
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1988611,
+      "name": "Evento",
+      "type": "text",
+      "group": null,
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1989437,
+      "name": "Custo do Lead",
+      "type": "monetary",
+      "group": null,
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1989443,
+      "name": "Ocorrência",
+      "type": "select",
+      "group": "leads_55081765486234",
+      "enumsTotal": 2,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1989445,
+      "name": "Qtd. Remarcações",
+      "type": "numeric",
+      "group": "leads_55081765486234",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1989447,
+      "name": "Qtd. No-shows",
+      "type": "numeric",
+      "group": "leads_55081765486234",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1989755,
+      "name": "BANT",
+      "type": "file",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1990062,
+      "name": "Link do Contrato 2",
+      "type": "url",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1990064,
+      "name": "Link do Contrato 3",
+      "type": "url",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1990068,
+      "name": "Forma de Pagamento",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 4,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1990072,
+      "name": "Primeiro Pagamento",
+      "type": "text",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1990074,
+      "name": "Valor do Primeiro Pagamento",
+      "type": "monetary",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1990076,
+      "name": "Início do Projeto3",
+      "type": "date",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1990078,
+      "name": "Parcelamento",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 12,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1990082,
+      "name": "Valor Terceiro pagamento",
+      "type": "monetary",
+      "group": "leads_38701765486734",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1990329,
+      "name": "Nome da Empresa",
+      "type": "text",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1990431,
+      "name": "Gestor de Projetos",
+      "type": "text",
+      "group": "leads_1871770334775",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1990433,
+      "name": "Motivo de Perda",
+      "type": "textarea",
+      "group": "leads_1871770334775",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1990435,
+      "name": "Valor do Fee",
+      "type": "monetary",
+      "group": "leads_1871770334775",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1990441,
+      "name": "Observação Complementar",
+      "type": "textarea",
+      "group": "leads_87451765486535",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1991145,
+      "name": "Horas Alocadas",
+      "type": "select",
+      "group": "leads_38701765486734",
+      "enumsTotal": 5,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1991147,
+      "name": "MQL",
+      "type": "date",
+      "group": "leads_55081765486234",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1991149,
+      "name": "SQL",
+      "type": "date",
+      "group": "leads_55081765486234",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1991151,
+      "name": "DT. ENTRADA",
+      "type": "date",
+      "group": "leads_55081765486234",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1991153,
+      "name": "SAL",
+      "type": "date",
+      "group": "leads_55081765486234",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1991155,
+      "name": "CLOSED WON",
+      "type": "text",
+      "group": "leads_55081765486234",
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    },
+    {
+      "id": 1991157,
+      "name": "Upcoming Appointment",
+      "type": "date_time",
+      "group": null,
+      "enumsTotal": 0,
+      "fill": 0,
+      "pct": 0,
+      "distinct": 0,
+      "topVals": []
+    }
+  ],
+  "enumName": {
+    "1985077": {
+      "1441639": "Em aberto",
+      "1441641": "Pago",
+      "1441643": "Não Pago",
+      "1441645": "Em negociação"
+    },
+    "1988389": {
+      "1446527": "Geovanna Correa",
+      "1446529": "Gabriella Wudarski",
+      "1460375": "Paulo Infante",
+      "1460581": "Gustavo Bonifacio",
+      "1460905": "Lucas Cunha",
+      "1461093": "Nelio Lobato"
+    },
+    "1988407": {
+      "1446561": "Lucas Cunha",
+      "1446563": "Paulo Infante",
+      "1459690": "Guilherme Brufato",
+      "1460583": "Gerson Braz",
+      "1460779": "Caio Fernandes"
+    },
+    "1988415": {
+      "1446661": "ROI system / V4.MKT",
+      "1446663": "Presença digital (8K)",
+      "1446665": "Diagnóstico e Planejamento de Marketing e Vendas no digital (16K)",
+      "1446667": "R.A.P. (70K)",
+      "1446669": "Diagnóstico, planejamento e treinamento de CRM e Vendas",
+      "1446671": "Diagnóstico e planejamento de CRM Marketing",
+      "1446673": "Diagnóstico de Mídia Paga (Meta e Google Ads)",
+      "1446675": "Diagnóstico e Planejamento de E-commerce",
+      "1446677": "Diagnóstico e Planejamento de Redes Sociais",
+      "1446679": "Implementação E-commerce",
+      "1446681": "Implementação de Site",
+      "1446683": "Implementação de Landing Pages",
+      "1446685": "Implementação de  Gestão & Dados",
+      "1446687": "Implementação de CRM Vendas",
+      "1446689": "Implementação de CRM Marketing",
+      "1446691": "Implementação de SDR-IA",
+      "1446693": "Profissional de Google Ads",
+      "1446695": "Profissional de Meta Ads",
+      "1446697": "Profissional de Criativos (design)",
+      "1446699": "Profissional de CRM Marketing",
+      "1446701": "Profissional de Sales Enablement",
+      "1446703": "Profissional de Comunição (Social Media/Copy)",
+      "1446705": "Profissional de Business Intelligence",
+      "1446707": "V4Food",
+      "1460505": "DR-X",
+      "1460507": "DR-E",
+      "1460509": "DR-O"
+    },
+    "1989435": {
+      "1447987": "Lead Broker",
+      "1447989": "Indicação",
+      "1447999": "Evento",
+      "1448345": "Black box",
+      "1460419": "Recuperação",
+      "1460425": "Voefly Camp",
+      "1460511": "Transf. Interna",
+      "1460609": "Recovery",
+      "1460805": "Visary - Mentor"
+    },
+    "1989443": {
+      "1447991": "Remarcada",
+      "1447993": "No-show"
+    },
+    "1989459": {
+      "1448007": "Frio",
+      "1448009": "Morno",
+      "1448011": "Quente"
+    },
+    "1989461": {
+      "1448013": "Tiny - Ate 1.2 Mi",
+      "1448015": "Small - 1.2 a 2.4 Mi",
+      "1448017": "Medium - 2.4 a 50 Mi (Ano)",
+      "1448019": "Large - 50 a 480 Mi (Ano)",
+      "1448021": "Enterprise - 480 Mi (Ano)"
+    },
+    "1989473": {
+      "1448023": "Sim",
+      "1448025": "Não"
+    },
+    "1989475": {
+      "1448027": "Sim",
+      "1448029": "Não"
+    },
+    "1989477": {
+      "1448031": "Sim",
+      "1448033": "Não"
+    },
+    "1989479": {
+      "1448035": "Sim",
+      "1448037": "Não"
+    },
+    "1989749": {
+      "1459031": "Imersão Caup",
+      "1459033": "Palestra Caup",
+      "1459035": "Summit Caup",
+      "1459037": "Ferraz Piai",
+      "1459093": "Investidor",
+      "1459095": "Cliente",
+      "1459097": "Parceiro",
+      "1459702": "Lead"
+    },
+    "1989765": {
+      "1459039": "Diagnóstico e Planejamento de Marketing e Vendas no digital",
+      "1459041": "Diagnóstico, planejamento e treinamento de CRM e Vendas",
+      "1459043": "Diagnóstico e planejamento de CRM Marketing",
+      "1459131": "Diagnóstico de Mídia Paga (Meta e Google Ads)",
+      "1459133": "Diagnóstico e Planejamento de E-commerce",
+      "1459135": "Diagnóstico e Planejamento de Redes Sociais",
+      "1459137": "Implementação E-commerce",
+      "1459139": "Implementação de Landing Pages",
+      "1459141": "Implementação de  Gestão & Dados",
+      "1459143": "Implementação de CRM Vendas",
+      "1459145": "Implementação de CRM Marketing",
+      "1459147": "Implementação de SDR-IA",
+      "1459149": "Profissional de Google Ads",
+      "1459151": "Profissional de Meta Ads",
+      "1459153": "Profissional de Criativos (design)",
+      "1459155": "Profissional de CRM Marketing",
+      "1459159": "Profissional de Business Intelligence",
+      "1459161": "V4Food",
+      "1459163": "R.A.P",
+      "1459165": "Mapa Estratégico",
+      "1459167": "ROI system / V4.MKT",
+      "1459283": "Profissional de Comunicação (Social Media/Copy)",
+      "1459898": "Implementação de Site",
+      "1459900": "Gestão de Mídia Paga",
+      "1459902": "Profissional Social Media",
+      "1459904": "Profissional de Copywriting",
+      "1460075": "Catálogo",
+      "1460081": "Marketplace",
+      "1460105": "Branding",
+      "1460279": "Growth Marketing Advisory",
+      "1460603": "Estruturação Comercial"
+    },
+    "1989769": {
+      "1459045": "Diagnóstico e Planejamento de Marketing e Vendas no digital",
+      "1459047": "Diagnóstico, planejamento e treinamento de CRM e Vendas",
+      "1459049": "Diagnóstico e planejamento de CRM Marketing",
+      "1459169": "Diagnóstico de Mídia Paga (Meta e Google Ads)",
+      "1459171": "Diagnóstico e Planejamento de E-commerce",
+      "1459173": "Diagnóstico e Planejamento de Redes Sociais",
+      "1459175": "Implementação E-commerce",
+      "1459177": "Implementação de Landing Pages",
+      "1459179": "Implementação de  Gestão & Dados",
+      "1459181": "Implementação de CRM Vendas",
+      "1459183": "Implementação de CRM Marketing",
+      "1459185": "Implementação de SDR-IA",
+      "1459187": "Profissional de Google Ads",
+      "1459189": "Profissional de Meta Ads",
+      "1459191": "Profissional de Criativos (design)",
+      "1459193": "Profissional de CRM Marketing",
+      "1459195": "Profissional de Comunição (Social Media/Copy)",
+      "1459197": "Profissional de Business Intelligence",
+      "1459199": "V4Food",
+      "1459201": "R.A.P",
+      "1459203": "Mapa Estratégico",
+      "1459205": "ROI system / V4.MKT",
+      "1460077": "Catalogo",
+      "1460083": "Marketplace",
+      "1460107": "Branding",
+      "1460281": "Growth Marketing Advisory"
+    },
+    "1989773": {
+      "1459051": "Diagnóstico e Planejamento de Marketing e Vendas no digital",
+      "1459053": "Diagnóstico, planejamento e treinamento de CRM e Vendas",
+      "1459055": "Diagnóstico e planejamento de CRM Marketing",
+      "1459207": "Diagnóstico de Mídia Paga (Meta e Google Ads)",
+      "1459209": "Diagnóstico e Planejamento de E-commerce",
+      "1459211": "Diagnóstico e Planejamento de Redes Sociais",
+      "1459213": "Implementação E-commerce",
+      "1459215": "Implementação de Landing Pages",
+      "1459217": "Implementação de  Gestão & Dados",
+      "1459219": "Implementação de CRM Vendas",
+      "1459221": "Implementação de CRM Marketing",
+      "1459223": "Implementação de SDR-IA",
+      "1459225": "Profissional de Google Ads",
+      "1459227": "Profissional de Meta Ads",
+      "1459229": "Profissional de Criativos (design)",
+      "1459231": "Profissional de CRM Marketing",
+      "1459233": "Profissional de Comunição (Social Media/Copy)",
+      "1459235": "Profissional de Business Intelligence",
+      "1459237": "V4Food",
+      "1459239": "Mapa Estratégico",
+      "1459241": "R.A.P",
+      "1459243": "ROI system / V4.MKT",
+      "1460079": "Manutenção do Catalogo",
+      "1460085": "Marketplace",
+      "1460109": "Branding",
+      "1460283": "Growth Marketing Advisory"
+    },
+    "1989777": {
+      "1459057": "Diagnóstico e Planejamento de Marketing e Vendas no digital",
+      "1459059": "Diagnóstico, planejamento e treinamento de CRM e Vendas",
+      "1459061": "Diagnóstico e planejamento de CRM Marketing",
+      "1459245": "Diagnóstico de Mídia Paga (Meta e Google Ads)",
+      "1459247": "Diagnóstico e Planejamento de E-commerce",
+      "1459249": "Diagnóstico e Planejamento de Redes Sociais",
+      "1459251": "Implementação E-commerce",
+      "1459253": "Implementação de Landing Pages",
+      "1459255": "Implementação de  Gestão & Dados",
+      "1459257": "Implementação de CRM Vendas",
+      "1459259": "Implementação de CRM Marketing",
+      "1459261": "Implementação de SDR-IA",
+      "1459263": "Profissional de Google Ads",
+      "1459265": "Profissional de Meta Ads",
+      "1459267": "Profissional de Criativos (design)",
+      "1459269": "Profissional de CRM Marketing",
+      "1459271": "Profissional de Comunicação (Social Media/Copy)",
+      "1459273": "Profissional de Business Intelligence",
+      "1459275": "V4Food",
+      "1459277": "Mapa Estratégico",
+      "1459279": "R.A.P",
+      "1459281": "ROI system / V4.MKT",
+      "1460087": "Marketplace",
+      "1460111": "Branding",
+      "1460285": "Growth Marketing Advisory"
+    },
+    "1989787": {
+      "1459063": "Cartão de Crédito",
+      "1459065": "Pix",
+      "1459067": "Boleto",
+      "1459642": "Cheque"
+    },
+    "1989789": {
+      "1459069": "À Vista",
+      "1459071": "2x",
+      "1459073": "3x",
+      "1459075": "4x",
+      "1459077": "5x",
+      "1459079": "6x",
+      "1459081": "7x",
+      "1459083": "8x",
+      "1459085": "9x",
+      "1459087": "10x",
+      "1459089": "11x",
+      "1459091": "12x"
+    },
+    "1989793": {
+      "1459099": "Saber",
+      "1459101": "Ter",
+      "1459103": "Executar",
+      "1459105": "Potencializar"
+    },
+    "1989795": {
+      "1459107": "Saber",
+      "1459109": "Ter",
+      "1459111": "Executar",
+      "1459113": "Potencializar"
+    },
+    "1989797": {
+      "1459115": "Saber",
+      "1459117": "Ter",
+      "1459119": "Executar",
+      "1459121": "Potencializar"
+    },
+    "1989799": {
+      "1459123": "Saber",
+      "1459125": "Ter",
+      "1459127": "Executar",
+      "1459129": "Potencializar"
+    },
+    "1989890": {
+      "1459562": "Pessoa terceirizada",
+      "1459564": "Agência",
+      "1459566": "Time interno",
+      "1459568": "Agência e time interno",
+      "1459570": "Gestor de tráfego",
+      "1459572": "Sozinho",
+      "1459574": "Não tem",
+      "1459576": "Matriz"
+    },
+    "1989892": {
+      "1459578": "Alta",
+      "1459580": "Média",
+      "1459582": "Baixa"
+    },
+    "1989894": {
+      "1459584": "Sim, já investe",
+      "1459586": "Não, mas já investiu",
+      "1459588": "Não, nunca investiu"
+    },
+    "1989900": {
+      "1459590": "Inside Sales",
+      "1459592": "Ponto Físico",
+      "1459594": "Ecommerce",
+      "1459596": "Mídias Sociais",
+      "1459598": "Representantes Comerciais",
+      "1459600": "Marketplaces",
+      "1459602": "Outros"
+    },
+    "1989902": {
+      "1459604": "Sim",
+      "1459606": "Não"
+    },
+    "1989906": {
+      "1459608": "Tiny - Ate 1.2 Mi",
+      "1459610": "Small - 1.2 a 2.4 Mi",
+      "1459612": "Medium - 2.4 a 50 Mi",
+      "1459614": "Large - 50 a 480 Mi",
+      "1459616": "Enterprise - 480 Mi"
+    },
+    "1989916": {
+      "1459618": "Sim",
+      "1459620": "Não"
+    },
+    "1989918": {
+      "1459622": "Agora/Urgente",
+      "1459624": "Nesse mês",
+      "1459626": "Nesse quarter",
+      "1459628": "Próximo quarter"
+    },
+    "1989920": {
+      "1459630": "D - Dominante",
+      "1459632": "I - Influente",
+      "1459634": "S - Estável",
+      "1459636": "C - Conforme"
+    },
+    "1989934": {
+      "1459646": "Implementação CRM",
+      "1459648": "Implementação Site",
+      "1459650": "Identidade Visual",
+      "1459652": "Google my Business",
+      "1459654": "E-commerce",
+      "1459656": "Gestão de Dados",
+      "1459658": "Landing Page",
+      "1459660": "V4 Food",
+      "1459662": "Manutenção e-commerce",
+      "1459664": "Manutenção Landing Page",
+      "1459666": "Profissional Web Design",
+      "1459668": "Profissional Redação Publicitária",
+      "1459670": "Manutenção site",
+      "1459672": "Profissional Sales Enablement",
+      "1459674": "Profissional BI",
+      "1459676": "Manutenção Hubspot",
+      "1459678": "Profissional Pré-venda (SDR)",
+      "1459680": "Profissional CRM",
+      "1459682": "Profissional Gestão de Mídia Paga",
+      "1459684": "Profissional de Social Media",
+      "1459686": "Manutenção Kommo (CRM)",
+      "1459688": "Profissional Designer Gráfico",
+      "1459744": "Branding",
+      "1459890": "Implementação de Site",
+      "1459892": "Profissional de Mídia Paga",
+      "1459894": "Social Media",
+      "1459896": "Profissional de Copywriting",
+      "1460089": "Marketplace",
+      "1460113": "SDR IA",
+      "1461087": "Captação de Vídeo"
+    },
+    "1989938": {
+      "1459692": "Deniz Oliveira",
+      "1459694": "Gabriela Campos",
+      "1459696": "Eder Turini",
+      "1459698": "Marco Claro",
+      "1459700": "Harlem Fonseca",
+      "1459742": "Silvania Fraga"
+    },
+    "1989954": {
+      "1459746": "Sim",
+      "1459748": "Não"
+    },
+    "1989962": {
+      "1459836": "Cartão de Crédito",
+      "1459838": "Pix",
+      "1459840": "Boleto",
+      "1459842": "Cheque"
+    },
+    "1989964": {
+      "1459844": "À Vista",
+      "1459846": "2x",
+      "1459848": "3x",
+      "1459850": "4x",
+      "1459852": "5x",
+      "1459854": "6x",
+      "1459856": "7x",
+      "1459858": "8x",
+      "1459860": "9x",
+      "1459862": "10x",
+      "1459864": "11x",
+      "1459866": "12x"
+    },
+    "1989972": {
+      "1459870": "Safe",
+      "1459872": "Care",
+      "1459874": "Danger",
+      "1460115": "Critical"
+    },
+    "1990068": {
+      "1459970": "Cartão de Crédito",
+      "1459972": "Pix",
+      "1459974": "Boleto",
+      "1459976": "Cheque"
+    },
+    "1990078": {
+      "1459978": "À Vista",
+      "1459980": "2x",
+      "1459982": "3x",
+      "1459984": "4x",
+      "1459986": "5x",
+      "1459988": "6x",
+      "1459990": "7x",
+      "1459992": "8x",
+      "1459994": "9x",
+      "1459996": "10x",
+      "1459998": "11x",
+      "1460000": "12x"
+    },
+    "1990231": {
+      "1460119": "Saber",
+      "1460121": "Base"
+    },
+    "1990299": {
+      "1460253": "Tiny - 51 a 100 Mil (mês)",
+      "1460255": "Small - 101 a 200 Mil (mês)",
+      "1460257": "Medium - 201 mil a 4 Mi (mês)",
+      "1460259": "Large - 4 a 40 Mi (mês)",
+      "1460261": "Enterprise - > 41 Mi (mês)",
+      "1460503": "Sem informação"
+    },
+    "1991145": {
+      "1460793": "16h - 10% - Compartilhado",
+      "1460795": "24h - 25% - Compartilhado",
+      "1460797": "40h - 50% - Semi-Dedicado",
+      "1460799": "160h - 100% - Dedicado",
+      "1461045": "N/A"
+    },
+    "1991359": {
+      "1461047": "CRM Sales",
+      "1461049": "CRM Marketing",
+      "1461051": "E-commerce",
+      "1461053": "Site Institucional",
+      "1461055": "IA SDR",
+      "1461057": "Dashboard",
+      "1461089": "Dashboard Mídia",
+      "1461091": "Auditoria CRM"
+    }
+  }
+}

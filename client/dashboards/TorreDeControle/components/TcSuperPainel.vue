@@ -1,8 +1,14 @@
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import TcTimelineFases from './TcTimelineFases.vue'
 import TcJobProgress from './TcJobProgress.vue'
-import TcKommoLeadForm from './TcKommoLeadForm.vue'
+import TcKommoOportunidadeModal from './TcKommoOportunidadeModal.vue'
+import TcLeadMateriaisEditor from './TcLeadMateriaisEditor.vue'
+import TcConsolidadoScorecards from './TcConsolidadoScorecards.vue'
+import TcConsolidadoAvanco from './TcConsolidadoAvanco.vue'
+import TcConsolidadoQualidadeTime from './TcConsolidadoQualidadeTime.vue'
+import TcConsolidadoPontos from './TcConsolidadoPontos.vue'
+import TcConsolidadoOportunidades from './TcConsolidadoOportunidades.vue'
 import VLoadingState from '../../../components/ui/VLoadingState.vue'
 import VEmptyState from '../../../components/ui/VEmptyState.vue'
 import { useTorreControle } from '../composables/useTorreControle.js'
@@ -19,8 +25,6 @@ const tc = useTorreControle()
 const faseAtiva = ref(props.faseInicial || props.fases[0]?.id)
 const detalhe = ref(null)
 const loadingDetalhe = ref(false)
-const mostraFormLead = ref(false)
-const oportunidadeSelecionada = ref(null)
 
 const analiseAtual = computed(() => detalhe.value?.analises?.[0] || null)
 const dadosFaseAtiva = computed(() => props.cliente.fases?.[faseAtiva.value] || null)
@@ -62,56 +66,28 @@ async function carregarDetalhe() {
 
 const PHASES_COM_MATERIAIS = ['kickoff', 'fase-2', 'fase-3', 'fase-4', 'fase-5']
 
-// Ordem -> slug (para analisar em lote todas as fases passadas)
-const FASES_ORDEM_SLUG = [
-  { ordem: 1, slug: 'kickoff',  nome: 'Fase 1' },
-  { ordem: 2, slug: 'fase-2',   nome: 'Fase 2' },
-  { ordem: 3, slug: 'fase-3',   nome: 'Fase 3' },
-  { ordem: 4, slug: 'fase-4',   nome: 'Fase 4' },
-  { ordem: 5, slug: 'fase-5',   nome: 'Fase 5' }
-]
-
-// Fases auditaveis = todas com ordem < fase_atual_ordem do lead
-const fasesAuditaveis = computed(() => {
-  const atual = Number(props.cliente?.fase_atual_ordem || 0)
-  return FASES_ORDEM_SLUG.filter(f => f.ordem < atual)
+// Flags de contexto
+const isFaseProjetoConcluido = computed(() =>
+  detalhe.value?.fase?.fase_slug === 'projeto-concluido'
+)
+const ultimaFalha = computed(() => {
+  const f = detalhe.value?.fase
+  if (!f?.ultima_falha_msg) return null
+  return { msg: f.ultima_falha_msg, em: f.ultima_falha_em }
 })
 
-const analisandoTudo = ref(false)
-
-async function analisarTodasFases() {
-  const alvo = fasesAuditaveis.value
-  if (alvo.length === 0) {
-    alert('Nenhuma fase auditavel — o lead ainda esta na Fase 1 ou antes.')
-    return
-  }
-  const ok = confirm(
-    `Isso vai disparar ${alvo.length} analise(s) IA em paralelo para este cliente:\n\n` +
-    alvo.map(f => `• ${f.nome}`).join('\n') +
-    `\n\nProsseguir?`
-  )
-  if (!ok) return
-  analisandoTudo.value = true
-  try {
-    // Para cada fase, precisa primeiro resolver projetoFaseId (chama GET /cliente/:id/fase/:faseId)
-    for (const f of alvo) {
-      try {
-        const stageId = STAGE_BY_ORDEM[f.ordem]
-        const det = await tc.carregarDetalheFase(props.cliente.id, stageId)
-        const pfId = det?.fase?.id
-        if (pfId) {
-          await tc.analisar(pfId, props.leadId, f.slug)
-        }
-      } catch (err) {
-        console.error('[analisarTodasFases] fase', f.slug, err)
-      }
-    }
-  } finally {
-    analisandoTudo.value = false
-  }
+function fmtFalhaDate(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (isNaN(d)) return ''
+  const dia = String(d.getDate()).padStart(2, '0')
+  const mes = String(d.getMonth() + 1).padStart(2, '0')
+  const h = String(d.getHours()).padStart(2, '0')
+  const m = String(d.getMinutes()).padStart(2, '0')
+  return `${dia}/${mes} ${h}:${m}`
 }
 
-const STAGE_BY_ORDEM = { 1: 99670920, 2: 99670924, 3: 99671028, 4: 99671032, 5: 99671036 }
+const mostraEditorMateriais = ref(false)
 
 async function analisarFase() {
   if (!detalhe.value?.fase) {
@@ -127,13 +103,18 @@ async function analisarFase() {
   // Fase "Projeto Concluido" usa relatorio final consolidado (nao tem materiais proprios,
   // agrega analises de todas fases anteriores + contexto Kommo)
   if (slug === 'projeto-concluido') {
+    // Confirma antes de gerar nova versao (custo de IA nao e baixo)
+    if (analiseAtual.value) {
+      const ok = confirm('Gerar NOVA versao da Analise Consolidada? A versao anterior fica preservada no historico.')
+      if (!ok) return
+    }
     try {
       const job = await tc.analisarFinal(projetoFaseId, props.leadId)
       if (job?.status === 'duplicate') {
-        alert('Relatorio final ja em andamento. Aguarde concluir.')
+        alert('Analise Consolidada ja em andamento. Aguarde concluir.')
       }
     } catch (err) {
-      alert('Erro ao disparar relatorio final: ' + (err?.message || err))
+      alert('Erro ao disparar Analise Consolidada: ' + (err?.message || err))
     }
     return
   }
@@ -154,18 +135,33 @@ async function analisarFase() {
   }
 }
 
-async function criarLead(payload) {
-  try {
-    await tc.criarLeadKommo(payload)
-    mostraFormLead.value = false
-  } catch (err) {
-    alert('Erro ao criar lead: ' + err.message)
+// JSON consolidado (avanco, qualidade_time, pontos_positivos, pontos_negativos)
+const consolidado = computed(() => {
+  const raw = analiseAtual.value?.consolidado
+  if (!raw) return null
+  if (typeof raw === 'string') {
+    try { return JSON.parse(raw) } catch { return null }
   }
+  return raw
+})
+
+const mostraKommoModal = ref(false)
+const oportunidadesParaModal = ref([])
+
+function abrirKommoModal(ops) {
+  oportunidadesParaModal.value = ops || []
+  mostraKommoModal.value = true
+  nextTick(() => window.lucide && window.lucide.createIcons())
 }
 
-function abrirFormLead(op) {
-  oportunidadeSelecionada.value = op
-  mostraFormLead.value = true
+function onLeadCriado(resp) {
+  mostraKommoModal.value = false
+  const url = resp?.kommo_url || resp?.lead?.id
+    ? `https://edisonv4companycom.kommo.com/leads/detail/${resp?.lead?.id || ''}`
+    : null
+  if (url && confirm(`Lead criado no Kommo!\n\nAbrir no Kommo agora?`)) {
+    window.open(url, '_blank', 'noopener')
+  }
 }
 
 function slugify(s) {
@@ -257,8 +253,29 @@ watch(() => jobAtivo.value?.status, (status) => {
       :fases="fases"
       :cliente-fases="cliente.fases || {}"
       :active="faseAtiva"
+      :fase-atual-ordem="Number(cliente.fase_atual_ordem || 0)"
       @select="faseAtiva = $event"
     />
+
+    <!-- Banner de erro inline: ultima tentativa de analise falhou -->
+    <div v-if="ultimaFalha && !jobAtivo" class="sp-falha-banner">
+      <i data-lucide="alert-circle" class="banner-icon"></i>
+      <div class="falha-body">
+        <strong>Ultima analise falhou</strong>
+        <p class="falha-msg">{{ ultimaFalha.msg }}</p>
+        <small v-if="ultimaFalha.em">Falha em {{ fmtFalhaDate(ultimaFalha.em) }}</small>
+      </div>
+      <div class="falha-actions">
+        <button class="btn-falha" @click="mostraEditorMateriais = true">
+          <i data-lucide="edit-3" class="inline-icon"></i>
+          Editar materiais
+        </button>
+        <button class="btn-falha btn-falha--primary" @click="analisarFase" :disabled="!!jobAtivo">
+          <i data-lucide="rotate-cw" class="inline-icon"></i>
+          Tentar novamente
+        </button>
+      </div>
+    </div>
 
     <div v-if="jobAtivo" class="sp-job-wrap">
       <TcJobProgress :job="jobAtivo" />
@@ -270,18 +287,17 @@ watch(() => jobAtivo.value?.status, (status) => {
 
     <div v-else-if="!analiseAtual && !jobAtivo" class="sp-vazio">
       <VEmptyState
-        icon="sparkles"
-        title="Fase ainda nao analisada"
-        description="Dispare uma analise para que a IA avalie os materiais entregues nesta fase. Ela vai ler slides, transcricoes e documentos, gerar score, riscos e oportunidades."
+        :icon="isFaseProjetoConcluido ? 'file-check' : 'sparkles'"
+        :title="isFaseProjetoConcluido ? 'Projeto pronto para validacao' : 'Fase ainda nao analisada'"
+        :description="isFaseProjetoConcluido
+          ? 'Gere o relatorio consolidado que junta todas as fases auditadas, destaca pontos positivos e negativos, avalia a qualidade do time e mapeia oportunidades de expansao.'
+          : 'Dispare uma analise para que a IA avalie os materiais entregues nesta fase. Ela vai ler slides, transcricoes e documentos, gerar score, riscos e oportunidades.'"
       />
       <div class="sp-vazio-actions">
         <button class="btn btn-primary" @click="analisarFase" :disabled="!!jobAtivo">
-          <i data-lucide="play" class="inline-icon"></i>
-          Analisar agora
+          <i :data-lucide="isFaseProjetoConcluido ? 'sparkles' : 'play'" class="inline-icon"></i>
+          {{ isFaseProjetoConcluido ? 'Gerar Analise Consolidada' : 'Analisar agora' }}
         </button>
-        <span v-if="fasesAuditaveis.length > 1" class="sp-vazio-hint">
-          ou use "Analisar todas as {{ fasesAuditaveis.length }} fases" no rodape
-        </span>
       </div>
     </div>
 
@@ -303,6 +319,21 @@ watch(() => jobAtivo.value?.status, (status) => {
           <strong>Analise parcial</strong>
           <p>A IA pontuou com base no que foi entregue, mas alguns materiais ainda faltam. Score reflete apenas o que foi avaliado.</p>
         </div>
+      </div>
+
+      <!-- ==== BLOCOS DA ANALISE CONSOLIDADA (fase Projeto Concluido) ==== -->
+      <div v-if="isFaseProjetoConcluido && consolidado" class="sp-consolidado">
+        <TcConsolidadoScorecards
+          :consolidado="consolidado"
+          :oportunidades="analiseAtual.oportunidades || []"
+        />
+        <TcConsolidadoAvanco v-if="consolidado.avanco" :avanco="consolidado.avanco" />
+        <TcConsolidadoPontos
+          v-if="(consolidado.pontos_positivos?.length || consolidado.pontos_negativos?.length)"
+          :pontos-positivos="consolidado.pontos_positivos"
+          :pontos-negativos="consolidado.pontos_negativos"
+        />
+        <TcConsolidadoQualidadeTime v-if="consolidado.qualidade_time" :qualidade-time="consolidado.qualidade_time" />
       </div>
 
       <section class="sp-coluna sp-coluna--relatorio">
@@ -341,19 +372,12 @@ watch(() => jobAtivo.value?.status, (status) => {
       </section>
 
       <section class="sp-coluna sp-coluna--acoes">
-        <div class="sp-card" v-if="analiseAtual.oportunidades?.length">
-          <h2>Oportunidades</h2>
-          <ul class="sp-oportunidades">
-            <li v-for="(op, i) in analiseAtual.oportunidades" :key="i">
-              <strong>{{ op.titulo }}</strong>
-              <p>{{ op.descricao }}</p>
-              <div class="linha">
-                <span v-if="op.valor_estimado">R$ {{ op.valor_estimado.toLocaleString('pt-BR') }}</span>
-                <button class="btn btn-sm" @click="abrirFormLead(op)">+ Kommo</button>
-              </div>
-            </li>
-          </ul>
-        </div>
+        <!-- Novo card de Oportunidades (probabilidade + justificativa expansivel) -->
+        <TcConsolidadoOportunidades
+          v-if="analiseAtual.oportunidades?.length"
+          :oportunidades="analiseAtual.oportunidades"
+          @criar-kommo="abrirKommoModal"
+        />
 
         <div class="sp-card" v-if="analiseAtual.riscos?.length">
           <h2>Riscos</h2>
@@ -381,30 +405,45 @@ watch(() => jobAtivo.value?.status, (status) => {
       <span class="sp-versao">Versao {{ analiseAtual?.versao || '-' }}</span>
       <div class="sp-actions">
         <button
-          v-if="fasesAuditaveis.length > 0"
           class="btn"
-          @click="analisarTodasFases"
-          :disabled="!!jobAtivo || analisandoTudo"
+          @click="mostraEditorMateriais = true"
+          :disabled="!!jobAtivo"
+          title="Editar links dos materiais no Kommo"
         >
-          <i data-lucide="layers" class="inline-icon"></i>
-          {{ analisandoTudo ? 'Disparando...' : `Analisar todas as ${fasesAuditaveis.length} fases` }}
+          <i data-lucide="edit-3" class="inline-icon"></i>
+          Editar materiais
         </button>
-        <button class="btn" @click="analisarFase" :disabled="!!jobAtivo">
-          Re-analisar fase atual
+        <button
+          v-if="analiseAtual"
+          class="btn"
+          :class="{ 'btn-primary': isFaseProjetoConcluido }"
+          @click="analisarFase"
+          :disabled="!!jobAtivo"
+        >
+          <i :data-lucide="isFaseProjetoConcluido ? 'sparkles' : 'rotate-cw'" class="inline-icon"></i>
+          {{ isFaseProjetoConcluido ? 'Regenerar Analise Consolidada' : 'Re-analisar fase atual' }}
         </button>
       </div>
     </footer>
 
-    <div v-if="mostraFormLead" class="sp-modal" @click.self="mostraFormLead = false">
-      <div class="sp-modal-body">
-        <h2>Novo lead no Kommo</h2>
-        <TcKommoLeadForm
-          :oportunidade="oportunidadeSelecionada"
-          @submit="criarLead"
-          @cancel="mostraFormLead = false"
-        />
-      </div>
-    </div>
+    <!-- Modal Kommo multi-produto (substitui o TcKommoLeadForm antigo) -->
+    <TcKommoOportunidadeModal
+      v-if="mostraKommoModal"
+      :cliente="cliente"
+      :oportunidades="oportunidadesParaModal"
+      :analise-id="analiseAtual?.id || null"
+      :lead-id="leadId"
+      @close="mostraKommoModal = false"
+      @created="onLeadCriado"
+    />
+
+    <!-- Editor de materiais do lead (abre a partir do rodape ou banner de erro) -->
+    <TcLeadMateriaisEditor
+      v-if="mostraEditorMateriais"
+      :cliente="cliente"
+      :lead-id="leadId"
+      @close="mostraEditorMateriais = false"
+    />
   </div>
 </template>
 
@@ -679,5 +718,83 @@ watch(() => jobAtivo.value?.status, (status) => {
 
 @media (max-width: 1024px) {
   .sp-body { grid-template-columns: 1fr; }
+}
+
+/* ===== Banner de erro inline (ultima_falha) ===== */
+.sp-falha-banner {
+  margin: 0 var(--spacing-lg);
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: 12px 16px;
+  background: linear-gradient(90deg, rgba(239,68,68,0.12), rgba(239,68,68,0.02));
+  border: 1px solid rgba(239,68,68,0.3);
+  border-left: 3px solid var(--color-danger, #ef4444);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-md);
+}
+.sp-falha-banner .banner-icon {
+  width: 22px; height: 22px;
+  color: var(--color-danger, #ef4444);
+  flex-shrink: 0;
+}
+.sp-falha-banner .falha-body strong {
+  color: var(--text-high, #fff);
+  font-size: 13.5px;
+  display: block;
+  margin-bottom: 2px;
+}
+.sp-falha-banner .falha-msg {
+  color: #ffaaaa;
+  font-size: 12.5px;
+  margin: 0 0 4px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  word-break: break-word;
+}
+.sp-falha-banner small {
+  color: #888;
+  font-size: 11px;
+}
+.sp-falha-banner .falha-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.sp-falha-banner .btn-falha {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: transparent;
+  border: 1px solid #2a2a2a;
+  color: #ccc;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 120ms;
+}
+.sp-falha-banner .btn-falha:hover:not(:disabled) {
+  background: rgba(255,255,255,0.04);
+  color: #fff;
+  border-color: #333;
+}
+.sp-falha-banner .btn-falha--primary {
+  background: var(--color-danger, #ef4444);
+  border-color: var(--color-danger, #ef4444);
+  color: #fff;
+}
+.sp-falha-banner .btn-falha--primary:hover:not(:disabled) {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+/* ===== Blocos da Analise Consolidada (projeto-concluido) ===== */
+.sp-consolidado {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
 }
 </style>

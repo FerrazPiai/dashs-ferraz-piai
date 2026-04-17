@@ -24,8 +24,6 @@ const TABS = [
 ]
 
 const sc = computed(() => tc.painelGeral.value?.scorecards || {})
-const fin = computed(() => tc.painelGeral.value?.financeiro || {})
-const brl = (v) => `R$ ${Number(v || 0).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`
 
 async function carregarColaboradores() {
   try {
@@ -54,24 +52,7 @@ onMounted(async () => {
         <VScorecard label="Clientes Ativos" :value="sc.clientes_ativos ?? 0" />
         <VScorecard label="Score Medio" :value="sc.score_medio ?? '-'" />
         <VScorecard label="Em Risco" :value="sc.em_risco ?? 0" />
-        <VScorecard
-          label="Oportunidades"
-          :value="`R$ ${Number(sc.oportunidades_brl || 0).toLocaleString('pt-BR')}`"
-        />
         <VScorecard label="Taxa de Analise" :value="`${sc.taxa_analise ?? 0}%`" />
-      </div>
-    </div>
-
-    <div class="section-block">
-      <div class="section-head">
-        <span class="section-label">Financeiro</span>
-        <span class="section-hint">Agregado dos custom fields Kommo</span>
-      </div>
-      <div class="scorecards">
-        <VScorecard label="Receita Contratada" :value="brl(fin.receita_contratada)" />
-        <VScorecard label="Ticket Medio" :value="brl(fin.ticket_medio)" />
-        <VScorecard label="Lucro Liquido" :value="brl(fin.lucro_liquido)" />
-        <VScorecard label="Verba em Trafego" :value="brl(fin.verba_trafego)" />
       </div>
     </div>
 

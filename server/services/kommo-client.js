@@ -98,6 +98,78 @@ export async function createLead(pipelineId, statusId, leadData) {
   return data?._embedded?.leads?.[0]
 }
 
+// Pipeline Expansao — destino fixo das oportunidades geradas pela Analise Consolidada
+export const PIPELINE_EXPANSAO = 12184212
+
+// Slots de produto Kommo (ate 4 por lead)
+const PRODUTO_SLOTS = [
+  { produto: 1989765, valor: 1989767, categoria: 1989793 },
+  { produto: 1989769, valor: 1989771, categoria: 1989795 },
+  { produto: 1989773, valor: 1989775, categoria: 1989797 },
+  { produto: 1989777, valor: 1989779, categoria: 1989799 }
+]
+
+// Cria lead no pipeline Expansao com ate 4 produtos + campos de contexto.
+// Nao envia status_id — Kommo coloca automaticamente na primeira etapa do pipeline.
+export async function createLeadMultiProduto({ name, produtos = [], campos = {} }) {
+  const custom_fields_values = []
+
+  produtos.slice(0, 4).forEach((p, i) => {
+    const slot = PRODUTO_SLOTS[i]
+    if (p.produto_id) {
+      custom_fields_values.push({ field_id: slot.produto, values: [{ enum_id: parseInt(p.produto_id, 10) }] })
+    }
+    if (p.valor != null) {
+      custom_fields_values.push({ field_id: slot.valor, values: [{ value: Number(p.valor) }] })
+    }
+    if (p.categoria_id) {
+      custom_fields_values.push({ field_id: slot.categoria, values: [{ enum_id: parseInt(p.categoria_id, 10) }] })
+    }
+  })
+
+  const pushIf = (fieldId, val, isEnum = false) => {
+    if (val == null || val === '') return
+    if (isEnum) {
+      custom_fields_values.push({ field_id: fieldId, values: [{ enum_id: parseInt(val, 10) }] })
+    } else {
+      custom_fields_values.push({ field_id: fieldId, values: [{ value: val }] })
+    }
+  }
+
+  pushIf(1989461, campos.tier)                     // Tier (select — string value funciona)
+  pushIf(CUSTOM_FIELD_IDS.OPORTUNIDADE_MAPEADA, campos.oportunidade_mapeada)
+  pushIf(CUSTOM_FIELD_IDS.SOLUCAO, campos.solucao_id, true)
+  pushIf(CUSTOM_FIELD_IDS.FLAG, campos.flag)
+  pushIf(CUSTOM_FIELD_IDS.SQUAD, campos.squad)
+  pushIf(CUSTOM_FIELD_IDS.DORES, campos.dores)
+  pushIf(CUSTOM_FIELD_IDS.COORDENADOR_EMAIL, campos.coordenador_email)
+  pushIf(CUSTOM_FIELD_IDS.ACCOUNT, campos.account)
+
+  const price = produtos.reduce((a, p) => a + (Number(p.valor) || 0), 0)
+
+  const body = [{
+    name,
+    pipeline_id: PIPELINE_EXPANSAO,
+    price,
+    custom_fields_values
+  }]
+  const data = await kommoFetch('/leads', { method: 'POST', body: JSON.stringify(body) })
+  return data?._embedded?.leads?.[0]
+}
+
+// Atualiza um unico custom field de um lead no Kommo.
+export async function updateLeadCustomField(leadId, fieldId, value) {
+  const body = {
+    custom_fields_values: [
+      { field_id: parseInt(fieldId, 10), values: [{ value: value || '' }] }
+    ]
+  }
+  return kommoFetch(`/leads/${leadId}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body)
+  })
+}
+
 export async function updateLeadNote(leadId, noteText) {
   const body = [{
     entity_id: parseInt(leadId, 10),
@@ -208,5 +280,95 @@ export function findFieldByName(customFields, nameSubstring) {
     String(f.field_name || f.name || '').toLowerCase().includes(target)
   )
 }
+
+// Catalogos Kommo — enums carregados de fields.json e hardcoded (mudam raramente).
+// Usados pela IA para mapear oportunidades em produtos/categorias/solucoes reais.
+export const KOMMO_PRODUTOS = [
+  { id: 1460603, nome: 'Estruturação Comercial' },
+  { id: 1459041, nome: 'Diagnóstico, planejamento e treinamento de CRM e Vendas' },
+  { id: 1459043, nome: 'Diagnóstico e planejamento de CRM Marketing' },
+  { id: 1459131, nome: 'Diagnóstico de Mídia Paga (Meta e Google Ads)' },
+  { id: 1459133, nome: 'Diagnóstico e Planejamento de E-commerce' },
+  { id: 1459135, nome: 'Diagnóstico e Planejamento de Redes Sociais' },
+  { id: 1459039, nome: 'Diagnóstico e Planejamento de Marketing e Vendas no digital' },
+  { id: 1459137, nome: 'Implementação E-commerce' },
+  { id: 1459139, nome: 'Implementação de Landing Pages' },
+  { id: 1459141, nome: 'Implementação de Gestão & Dados' },
+  { id: 1459143, nome: 'Implementação de CRM Vendas' },
+  { id: 1459145, nome: 'Implementação de CRM Marketing' },
+  { id: 1459147, nome: 'Implementação de SDR-IA' },
+  { id: 1459898, nome: 'Implementação de Site' },
+  { id: 1459149, nome: 'Profissional de Google Ads' },
+  { id: 1459151, nome: 'Profissional de Meta Ads' },
+  { id: 1459153, nome: 'Profissional de Criativos (design)' },
+  { id: 1459155, nome: 'Profissional de CRM Marketing' },
+  { id: 1459283, nome: 'Profissional de Comunicação (Social Media/Copy)' },
+  { id: 1459159, nome: 'Profissional de Business Intelligence' },
+  { id: 1459902, nome: 'Profissional Social Media' },
+  { id: 1459904, nome: 'Profissional de Copywriting' },
+  { id: 1459900, nome: 'Gestão de Mídia Paga' },
+  { id: 1459161, nome: 'V4Food' },
+  { id: 1459163, nome: 'R.A.P' },
+  { id: 1459165, nome: 'Mapa Estratégico' },
+  { id: 1459167, nome: 'ROI system / V4.MKT' },
+  { id: 1460075, nome: 'Catálogo' },
+  { id: 1460081, nome: 'Marketplace' },
+  { id: 1460105, nome: 'Branding' },
+  { id: 1460279, nome: 'Growth Marketing Advisory' }
+]
+
+export const KOMMO_CATEGORIAS = [
+  { id: 1459099, nome: 'Saber' },
+  { id: 1459101, nome: 'Ter' },
+  { id: 1459103, nome: 'Executar' },
+  { id: 1459105, nome: 'Potencializar' }
+]
+
+export const KOMMO_SOLUCOES = [
+  { id: 1459646, nome: 'Implementação CRM' },
+  { id: 1459648, nome: 'Implementação Site' },
+  { id: 1459650, nome: 'Identidade Visual' },
+  { id: 1459652, nome: 'Google my Business' },
+  { id: 1459654, nome: 'E-commerce' },
+  { id: 1459656, nome: 'Gestão de Dados' },
+  { id: 1459658, nome: 'Landing Page' },
+  { id: 1459660, nome: 'V4 Food' },
+  { id: 1459744, nome: 'Branding' },
+  { id: 1459890, nome: 'Implementação de Site' },
+  { id: 1459892, nome: 'Profissional de Mídia Paga' },
+  { id: 1459894, nome: 'Social Media' },
+  { id: 1459896, nome: 'Profissional de Copywriting' },
+  { id: 1459682, nome: 'Profissional Gestão de Mídia Paga' },
+  { id: 1459680, nome: 'Profissional CRM' },
+  { id: 1459684, nome: 'Profissional de Social Media' },
+  { id: 1459686, nome: 'Manutenção Kommo (CRM)' },
+  { id: 1459688, nome: 'Profissional Designer Gráfico' },
+  { id: 1460089, nome: 'Marketplace' },
+  { id: 1459666, nome: 'Profissional Web Design' },
+  { id: 1459668, nome: 'Profissional Redação Publicitária' },
+  { id: 1459672, nome: 'Profissional Sales Enablement' },
+  { id: 1459674, nome: 'Profissional BI' },
+  { id: 1459678, nome: 'Profissional Pré-venda (SDR)' },
+  { id: 1459662, nome: 'Manutenção e-commerce' },
+  { id: 1459664, nome: 'Manutenção Landing Page' },
+  { id: 1459670, nome: 'Manutenção site' },
+  { id: 1459676, nome: 'Manutenção Hubspot' }
+]
+
+export function getKommoCatalogos() {
+  return { produtos: KOMMO_PRODUTOS, categorias: KOMMO_CATEGORIAS, solucoes: KOMMO_SOLUCOES }
+}
+
+// Whitelist de custom fields editaveis via Hub (editor de materiais do lead).
+// Cobre: pasta do cliente + kick-off + slides/reuniao/transcricao/figma/miro das 5 fases.
+export const EDITABLE_MATERIAL_FIELD_IDS = new Set([
+  1990387,                              // Link da Pasta do Cliente
+  1990385,                              // Reuniao de Kick-off
+  1990357, 1990611,                     // Fase 1: slides, transcricao (reuniao = 1990385 acima)
+  1990679, 1990369, 1990613,            // Fase 2: slides, reuniao, transcricao
+  1990681, 1990373, 1990615, 1990781, 1990783,  // Fase 3: +figma +miro
+  1990683, 1990377, 1990617,            // Fase 4
+  1990685, 1990381, 1990619, 1990789, 1990791   // Fase 5: +figma +miro
+])
 
 export { PHASE_FIELDS, STAGE_IDS, STAGE_TO_FASE, STAGE_PRE_PROJETO, PIPELINE_SABER }

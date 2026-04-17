@@ -11,8 +11,8 @@ const flagCanvas = ref(null)
 const urgenciaCanvas = ref(null)
 
 const charts = {}
-const COLORS = ['#22c55e', '#f59e0b', '#ef4444', '#a855f7', '#84cc16', '#f43f5e', '#06b6d4', '#6b7280']
-const FLAG_COLORS = { safe: '#22c55e', care: '#f59e0b', risk: '#ef4444', danger: '#ef4444' }
+const COLORS = ['#22c55e', '#f59e0b', '#ef4444', '#a855f7', '#84cc16', '#f43f5e', '#6b7280', '#4b5563']
+const FLAG_COLORS = { safe: '#22c55e', care: '#fbbf24', risk: '#ef4444', danger: '#ef4444' }
 
 function pickFlagColors(labels) {
   return labels.map((l, i) => FLAG_COLORS[String(l).toLowerCase()] || COLORS[i % COLORS.length])

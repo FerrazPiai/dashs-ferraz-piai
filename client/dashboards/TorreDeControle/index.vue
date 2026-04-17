@@ -21,11 +21,33 @@
           <button
             class="btn btn-atualizar"
             :disabled="syncAtivo"
-            @click="atualizarKommo"
+            @click="abrirConfirmAtualizar"
             :title="syncAtivo ? 'Sincronizacao em andamento' : 'Buscar dados atualizados do Kommo'"
           >
             <i data-lucide="refresh-cw" class="btn-icon" :class="{ spin: syncAtivo }"></i>
-            <span>{{ syncAtivo ? 'Atualizando...' : 'Atualizar Kommo' }}</span>
+            <span>{{ syncAtivo ? 'Atualizando...' : 'Atualizar Dados' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de confirmacao de atualizacao de dados -->
+    <div v-if="confirmAtualizarAberto" class="confirm-overlay" @click.self="confirmAtualizarAberto = false">
+      <div class="confirm-box" role="dialog" aria-modal="true">
+        <div class="confirm-icon">
+          <i data-lucide="refresh-cw"></i>
+        </div>
+        <h3>Atualizar dados do Kommo?</h3>
+        <p>
+          Isso dispara uma sincronizacao completa com o Kommo — leads, empresas, usuarios e custom fields.
+          O processo roda em segundo plano e costuma levar de <strong>30 segundos a 2 minutos</strong>.
+        </p>
+        <p class="confirm-hint">Novas analises nao sao disparadas nessa atualizacao — apenas os dados base.</p>
+        <div class="confirm-actions">
+          <button class="btn btn-ghost" @click="confirmAtualizarAberto = false">Cancelar</button>
+          <button class="btn btn-primary" @click="confirmarAtualizar" :disabled="syncAtivo">
+            <i data-lucide="refresh-cw" class="btn-icon"></i>
+            Atualizar agora
           </button>
         </div>
       </div>
@@ -49,27 +71,22 @@
             placeholder="Buscar cliente..."
           />
         </div>
-        <div class="filter-group">
-          <label class="filter-label">Account</label>
-          <select class="filter-select" v-model="accountSelecionado">
-            <option value="todos">Todos</option>
-            <option v-for="a in accountsDisponiveis" :key="a" :value="a">{{ a }}</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Tier</label>
-          <select class="filter-select" v-model="tierSelecionado">
-            <option value="todos">Todos</option>
-            <option v-for="t in tiersDisponiveis" :key="t" :value="t">{{ t }}</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Fase</label>
-          <select class="filter-select" v-model="faseSelecionada">
-            <option value="todas">Todas</option>
-            <option v-for="f in fasesMatriz" :key="f.id" :value="f.id">{{ f.nome }}</option>
-          </select>
-        </div>
+        <VMultiSelect
+          label="Account"
+          :options="accountsDisponiveis"
+          v-model="accountsSelecionados"
+        />
+        <VMultiSelect
+          label="Tier"
+          :options="tiersDisponiveis"
+          v-model="tiersSelecionados"
+        />
+        <VMultiSelect
+          label="Fase"
+          :options="faseOptions"
+          v-model="fasesSelecionadas"
+          :searchable="false"
+        />
 
         <div class="filter-spacer"></div>
 
@@ -97,7 +114,7 @@
             <div class="legenda-row"><span class="dot dot--cinza"></span><span>Auditavel, sem analise ainda</span></div>
             <div class="legenda-row"><span class="dot dot--incompleta-mini">?</span><span>Materiais insuficientes — coletar dados</span></div>
             <div class="legenda-row"><span class="dot dot--bloqueado-mini"></span><span>Bloqueada — fase atual ou futura</span></div>
-            <div class="legenda-row"><span class="dot dot--atual-mini"></span><span>Anel vermelho = fase atual do lead</span></div>
+            <div class="legenda-row"><span class="dot dot--atual-mini"></span><span>Anel branco = fase atual do lead</span></div>
           </div>
         </div>
       </div>
@@ -144,6 +161,7 @@ import { useAuthStore } from '../../stores/auth.js'
 import TcMatrizTable from './components/TcMatrizTable.vue'
 import TcSuperPainel from './components/TcSuperPainel.vue'
 import TcPainelGeral from './components/TcPainelGeral.vue'
+import VMultiSelect from '../../components/ui/VMultiSelect.vue'
 import { useTorreControle } from './composables/useTorreControle.js'
 
 const auth = useAuthStore()
@@ -158,11 +176,12 @@ const error = computed(() => tc.error.value)
 
 // Fases derivadas da resposta da matriz
 const fasesMatriz = computed(() => {
-  // Shape esperado do componente TcMatrizTable: [{ nome, ordem }]
+  // Shape esperado do componente TcMatrizTable: [{ id, nome, ordem, slug }]
   return (tc.matriz.value.fases || []).map(f => ({
     id: f.id,
     nome: f.nome,
-    ordem: f.ordem
+    ordem: f.ordem,
+    slug: f.slug
   }))
 })
 
@@ -204,11 +223,11 @@ function abrirPorId(clienteId) {
   if (cliente) abrirSuperPainel(cliente)
 }
 
-// Filtros
+// Filtros (multi-select — arrays vazios = "mostrar todos")
 const busca = ref('')
-const accountSelecionado = ref('todos')
-const tierSelecionado = ref('todos')
-const faseSelecionada = ref('todas')
+const accountsSelecionados = ref([])
+const tiersSelecionados = ref([])
+const fasesSelecionadas = ref([])
 const ordenacao = ref('default') // default | fase-desc | fase-asc
 
 const accountsDisponiveis = computed(() => {
@@ -222,6 +241,10 @@ const tiersDisponiveis = computed(() => {
   for (const c of clientes.value) if (c.tier) set.add(c.tier)
   return [...set].sort()
 })
+
+const faseOptions = computed(() =>
+  fasesMatriz.value.map(f => ({ value: f.id, label: f.nome }))
+)
 
 const ordenacaoLabel = computed(() => {
   if (ordenacao.value === 'fase-desc') return 'Fase: maior → menor'
@@ -243,15 +266,17 @@ const clientesFiltrados = computed(() => {
     const q = busca.value.trim().toLowerCase()
     lista = lista.filter(c => c.nome?.toLowerCase().includes(q))
   }
-  if (accountSelecionado.value !== 'todos') {
-    lista = lista.filter(c => c.account === accountSelecionado.value)
+  if (accountsSelecionados.value.length) {
+    const sel = new Set(accountsSelecionados.value)
+    lista = lista.filter(c => sel.has(c.account))
   }
-  if (tierSelecionado.value !== 'todos') {
-    lista = lista.filter(c => c.tier === tierSelecionado.value)
+  if (tiersSelecionados.value.length) {
+    const sel = new Set(tiersSelecionados.value)
+    lista = lista.filter(c => sel.has(c.tier))
   }
-  if (faseSelecionada.value !== 'todas') {
-    const fid = Number(faseSelecionada.value)
-    lista = lista.filter(c => c.fase_atual_stage_id === fid)
+  if (fasesSelecionadas.value.length) {
+    const sel = new Set(fasesSelecionadas.value.map(Number))
+    lista = lista.filter(c => sel.has(Number(c.fase_atual_stage_id)))
   }
   if (ordenacao.value === 'fase-desc') {
     lista = [...lista].sort((a, b) => (b.fase_atual_ordem || 0) - (a.fase_atual_ordem || 0))
@@ -277,7 +302,16 @@ const syncInfoLabel = computed(() => {
   return ''
 })
 
-async function atualizarKommo() {
+const confirmAtualizarAberto = ref(false)
+
+function abrirConfirmAtualizar() {
+  if (syncAtivo.value) return
+  confirmAtualizarAberto.value = true
+  nextTick(() => window.lucide && window.lucide.createIcons())
+}
+
+async function confirmarAtualizar() {
+  confirmAtualizarAberto.value = false
   try {
     await tc.dispararAtualizacao()
   } catch (err) {
@@ -409,7 +443,7 @@ watch(modo, async () => {
 .dot--cinza    { background-color: #444; }
 .dot--atual-mini {
   background-color: #444;
-  outline: 2px solid #ff0000;
+  outline: 2px solid #ffffff;
   outline-offset: 2px;
 }
 .dot--bloqueado-mini {
@@ -506,4 +540,78 @@ watch(modo, async () => {
 .empty i { width: 32px; height: 32px; color: #444; }
 .empty p { margin: 0; }
 .empty small { color: #555; }
+
+/* ---- Modal de confirmacao (Atualizar Dados) ---- */
+.confirm-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9500;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  animation: cf-fade 150ms ease-out;
+}
+@keyframes cf-fade { from { opacity: 0; } to { opacity: 1; } }
+
+.confirm-box {
+  background: #141414;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 24px 24px 18px;
+  max-width: 440px;
+  width: 100%;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+  animation: cf-in 180ms ease-out;
+}
+@keyframes cf-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.confirm-icon {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 0, 0, 0.12);
+  color: #ff4444;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 12px;
+}
+.confirm-icon i { width: 22px; height: 22px; }
+
+.confirm-box h3 {
+  font-size: 16px; color: #fff;
+  font-weight: 600; margin: 0 0 8px;
+}
+.confirm-box p {
+  color: #bbb; font-size: 13.5px;
+  line-height: 1.55; margin: 0 0 8px;
+}
+.confirm-hint {
+  color: #888 !important;
+  font-size: 12px !important;
+  font-style: italic;
+}
+.confirm-actions {
+  display: flex; justify-content: flex-end; gap: 8px;
+  margin-top: 16px;
+}
+.confirm-actions .btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border-radius: 6px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 150ms;
+}
+.confirm-actions .btn-ghost {
+  background: transparent; border: 1px solid #2a2a2a; color: #ccc;
+}
+.confirm-actions .btn-ghost:hover { background: #2a2a2a; color: #fff; }
+.confirm-actions .btn-primary {
+  background: #ff0000; border: 1px solid #ff0000; color: #fff;
+}
+.confirm-actions .btn-primary:hover:not(:disabled) {
+  background: #cc0000; border-color: #cc0000;
+}
+.confirm-actions .btn-primary:disabled {
+  opacity: 0.5; cursor: not-allowed;
+}
+.confirm-actions .btn-icon { width: 14px; height: 14px; }
 </style>

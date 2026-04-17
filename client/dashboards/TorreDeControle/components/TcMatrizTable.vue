@@ -74,12 +74,17 @@ function isFaseAtual(cliente, fase) {
 }
 
 // Auditavel = fase passada (ordem MENOR que a fase atual do lead).
-// Fase atual e futuras nao podem ser auditadas ainda.
+// Excecao: a fase "Projeto Concluido" (ordem 6) E a fase atual do lead quando ele chega la —
+// deve ser clicavel para gerar o Relatorio Consolidado que agrega todas as fases.
 function isAuditavel(cliente, fase) {
   const ordem = typeof fase === 'object' ? fase.ordem : null
+  const slug  = typeof fase === 'object' ? fase.slug  : null
   if (ordem == null) return false
   const atual = Number(cliente.fase_atual_ordem || 0)
-  return ordem < atual
+  if (ordem < atual) return true
+  // Projeto Concluido clicavel quando o lead JA chegou nessa fase (consolidado)
+  if (slug === 'projeto-concluido' && atual >= 6) return true
+  return false
 }
 
 function dotClass(dado) {
@@ -94,6 +99,8 @@ function dotClass(dado) {
 function dotLabel(cliente, fase, dado) {
   const isAtual = isFaseAtual(cliente, fase)
   const auditavel = isAuditavel(cliente, fase)
+  const slug = typeof fase === 'object' ? fase.slug : null
+  if (isAtual && slug === 'projeto-concluido') return 'Projeto concluido — clique para abrir a Analise Consolidada'
   if (isAtual) return `Fase atual do lead (aguardando avanco para auditar)`
   if (!auditavel) return `Fase futura — ainda nao ocorreu`
   if (!dado || !dado.status_cor) return 'Sem analise — clique para auditar'
@@ -230,21 +237,21 @@ function dotLabel(cliente, fase, dado) {
 /* Destaque da FASE ATUAL do lead (independente de ter analise ou nao) */
 .dot--atual {
   position: relative;
-  outline: 2px solid #ff0000;
+  outline: 2px solid #ffffff;
   outline-offset: 3px;
-  box-shadow: 0 0 8px rgba(255, 0, 0, 0.5);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
 }
 .dot--atual::after {
   content: '';
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  border: 1px solid rgba(255, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   animation: pulse-ring 2s ease-in-out infinite;
   pointer-events: none;
 }
 @keyframes pulse-ring {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
+  0%, 100% { transform: scale(1); opacity: 0.7; }
   50% { transform: scale(1.3); opacity: 0; }
 }
 

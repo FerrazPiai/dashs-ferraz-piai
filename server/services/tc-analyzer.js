@@ -1,7 +1,7 @@
 // TC Analyzer — orquestra Kommo -> n8n extract -> RAG -> OpenAI -> persist -> embed -> Kommo note
 import crypto from 'node:crypto'
 import pool from '../lib/db.js'
-import { getLeadCustomFields, extractPhaseLinks, updateLeadNote } from './kommo-client.js'
+import { getLeadCustomFields, extractPhaseLinks, updateLeadNote, getKommoCatalogos } from './kommo-client.js'
 import { analyzeText, generateNote, getActiveProviderConfig } from './ai-client.js'
 import { generateEmbedding, countTokens } from './openai-client.js'
 import { buildRagContext } from './rag-engine.js'
@@ -182,25 +182,78 @@ export async function runFinalReport({ projetoFaseId, leadId, onProgress }) {
     : { rows: [] }
 
   progress('calling_ia')
-  const historicoFases = analisesAnteriores
-    .map(a => `### ${a.fase} (score ${a.score}, veredicto: ${a.veredicto})\n${a.resumo}`)
-    .join('\n\n')
+  // Historico com dados brutos (nao so resumo) para IA calcular deltas
+  const historicoFases = analisesAnteriores.map(a => ({
+    fase: a.fase,
+    score: a.score,
+    veredicto: a.veredicto,
+    resumo: a.resumo,
+    dores: a.dores,
+    oportunidades: a.oportunidades,
+    riscos: a.riscos
+  }))
+
+  const catalogos = getKommoCatalogos()
 
   const systemPrompt = `Voce e um auditor senior da V4 Company encerrando um projeto do pipeline Saber.
-Gere o RELATORIO FINAL consolidado avaliando a jornada completa do cliente.
-Retorne JSON com:
-- score (0-10, media ponderada final)
-- veredicto (curto, ex: "Projeto de sucesso com upsell")
-- resumo (texto executivo da jornada completa)
-- analise_materiais (o que foi entregue em cada fase)
-- percepcao_cliente (objeto com tom, engajamento, confianca — cada 0-10)
-- dores (array de dores RESIDUAIS pos-projeto)
-- oportunidades (array de {titulo, descricao, valor_estimado} — upsell/renovacao)
-- riscos (array de {descricao, tipo, probabilidade, impacto} — risco de churn apos encerramento)
-- recomendacoes (array de {descricao, tipo, prioridade} — proximos passos com o cliente)
-Responda APENAS JSON valido.`
+Gere o RELATORIO FINAL CONSOLIDADO avaliando a jornada completa do cliente em 3 eixos:
+AVANCO DO CLIENTE, QUALIDADE DO TIME, OPORTUNIDADES DE EXPANSAO.
 
-  const userPrompt = `## Contexto do Cliente\n${JSON.stringify(ragContext)}\n\n## Historico de Fases Auditadas\n${historicoFases || '(nenhuma analise previa)'}`
+Retorne JSON valido com os seguintes campos:
+
+- score: number 0-10 (media ponderada final do projeto)
+- veredicto: string curto (max 180 chars, ex: "Projeto de sucesso com upsell claro")
+- resumo: string (texto executivo da jornada completa)
+- analise_materiais: string (o que foi entregue em cada fase)
+- percepcao_cliente: { tom, engajamento, confianca } cada 0-10
+- dores: array de { descricao, gravidade } (dores RESIDUAIS pos-projeto)
+- riscos: array de { descricao, tipo, probabilidade, impacto } (risco de churn)
+- recomendacoes: array de { descricao, tipo, prioridade } (proximos passos)
+
+- avanco: {
+    evolucao: string (texto narrativo da evolucao fase a fase),
+    fases: array de { fase, score, delta, veredicto_curto } (uma entry por fase analisada; delta = score - score_fase_anterior; veredicto_curto max 80 chars),
+    tendencia: "ascendente" | "estavel" | "descendente",
+    score_inicial: number (score da fase 1),
+    score_final: number (score medio das fases auditadas)
+  }
+
+- qualidade_time: {
+    score: number 0-10,
+    squad_nome: string (do contexto Kommo),
+    pontos_fortes: array de strings (2-5 bullets curtos),
+    pontos_atencao: array de strings (2-5 bullets curtos),
+    observacao: string (1-3 frases sobre desempenho geral do time)
+  }
+
+- pontos_positivos: array de strings (3-6 destaques POSITIVOS do projeto inteiro — entregas de qualidade, marcos atingidos, evolucao do cliente)
+- pontos_negativos: array de strings (3-6 destaques NEGATIVOS do projeto inteiro — gaps, atrasos, baixa aderencia, riscos mitigados ou nao)
+
+- oportunidades: array de {
+    titulo: string,
+    descricao: string,
+    valor_estimado: number (R$),
+    probabilidade_fechamento: number 0-100 (% aderencia — baseie-se em dores alinhadas, score crescente, perfil DISC, budget aparente),
+    justificativa: string (2-4 frases claras explicando POR QUE esse produto faz sentido para ESSE cliente),
+    kommo_produto_id: number (escolha SEMPRE um id que esta no catalogos.produtos fornecido),
+    kommo_categoria_id: number (escolha SEMPRE um id de catalogos.categorias),
+    kommo_solucao_id: number ou null (escolha de catalogos.solucoes, ou null se nenhum encaixa)
+  }
+
+REGRAS:
+- Se kommo_produto_id nao existir no catalogo, OMITA a oportunidade inteira.
+- Se nao houver fases analisadas, retorne avanco.fases = [] e qualidade_time.observacao explicando.
+- veredicto_curto das fases <= 80 chars. veredicto global <= 180 chars.
+
+Responda APENAS JSON valido, sem markdown.`
+
+  const userPrompt = `## Contexto do Cliente\n${JSON.stringify(ragContext)}
+
+## Historico de Fases Auditadas (dados brutos)
+${JSON.stringify(historicoFases)}
+
+## Catalogos Kommo para mapeamento de oportunidades
+${JSON.stringify(catalogos)}`
 
   const parsed = await analyzeText(userPrompt, {}, { systemPrompt })
 
@@ -216,25 +269,35 @@ Responda APENAS JSON valido.`
   const priceIn = Number(cfg.price_in_per_mtok) || 0.75
   const priceOut = Number(cfg.price_out_per_mtok) || 4.5
   const custo = (tokens_in * priceIn + tokens_out * priceOut) / 1_000_000
-  const modeloUsado = `${parsed._provider}:${parsed._model} (final)`
+  const modeloUsado = `${parsed._provider}:${parsed._model} (final)`.slice(0, 100)
+  const veredictoTrunc = (parsed.veredicto || '').slice(0, 200)
+
+  // Consolidado: novos eixos da Analise Consolidada (avanco + qualidade_time + pontos)
+  const consolidado = {
+    avanco: parsed.avanco || null,
+    qualidade_time: parsed.qualidade_time || null,
+    pontos_positivos: Array.isArray(parsed.pontos_positivos) ? parsed.pontos_positivos : [],
+    pontos_negativos: Array.isArray(parsed.pontos_negativos) ? parsed.pontos_negativos : []
+  }
 
   const { rows: [analise] } = await pool.query(`
     INSERT INTO dashboards_hub.tc_analises_ia
       (projeto_fase_id, versao, modelo_usado, score, veredicto, resumo, analise_materiais,
        percepcao_cliente, dores, oportunidades, riscos, recomendacoes, contexto_rag,
-       tokens_input, tokens_output, custo_estimado)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+       tokens_input, tokens_output, custo_estimado, consolidado)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
     RETURNING id
   `, [
     projetoFaseId, novaVersao, modeloUsado,
-    parsed.score, parsed.veredicto, parsed.resumo, parsed.analise_materiais,
+    parsed.score, veredictoTrunc, parsed.resumo, parsed.analise_materiais,
     JSON.stringify(parsed.percepcao_cliente || {}),
     JSON.stringify(parsed.dores || []),
     JSON.stringify(parsed.oportunidades || []),
     JSON.stringify(parsed.riscos || []),
     JSON.stringify(parsed.recomendacoes || []),
     JSON.stringify({ ...ragMeta, tipo: 'final_report', fases_analisadas: analisesAnteriores.length }),
-    tokens_in, tokens_out, custo
+    tokens_in, tokens_out, custo,
+    JSON.stringify(consolidado)
   ])
 
   await distributeAnalysis(projetoFaseId, analise.id, parsed)
@@ -252,15 +315,23 @@ export async function runAnalysis({ projetoFaseId, leadId, fase, onProgress }) {
   const customFields = await getLeadCustomFields(leadId)
   const links = extractPhaseLinks(customFields, fase)
 
-  progress('extracting_content', { total: Object.keys(links).length })
+  const EXTRACTION_WAIT_MS = parseInt(process.env.TC_EXTRACTION_WAIT_MS || '1500', 10)
+  const entries = Object.entries(links)
+  progress('extracting_content', { total: entries.length })
   const materials = {}
-  for (const [plataforma, url] of Object.entries(links)) {
+  for (let i = 0; i < entries.length; i++) {
+    const [plataforma, url] = entries[i]
     try {
       const extracao = await getOrExtract(leadId, fase, plataforma, url)
       // Passa o JSON bruto — IA interpreta o shape especifico de cada plataforma
       materials[plataforma] = extracao.raw || extracao.conteudo_full || ''
     } catch (err) {
       materials[plataforma] = { error: `falha extracao: ${err.message}`, url }
+    }
+    // Pausa entre extracoes (exceto na ultima) — evita rate-limit e race conditions
+    if (i < entries.length - 1) {
+      progress('extracting_content', { current: i + 1, total: entries.length, waiting: true })
+      await new Promise(r => setTimeout(r, EXTRACTION_WAIT_MS))
     }
   }
 
@@ -291,7 +362,11 @@ export async function runAnalysis({ projetoFaseId, leadId, fase, onProgress }) {
   const priceIn = Number(cfg.price_in_per_mtok) || 0.75
   const priceOut = Number(cfg.price_out_per_mtok) || 4.5
   const custo = (tokens_in * priceIn + tokens_out * priceOut) / 1_000_000
-  const modeloUsado = `${parsed._provider}:${parsed._model}`
+  const modeloUsado = `${parsed._provider}:${parsed._model}`.slice(0, 100)
+  const veredictoTrunc = (parsed.veredicto || '').slice(0, 200)
+  if (parsed.veredicto && parsed.veredicto.length > 200) {
+    console.warn(`[${new Date().toISOString()}] [tc-analyzer] veredicto truncado (${parsed.veredicto.length}>200)`)
+  }
 
   // status_avaliacao: vem da IA. Fallback: se score nulo ou veredicto sugere insufici, marca incompleta
   let statusAvaliacao = parsed.status_avaliacao || 'completa'
@@ -312,7 +387,7 @@ export async function runAnalysis({ projetoFaseId, leadId, fase, onProgress }) {
     RETURNING id
   `, [
     projetoFaseId, novaVersao, modeloUsado,
-    scoreFinal, parsed.veredicto, parsed.resumo, parsed.analise_materiais,
+    scoreFinal, veredictoTrunc, parsed.resumo, parsed.analise_materiais,
     JSON.stringify(parsed.percepcao_cliente || {}),
     JSON.stringify(parsed.dores || []),
     JSON.stringify(parsed.oportunidades || []),

@@ -135,14 +135,14 @@ const subhead = computed(() => {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(600px circle at top left, rgba(255, 0, 0, 0.06), transparent 50%);
+  background: radial-gradient(600px circle at top left, rgba(var(--color-primary-rgb), 0.06), transparent 50%);
   pointer-events: none;
 }
 .tc-job-progress.is-done {
-  border-color: rgba(74, 222, 128, 0.3);
+  border-color: rgba(var(--color-safe-rgb), 0.3);
 }
 .tc-job-progress.is-failed {
-  border-color: rgba(255, 0, 0, 0.4);
+  border-color: rgba(var(--color-danger-rgb), 0.4);
 }
 
 .jp-top {
@@ -163,8 +163,8 @@ const subhead = computed(() => {
   justify-content: center;
 }
 .jp-icon { width: 22px; height: 22px; }
-.jp-icon--done { color: var(--color-safe, #4ade80); }
-.jp-icon--fail { color: var(--color-danger, #ef4444); }
+.jp-icon--done { color: var(--color-safe); }
+.jp-icon--fail { color: var(--color-danger); }
 
 .jp-heads { flex: 1; min-width: 0; }
 .jp-headline {
@@ -210,10 +210,10 @@ const subhead = computed(() => {
   transition: width 0.6s ease;
 }
 .tc-job-progress.is-done .jp-bar-fill {
-  background: var(--color-safe, #4ade80);
+  background: var(--color-safe);
 }
 .tc-job-progress.is-failed .jp-bar-fill {
-  background: var(--color-danger, #ef4444);
+  background: var(--color-danger);
 }
 
 .jp-steps {
@@ -235,7 +235,7 @@ const subhead = computed(() => {
   transition: color 0.2s;
 }
 .jp-steps li.active { color: var(--text-high); font-weight: var(--font-weight-semibold); }
-.jp-steps li.done { color: var(--color-safe, #4ade80); }
+.jp-steps li.done { color: var(--color-safe); }
 
 .jp-dot {
   position: relative;
@@ -251,11 +251,11 @@ const subhead = computed(() => {
 }
 .jp-steps li.active .jp-dot {
   border-color: var(--color-primary);
-  background: rgba(255, 0, 0, 0.1);
+  background: rgba(var(--color-primary-rgb), 0.1);
 }
 .jp-steps li.done .jp-dot {
-  background: var(--color-safe, #4ade80);
-  border-color: var(--color-safe, #4ade80);
+  background: var(--color-safe);
+  border-color: var(--color-safe);
 }
 .jp-check { width: 10px; height: 10px; color: #000; }
 .jp-pulse {
@@ -272,9 +272,9 @@ const subhead = computed(() => {
   position: relative;
   margin-top: var(--spacing-md);
   padding: var(--spacing-sm) var(--spacing-md);
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  color: var(--color-danger, #ef4444);
+  background: rgba(var(--color-danger-rgb), 0.08);
+  border: 1px solid rgba(var(--color-danger-rgb), 0.25);
+  color: var(--color-danger);
   border-radius: var(--radius-sm);
   font-size: var(--font-size-sm);
   display: flex;
