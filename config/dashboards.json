@@ -64,9 +64,9 @@
     "componentPath": "TorreDeControle",
     "apiEndpoint": "API_ENDPOINT_TORRE_DE_CONTROLE",
     "cacheTTL": 300000,
-    "status": "development",
-    "statusMessage": "Este dashboard está em desenvolvimento.",
-    "allowedRoles": ["board", "operacao"]
+    "status": "available",
+    "statusMessage": "",
+    "allowedRoles": ["board", "operacao", "admin"]
   },
   {
     "id": "comparativo-squads",

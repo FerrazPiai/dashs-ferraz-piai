@@ -1,12 +1,33 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import pool from '../lib/db.js'
-import { requireRole } from '../middleware/requireRole.js'
+import { requireRole, requireAdminOwner } from '../middleware/requireRole.js'
+import {
+  getActiveProviderConfig,
+  invalidateProviderCache,
+  pingProvider,
+  PROVIDER_DEFAULTS
+} from '../services/ai-client.js'
 
 const router = Router()
 
 // Todas as rotas admin exigem role 'admin'
 router.use(requireRole(['admin']))
+
+// Roles validas (tambem usadas abaixo para validar bulk set-role e grant)
+const VALID_ROLES = ['admin', 'board', 'operacao']
+
+// Helper: quem esta logado pode conceder a role target?
+// Apenas o "admin owner" (email configurado) pode conceder/remover role 'admin'.
+function canAssignRole(session, targetRole, previousRole = null) {
+  // Nao tocou em role: ok
+  if (targetRole === undefined || targetRole === previousRole) return true
+  // Role target e admin OU estamos rebaixando alguem que era admin -> precisa ser owner
+  if (targetRole === 'admin' || previousRole === 'admin') {
+    return requireAdminOwner(session)
+  }
+  return true
+}
 
 // ── GET /api/admin/users — Listar usuarios ──
 
@@ -31,9 +52,13 @@ router.post('/users', async (req, res) => {
     return res.status(400).json({ error: 'Email e nome obrigatorios' })
   }
 
-  const validRoles = ['admin', 'board', 'operacao']
-  if (role && !validRoles.includes(role)) {
-    return res.status(400).json({ error: `Role invalida. Validas: ${validRoles.join(', ')}` })
+  if (role && !VALID_ROLES.includes(role)) {
+    return res.status(400).json({ error: `Role invalida. Validas: ${VALID_ROLES.join(', ')}` })
+  }
+
+  // Somente o admin-owner pode criar outro user com role 'admin'
+  if (role === 'admin' && !requireAdminOwner(req.session)) {
+    return res.status(403).json({ error: 'Somente o admin-owner pode criar usuarios com perfil Administrador' })
   }
 
   try {
@@ -65,12 +90,24 @@ router.put('/users/:id', async (req, res) => {
   const { id } = req.params
   const { name, role, active, password } = req.body
 
-  const validRoles = ['admin', 'board', 'operacao']
-  if (role && !validRoles.includes(role)) {
-    return res.status(400).json({ error: `Role invalida. Validas: ${validRoles.join(', ')}` })
+  if (role && !VALID_ROLES.includes(role)) {
+    return res.status(400).json({ error: `Role invalida. Validas: ${VALID_ROLES.join(', ')}` })
   }
 
   try {
+    // Checa role atual do alvo para saber se e promocao/rebaixamento de admin
+    let previousRole = null
+    if (role !== undefined) {
+      const { rows: [existing] } = await pool.query('SELECT role, email FROM users WHERE id = $1', [id])
+      if (!existing) return res.status(404).json({ error: 'Usuario nao encontrado' })
+      previousRole = existing.role
+      if (!canAssignRole(req.session, role, previousRole)) {
+        return res.status(403).json({
+          error: 'Somente o admin-owner pode conceder ou remover o perfil Administrador'
+        })
+      }
+    }
+
     // Monta SET dinamico
     const sets = []
     const values = []
@@ -231,6 +268,25 @@ router.post('/users/bulk', async (req, res) => {
       case 'set-role': {
         const { role } = req.body
         if (!role) return res.status(400).json({ error: 'Role obrigatoria para set-role' })
+        if (!VALID_ROLES.includes(role)) {
+          return res.status(400).json({ error: `Role invalida. Validas: ${VALID_ROLES.join(', ')}` })
+        }
+        // Gate 1: target = admin -> so owner
+        if (role === 'admin' && !requireAdminOwner(req.session)) {
+          return res.status(403).json({
+            error: 'Somente o admin-owner pode promover usuarios ao perfil Administrador'
+          })
+        }
+        // Gate 2: algum dos selecionados ja e admin -> so owner pode rebaixar
+        const { rows: currentlyAdmin } = await pool.query(
+          'SELECT id FROM users WHERE id = ANY($1) AND role = $2',
+          [userIds, 'admin']
+        )
+        if (currentlyAdmin.length > 0 && !requireAdminOwner(req.session)) {
+          return res.status(403).json({
+            error: 'Alguns usuarios selecionados sao admins — somente o admin-owner pode alterar'
+          })
+        }
         result = await pool.query('UPDATE users SET role = $1, updated_at = NOW() WHERE id = ANY($2) RETURNING id', [role, userIds])
         break
       }
@@ -244,6 +300,109 @@ router.post('/users/bulk', async (req, res) => {
   } catch (err) {
     console.error(`[${new Date().toISOString()}] Admin bulk action error:`, err.message)
     res.status(500).json({ error: 'Erro na acao em massa' })
+  }
+})
+
+// ──────────────────────────────────────────────────────────
+// AI PROVIDER — Configuracao do provedor de IA (admin-only)
+// ──────────────────────────────────────────────────────────
+
+// GET /api/admin/ai-provider — le config ativa + defaults por provider
+router.get('/ai-provider', async (req, res) => {
+  try {
+    const current = await getActiveProviderConfig()
+    const { rows: [meta] } = await pool.query(
+      `SELECT c.notes, c.updated_at, u.name AS updated_by_name, u.email AS updated_by_email
+       FROM tc_ai_provider_config c
+       LEFT JOIN users u ON u.id = c.updated_by
+       WHERE c.id = 1`
+    ).catch(() => ({ rows: [] }))
+    res.json({
+      config: {
+        ...current,
+        notes: meta?.notes || null,
+        updated_at: meta?.updated_at || null,
+        updated_by_name: meta?.updated_by_name || null,
+        updated_by_email: meta?.updated_by_email || null
+      },
+      providers: Object.keys(PROVIDER_DEFAULTS),
+      defaults: PROVIDER_DEFAULTS,
+      is_owner: requireAdminOwner(req.session)
+    })
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] Admin get ai-provider error:`, err.message)
+    res.status(500).json({ error: 'Erro ao ler configuracao de IA' })
+  }
+})
+
+// PUT /api/admin/ai-provider — altera provider/modelos ativos (apenas admin-owner)
+router.put('/ai-provider', async (req, res) => {
+  if (!requireAdminOwner(req.session)) {
+    return res.status(403).json({
+      error: 'Somente o admin-owner pode alterar a configuracao de IA'
+    })
+  }
+  const {
+    provider,
+    model_analysis,
+    model_note,
+    model_coordinator,
+    price_in_per_mtok,
+    price_out_per_mtok,
+    notes
+  } = req.body || {}
+
+  if (provider && !Object.keys(PROVIDER_DEFAULTS).includes(provider)) {
+    return res.status(400).json({
+      error: `Provider invalido. Validos: ${Object.keys(PROVIDER_DEFAULTS).join(', ')}`
+    })
+  }
+
+  try {
+    const sets = []
+    const values = []
+    let idx = 1
+    if (provider !== undefined)          { sets.push(`provider = $${idx++}`);          values.push(provider) }
+    if (model_analysis !== undefined)    { sets.push(`model_analysis = $${idx++}`);    values.push(model_analysis) }
+    if (model_note !== undefined)        { sets.push(`model_note = $${idx++}`);        values.push(model_note) }
+    if (model_coordinator !== undefined) { sets.push(`model_coordinator = $${idx++}`); values.push(model_coordinator) }
+    if (price_in_per_mtok !== undefined) { sets.push(`price_in_per_mtok = $${idx++}`); values.push(price_in_per_mtok) }
+    if (price_out_per_mtok !== undefined){ sets.push(`price_out_per_mtok = $${idx++}`);values.push(price_out_per_mtok) }
+    if (notes !== undefined)             { sets.push(`notes = $${idx++}`);             values.push(notes) }
+
+    if (sets.length === 0) return res.status(400).json({ error: 'Nenhum campo para atualizar' })
+
+    sets.push(`updated_by = $${idx++}`); values.push(req.session.user.id || null)
+    sets.push('updated_at = NOW()')
+
+    await pool.query(
+      `UPDATE tc_ai_provider_config SET ${sets.join(', ')} WHERE id = 1`,
+      values
+    )
+    invalidateProviderCache()
+    const updated = await getActiveProviderConfig()
+    res.json({ config: updated })
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] Admin update ai-provider error:`, err.message)
+    res.status(500).json({ error: 'Erro ao atualizar configuracao de IA' })
+  }
+})
+
+// POST /api/admin/ai-provider/ping — testa conexao com provider+modelo
+router.post('/ai-provider/ping', async (req, res) => {
+  const { provider, model } = req.body || {}
+  if (!provider || !model) {
+    return res.status(400).json({ error: 'provider e model obrigatorios' })
+  }
+  try {
+    const result = await pingProvider(provider, model)
+    res.json(result)
+  } catch (err) {
+    res.status(502).json({
+      ok: false,
+      error: err.message,
+      status: err.status || 502
+    })
   }
 })
 

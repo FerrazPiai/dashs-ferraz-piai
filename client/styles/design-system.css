@@ -8,11 +8,15 @@
   /* === Cores Primárias === */
   --color-primary: #ff0000;
   --color-primary-dark: #cc0000;
+  --color-primary-rgb: 255, 0, 0;
 
   /* === Cores Semânticas === */
   --color-safe: #22c55e;
+  --color-safe-rgb: 34, 197, 94;
   --color-care: #fbbf24;
+  --color-care-rgb: 251, 191, 36;
   --color-danger: #ef4444;
+  --color-danger-rgb: 239, 68, 68;
   --color-info: #3b82f6;
 
   /* === Paleta de Gráficos (sem azul) === */

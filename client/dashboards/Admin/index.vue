@@ -8,6 +8,9 @@
         <button class="tab" :class="{ active: tab === 'profiles' }" @click="tab = 'profiles'">
           <i data-lucide="shield" class="tab-icon"></i> Perfis
         </button>
+        <button class="tab" :class="{ active: tab === 'ai' }" @click="tab = 'ai'">
+          <i data-lucide="sparkles" class="tab-icon"></i> IA
+        </button>
       </div>
       <button class="mode-toggle" @click="advanced = !advanced" :title="advanced ? 'Modo Básico' : 'Modo Avançado'">
         <i :data-lucide="advanced ? 'eye-off' : 'eye'" class="mode-icon"></i>
@@ -16,7 +19,8 @@
     </div>
 
     <UsersTab v-if="tab === 'users'" :advanced="advanced" :profiles="profiles" @refresh-profiles="fetchProfiles" />
-    <ProfilesTab v-else :advanced="advanced" :profiles="profiles" @saved="fetchProfiles" />
+    <ProfilesTab v-else-if="tab === 'profiles'" :advanced="advanced" :profiles="profiles" @saved="fetchProfiles" />
+    <AiProviderTab v-else-if="tab === 'ai'" />
   </div>
 </template>
 
@@ -24,6 +28,7 @@
 import { ref, onMounted, nextTick } from 'vue'
 import UsersTab from './components/UsersTab.vue'
 import ProfilesTab from './components/ProfilesTab.vue'
+import AiProviderTab from './components/AiProviderTab.vue'
 
 const tab = ref('users')
 const advanced = ref(false)

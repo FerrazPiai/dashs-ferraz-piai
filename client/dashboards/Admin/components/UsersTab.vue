@@ -7,7 +7,14 @@
           <span class="sel-count">{{ selected.length }} selecionado(s)</span>
           <select v-model="bulkRole" class="bulk-select">
             <option value="">Alterar perfil...</option>
-            <option v-for="p in profiles" :key="p.name" :value="p.name">{{ p.label }}</option>
+            <option
+              v-for="p in profiles"
+              :key="p.name"
+              :value="p.name"
+              :disabled="p.name === 'admin' && !isOwner"
+            >
+              {{ p.label }}{{ p.name === 'admin' && !isOwner ? ' (restrito)' : '' }}
+            </option>
           </select>
           <button v-if="bulkRole" class="btn-sm btn-pri" @click="bulkSetRole">Aplicar</button>
           <button class="btn-sm btn-green" @click="bulkActivate">Ativar</button>
@@ -70,11 +77,17 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import UserModal from './UserModal.vue'
+import { useAuthStore } from '../../../stores/auth.js'
+
+const ADMIN_OWNER_EMAIL = 'ferramenta.ferraz@v4company.com'
 
 const props = defineProps({
   advanced: { type: Boolean, default: false },
   profiles: { type: Array, default: () => [] }
 })
+
+const auth = useAuthStore()
+const isOwner = computed(() => String(auth.user?.email || '').toLowerCase() === ADMIN_OWNER_EMAIL)
 
 const users = ref([])
 const loading = ref(true)
