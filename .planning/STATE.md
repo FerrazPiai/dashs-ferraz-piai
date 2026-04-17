@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-04-16T14:08:19.087Z"
+stopped_at: Phase 1 UI-SPEC approved
+last_updated: "2026-04-16T14:21:41.616Z"
 last_activity: 2026-04-16 — Roadmap criado, milestone Visual & Torre de Controle inicializado
 progress:
   total_phases: 3
@@ -79,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-16T14:08:19.082Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-polish-visual/01-CONTEXT.md
+Last session: 2026-04-16T14:21:41.611Z
+Stopped at: Phase 1 UI-SPEC approved
+Resume file: .planning/phases/01-polish-visual/01-UI-SPEC.md

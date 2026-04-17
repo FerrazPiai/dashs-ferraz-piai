@@ -13,9 +13,19 @@
         </div>
         <div class="fg">
           <label class="fl">Perfil</label>
-          <select v-model="form.role" class="fi">
-            <option v-for="p in profiles" :key="p.name" :value="p.name">{{ p.label }}</option>
+          <select v-model="form.role" class="fi" :disabled="!canEditRole">
+            <option
+              v-for="p in profiles"
+              :key="p.name"
+              :value="p.name"
+              :disabled="p.name === 'admin' && !canGrantAdmin"
+            >
+              {{ p.label }}{{ p.name === 'admin' && !canGrantAdmin ? ' (restrito ao owner)' : '' }}
+            </option>
           </select>
+          <small v-if="!canGrantAdmin" class="fh">
+            Apenas o admin-owner pode conceder o perfil Administrador.
+          </small>
         </div>
         <div v-if="advanced" class="fg">
           <label class="fl">Status</label>
@@ -45,7 +55,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
+import { useAuthStore } from '../../../stores/auth.js'
+
+const ADMIN_OWNER_EMAIL = 'ferramenta.ferraz@v4company.com'
 
 const props = defineProps({
   user: { type: Object, default: null },
@@ -53,6 +66,17 @@ const props = defineProps({
   advanced: { type: Boolean, default: false }
 })
 const emit = defineEmits(['close', 'saved'])
+
+const auth = useAuthStore()
+const currentEmail = computed(() => String(auth.user?.email || '').toLowerCase())
+const isOwner = computed(() => currentEmail.value === ADMIN_OWNER_EMAIL)
+// Pode conceder admin? So o owner. Se esta editando alguem que ja e admin e quem edita nao e owner -> nao pode mexer no role.
+const canGrantAdmin = computed(() => isOwner.value)
+const canEditRole = computed(() => {
+  if (isOwner.value) return true
+  // Nao-owner: nao pode editar role de admin existente
+  return props.user?.role !== 'admin'
+})
 
 const form = reactive({ name: '', email: '', role: 'operacao', password: '', active: true })
 const saving = ref(false)
@@ -96,6 +120,7 @@ function fmtDate(iso) { return iso ? new Date(iso).toLocaleDateString('pt-BR') :
 .fi:disabled { opacity: 0.4; cursor: not-allowed; }
 .fi option { background: #141414; color: #fff; }
 .fe { font-size: 13px; color: #ff4444; margin: 0; padding: 8px 10px; background: rgba(255,0,0,0.06); border: 1px solid rgba(255,0,0,0.15); border-radius: 4px; }
+.fh { display: block; margin-top: 6px; font-size: 11px; color: #888; line-height: 1.4; }
 .meta { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; font-size: 11px; color: #555; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 .btn-sec { background: rgba(255,255,255,0.04); color: #ccc; border: 1px solid rgba(255,255,255,0.1); border-radius: 4px; padding: 9px 18px; font-size: 13px; font-family: inherit; cursor: pointer; transition: background 0.15s; }

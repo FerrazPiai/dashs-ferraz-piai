@@ -8,7 +8,11 @@ import pool from './lib/db.js'
 import apiRoutes from './routes/api.js'
 import authRoutes from './routes/auth.js'
 import adminRoutes from './routes/admin.js'
+import torreControleRoutes from './routes/torre-controle.js'
 import { requireAuth } from './middleware/requireAuth.js'
+import { startJobWorker, stopJobWorker } from './services/tc-job-worker.js'
+import { startCollaboratorCron } from './jobs/collaborator-analysis-cron.js'
+import { startSyncCron, rodarSync } from './services/kommo-sync.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -76,6 +80,7 @@ app.use('/api/admin', requireAuth)
 // API routes
 app.use('/api', apiRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/tc', torreControleRoutes)
 
 // Serve static files in production
 if (NODE_ENV === 'production') {
@@ -104,7 +109,31 @@ app.use((err, req, res, next) => {
 })
 
 // Start server
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`[${new Date().toISOString()}] Server running on http://localhost:${PORT}`)
   console.log(`[${new Date().toISOString()}] Environment: ${NODE_ENV}`)
+  startJobWorker()
+  startCollaboratorCron()
+  startSyncCron()
+
+  // Sync inicial se DB estiver vazio
+  try {
+    const { rows: [{ count }] } = await pool.query(
+      `SELECT COUNT(*) FROM dashboards_hub.tc_kommo_leads`
+    )
+    if (parseInt(count, 10) === 0) {
+      console.log(`[${new Date().toISOString()}] [kommo-sync] DB vazio — rodando sync inicial em background`)
+      rodarSync().catch(err =>
+        console.error(`[${new Date().toISOString()}] [kommo-sync] sync inicial falhou:`, err.message)
+      )
+    }
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] [kommo-sync] check inicial falhou:`, err.message)
+  }
+})
+
+process.on('SIGTERM', () => {
+  console.log(`[${new Date().toISOString()}] SIGTERM — parando worker`)
+  stopJobWorker()
+  process.exit(0)
 })
