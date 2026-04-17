@@ -864,10 +864,286 @@ A feature é dada como entregue quando:
 
 ---
 
-## 13. Perguntas em aberto (pós-aprovação do spec)
+## 13. Ajuste 4 — Fix VARCHAR(50) em `veredicto` + `modelo_usado` (bug bloqueante)
+
+### 13.1 Problema
+
+Hoje (print BC98A63D) o step `persisting` falha com `value too long for type character varying(50)`. Afeta TODAS as análises (regulares e consolidada). Origem: `migrations/004_torre_controle_super_painel.sql:63,65`:
+
+```sql
+modelo_usado        VARCHAR(50),
+veredicto           VARCHAR(50),
+```
+
+A IA gera veredictos como "Projeto em risco — cliente desengajado desde fase 3" (>50 chars) e `modelo_usado` pode ter formato `gpt-4.1-2024-08-06 (openai)` (>30 chars, e com o sufixo ` (final)` do `runFinalReport` passa de 50).
+
+### 13.2 Correção
+
+Migration **010** (próxima disponível) → na verdade use próximo slot livre, que será `013`:
+
+```sql
+-- migrations/013_tc_veredicto_varchar_expand.sql
+ALTER TABLE dashboards_hub.tc_analises_ia
+  ALTER COLUMN veredicto     TYPE VARCHAR(200),
+  ALTER COLUMN modelo_usado  TYPE VARCHAR(100);
+```
+
+200 chars cobre qualquer veredicto razoável sem virar TEXT (evita storage overhead desnecessário em índices). 100 chars cobre `provider:model (variant)`.
+
+### 13.3 Defesa em profundidade no código
+
+Em `tc-analyzer.js::runAnalysis` (linhas 315) e `runFinalReport` (linhas 229), antes do INSERT:
+
+```js
+const veredicto = (parsed.veredicto || '').slice(0, 200)
+const modeloUsado = `${parsed._provider}:${parsed._model}`.slice(0, 100)
+```
+
+Truncar no código evita que um IA resultado gigante quebre o job novamente. Log warn quando trunca para detectar mau prompt.
+
+### 13.4 Critério de aceite
+
+- Rodar a migration → `\d dashboards_hub.tc_analises_ia` mostra `veredicto VARCHAR(200)`, `modelo_usado VARCHAR(100)`.
+- Disparar análise de uma fase → step `persisting` completa; job não falha por varchar overflow.
+- Veredicto muito longo → é truncado em 200 com log warn; job continua.
+
+---
+
+## 14. Ajuste 5 — Wait entre steps de extração (evita rate-limit + race)
+
+### 14.1 Problema
+
+Hoje, `runAnalysis` (linhas 255-265 em `tc-analyzer.js`) itera sobre os materiais (slides, reuniao, transcricao, figma, miro) em sequência **sem pausa**. Cada `getOrExtract` pode chamar Google Drive, Google Docs, Figma, Miro ou o extrator interno — APIs com rate-limit e que podem falhar silenciosamente quando chamadas muito rápido em burst.
+
+Sintomas:
+- Primeira extração OK, segunda retorna 429 ou conteúdo parcial.
+- Resposta do Figma/Google vem incompleta ou com auth expirada.
+
+### 14.2 Mudança
+
+Adicionar pausa configurável entre cada iteração de material:
+
+```js
+// Em tc-analyzer.js::runAnalysis, bloco linha 256-265
+const EXTRACTION_WAIT_MS = parseInt(process.env.TC_EXTRACTION_WAIT_MS || '1500', 10)
+
+progress('extracting_content', { total: Object.keys(links).length })
+const materials = {}
+const entries = Object.entries(links)
+for (let i = 0; i < entries.length; i++) {
+  const [plataforma, url] = entries[i]
+  try {
+    const extracao = await getOrExtract(leadId, fase, plataforma, url)
+    materials[plataforma] = extracao.raw || extracao.conteudo_full || ''
+  } catch (err) {
+    materials[plataforma] = { error: `falha extracao: ${err.message}`, url }
+  }
+  // Pausa entre extrações (exceto na última)
+  if (i < entries.length - 1) {
+    progress('extracting_content', { current: i + 1, total: entries.length, waiting: true })
+    await new Promise(r => setTimeout(r, EXTRACTION_WAIT_MS))
+  }
+}
+```
+
+Env var `TC_EXTRACTION_WAIT_MS` default `1500` (1.5s) — ajustável sem redeploy.
+
+### 14.3 Critério de aceite
+
+- Analisar uma fase com 5 materiais → tempo total do step `extracting_content` aumenta ~6s (5*1.5s com wait entre as 4 transições, aproximadamente).
+- Logs mostram "waiting: true" nos progress events intermediários.
+- Taxa de erro de extração cai (observável em staging; qualitativo).
+
+---
+
+## 15. Ajuste 6 — Erros inline no painel (além da barra de progresso)
+
+### 15.1 Problema
+
+Hoje, quando `runAnalysis` ou `runFinalReport` falha (print BC98A63D), o erro só aparece num banner do `TcJobProgress` pequeno no topo. Quando o usuário entra no `TcSuperPainel` de uma fase que tentou analisar e falhou, **não vê nada** indicando que a última tentativa errou — a UI mostra "Fase ainda nao analisada" como se nunca tivesse rodado.
+
+### 15.2 Mudança
+
+**Backend:**
+- Tabela `tc_jobs` já tem coluna `erro TEXT` (verificar em migration 004) — se não tiver, migration 014 adiciona.
+- Em `tc-job-worker.js`, quando catch'a erro do `runAnalysis`/`runFinalReport`, persistir `erro` na `tc_jobs` + também gravar `ultima_falha` na `tc_projeto_fases`:
+
+```sql
+-- migrations/014_tc_projeto_fases_ultima_falha.sql
+ALTER TABLE dashboards_hub.tc_projeto_fases
+  ADD COLUMN ultima_falha_em  TIMESTAMPTZ,
+  ADD COLUMN ultima_falha_msg TEXT;
+```
+
+Worker, ao catch:
+```js
+await pool.query(`
+  UPDATE dashboards_hub.tc_projeto_fases
+  SET ultima_falha_em = NOW(), ultima_falha_msg = $1
+  WHERE id = $2
+`, [String(err.message || err).slice(0, 1000), projetoFaseId])
+```
+
+E quando roda com sucesso, limpa:
+```sql
+UPDATE ... SET ultima_falha_em = NULL, ultima_falha_msg = NULL WHERE id = $1
+```
+
+**Endpoint `/cliente/:id/fase/:faseId`** (torre-controle.js:208) — incluir `ultima_falha_em` e `ultima_falha_msg` no retorno do `fase`.
+
+**Frontend `TcSuperPainel.vue`:**
+
+Novo banner no topo do `sp-body` / `sp-vazio` quando `detalhe.fase.ultima_falha_msg` existe:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ ⚠  Última análise falhou                                    │
+│    value too long for type character varying(50)            │
+│    Falha em 17/04 14:32 · [Ver materiais do lead →]         │
+└─────────────────────────────────────────────────────────────┘
+```
+
+- Cor: `--color-danger` com fundo `rgba(239,68,68,0.08)`.
+- Botão "Ver materiais do lead" abre o novo editor (Seção 16).
+- Botão secundário "Tentar novamente" faz a mesma ação do "Analisar agora".
+
+### 15.3 Critério de aceite
+
+- Forçar falha numa análise (ex: URL inválida em slides) → após job falhar, `tc_projeto_fases.ultima_falha_msg` tem a mensagem.
+- Abrir `TcSuperPainel` dessa fase → banner vermelho aparece com a mensagem + data da falha + 2 botões (Ver materiais / Tentar novamente).
+- Rodar nova análise com sucesso → banner some e `ultima_falha_*` volta a null.
+
+---
+
+## 16. Ajuste 7 — Editor de materiais do lead (TcLeadMateriaisEditor)
+
+### 16.1 Problema
+
+Quando o usuário vê que a análise falhou por material errado (link quebrado, PDF errado no slides, transcrição ausente), **não tem como corrigir pelo Hub** — precisa abrir o Kommo, achar o lead, editar o custom field, voltar. Além disso, o painel não mostra os materiais atuais, só roda a análise contra eles.
+
+### 16.2 Mudança — novo componente `TcLeadMateriaisEditor.vue`
+
+Aberto como modal acionável a partir de:
+- Botão no header do `TcSuperPainel` ("Editar materiais" ao lado do nome do cliente)
+- Botão "Ver materiais do lead" do banner de erro (Seção 15)
+
+**Layout (replica o print 850EDF5D):**
+
+Tabela com duas colunas:
+
+| Campo | Valor atual (link ou "...") |
+|---|---|
+| Link da Pasta do Cliente (`1990387`) | link editável |
+| Reunião de Kick-off (`1990385`) | link editável |
+| Fase 1 Link Google Slides (`1990357`) | link editável |
+| Fase 1 Link da Reunião (`1990385`) | link editável |
+| Fase 1 Transcrição (`1990611`) | link editável |
+| Fase 2 Link Google Slides (`1990679`) | link editável |
+| Fase 2 Link da Reunião (`1990369`) | link editável |
+| Fase 2 Transcrição (`1990613`) | link editável |
+| Fase 3 Link Figma (`1990781`) | link editável |
+| Fase 3 Link Miro (`1990783`) | link editável |
+| Fase 3 Link Google Slides (`1990681`) | link editável |
+| Fase 3 Link da Reunião (`1990373`) | link editável |
+| Fase 3 Transcrição (`1990615`) | link editável |
+| Fase 4 Link Google Slides (`1990683`) | link editável |
+| Fase 4 Link da Reunião (`1990377`) | link editável |
+| Fase 4 Transcrição (`1990617`) | link editável |
+| Fase 5 Link Google Slides (`1990685`) | link editável |
+| Fase 5 Link da Reunião (`1990381`) | link editável |
+| Fase 5 Transcrição (`1990619`) | link editável |
+| Fase 5 Link Figma (`1990789`) | link editável |
+| Fase 5 Link Miro (`1990791`) | link editável |
+
+Cada linha:
+- Se valor existe → mostra URL clicável (abre em nova aba) + botão "Editar".
+- Ao clicar "Editar" → converte em input text editável + botões "Salvar" / "Cancelar".
+- Ao "Salvar" → **abre popup de confirmação**: "Confirmar alteração de {nome do campo}? Nova URL: {url}".
+- Confirmar → chama `PATCH /api/tc/lead/:leadId/custom-field` com `{ field_id, value }`. Backend atualiza via Kommo API e atualiza cache local (`tc_kommo_leads.custom_fields`). Mostra toast "Atualizado no Kommo".
+- Cancelar popup → não salva.
+
+**Estados de linha:**
+- `empty` (valor vazio / "…"): texto cinza "Não preenchido" + botão "Adicionar".
+- `present`: link + botão "Editar".
+- `editing`: input + botões.
+- `saving`: spinner + inputs desabilitados.
+- `saved`: check verde por 2s, volta a `present`.
+
+**Agrupamento visual:**
+- Seção "Documentos gerais" (Pasta + Kick-off).
+- Seção "Fase 1" / "Fase 2" / ... / "Fase 5" (accordion colapsável, default expandido para fase atual do lead).
+
+### 16.3 Backend — nova rota `PATCH /api/tc/lead/:leadId/custom-field`
+
+```js
+router.patch('/lead/:leadId/custom-field', async (req, res, next) => {
+  try {
+    const leadId = parseInt(req.params.leadId, 10)
+    const { field_id, value } = req.body || {}
+    if (!leadId || !field_id) return res.status(400).json({ error: 'leadId e field_id obrigatorios' })
+    if (!EDITABLE_FIELD_IDS.has(field_id)) {
+      return res.status(403).json({ error: 'campo nao editavel via Hub' })
+    }
+
+    // Atualiza no Kommo
+    await updateLeadCustomField(leadId, field_id, value)
+
+    // Atualiza cache local (merge do array custom_fields)
+    await pool.query(`
+      UPDATE dashboards_hub.tc_kommo_leads
+      SET custom_fields = (
+        SELECT jsonb_agg(
+          CASE WHEN (item->>'field_id')::int = $1
+          THEN jsonb_set(item, '{values,0,value}', to_jsonb($2::text))
+          ELSE item END
+        )
+        FROM jsonb_array_elements(custom_fields) item
+      ),
+      updated_at = NOW()
+      WHERE id = $3
+    `, [field_id, value, leadId])
+
+    res.json({ ok: true })
+  } catch (err) { next(err) }
+})
+```
+
+Whitelist `EDITABLE_FIELD_IDS`: conjunto dos 21 ids da Seção 16.2 + não permite edição de Tier, Squad, etc. (evita abuso).
+
+**Em `kommo-client.js`**, nova função:
+
+```js
+export async function updateLeadCustomField(leadId, fieldId, value) {
+  const body = {
+    custom_fields_values: [
+      { field_id: fieldId, values: [{ value: value || '' }] }
+    ]
+  }
+  return kommoFetch(`/leads/${leadId}`, { method: 'PATCH', body: JSON.stringify(body) })
+}
+```
+
+### 16.4 Permissões
+
+- Somente role `admin` e `board` podem editar materiais (resto leitura). Guard na rota via `requireRole`.
+- Cliente que não tem acesso a esse lead → 403.
+
+### 16.5 Critério de aceite
+
+- Abrir `TcSuperPainel` → botão "Editar materiais" no header.
+- Clicar → modal abre com todos os 21 campos, valores atuais preenchidos.
+- Editar "Fase 1 Transcrição" → "Salvar" → popup "Confirmar alteração". Confirmar → spinner → toast "Atualizado no Kommo".
+- Abrir o lead no Kommo → campo reflete novo valor.
+- Cache local (`tc_kommo_leads.custom_fields`) atualizado sem precisar de sync completo.
+- Usuário `operacao` (não admin/board) não vê o botão "Editar materiais" ou recebe 403 se forjar a rota.
+
+---
+
+## 17. Perguntas em aberto (pós-aprovação do spec)
 
 Nenhuma — todas as decisões de design foram validadas com o usuário durante o brainstorming. Os itens abaixo são refinamentos que podem aparecer durante implementação:
 
 - Nomeação final do endpoint `/kommo/oportunidade` — usar `/kommo/lead-multi`? (semântica ambígua; manter "oportunidade")
 - Se o catálogo de produtos virar dinâmico (fetch do Kommo em runtime), adicionar cron de refresh (24h). Por ora, hardcoded.
 - Pequenos ajustes visuais de contraste do anel branco podem precisar de iteração visual pós-deploy (Wave A).
+- `EXTRACTION_WAIT_MS` padrão 1.5s — observar em staging; se ficar muito lento (>30s total), abaixar para 800ms. Se ainda tiver race, subir para 2s.
