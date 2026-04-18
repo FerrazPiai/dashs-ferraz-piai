@@ -79,5 +79,16 @@
     "cacheTTL": 300000,
     "status": "available",
     "allowedRoles": ["board", "operacao"]
+  },
+  {
+    "id": "fechamento-financeiro-squads",
+    "title": "Fechamento Financeiro — Squads",
+    "icon": "wallet",
+    "componentPath": "FechamentoFinanceiroSquads",
+    "apiEndpoint": "API_ENDPOINT_FECHAMENTO_FINANCEIRO_SQUADS",
+    "cacheTTL": 300000,
+    "status": "development",
+    "statusMessage": "Este dashboard está em desenvolvimento. Os dados serão integrados com o ERP em breve.",
+    "allowedRoles": ["board"]
   }
 ]
