@@ -81,3 +81,26 @@ Deferidos para futuro. Rastreados mas nao no roadmap atual.
 ---
 *Requirements defined: 2026-04-16*
 *Last updated: 2026-04-16 after initial definition*
+
+## Extrator Torre de Controle (EXT)
+
+Requisitos da fase 4 — internalizacao do workflow n8n `uiUUXegcBHe3z2fg`.
+Decisao arquitetural em `.planning/notes/decisao-internalizacao-extracao-tc.md`.
+
+### EXT-01 OAuth Google per-user
+Gestor conecta sua conta Google uma unica vez (scopes `drive.readonly` + `documents.readonly` + `presentations.readonly`). O `refresh_token` fica armazenado criptografado (AES-256-GCM) na tabela `dashboards_hub.google_oauth_tokens`. Reauth via banner+retry quando o token expira/e revogado. Ownership do job segue trigger-owner (`triggered_by_user_id`) com fallback Kommo-resp (`users.kommo_user_id` ↔ `tc_kommo_users.responsible_user_id`).
+
+### EXT-02 Google Slides via API nativa
+Extracao de Slides usa `slides.presentations.get` para estrutura (text boxes, tabelas, speaker notes, image IDs) + GPT-4o vision com `detail=high` para cada imagem embutida. Sem Mistral OCR. Sem download de PDF. Prompts OpenAI portados literal do workflow n8n atual (secao 6 de `.planning/research/n8n-workflow-auditoria-saber-interno.md`).
+
+### EXT-03 Google Docs via API nativa
+Extracao de transcricoes em Google Docs usa `docs.documents.get` e concatena `body.content[]` (paragraphs, textRuns, tables, headings) preservando ordem. Sem Mistral OCR. Sem download de PDF.
+
+### EXT-04 Figma interno
+Extracao Figma roda 100% no backend via Figma REST API com `FIGMA_TOKEN` centralizado no `.env`. Prompts do branch figma portados literal. Preserva `auditoria_narrativa_integral` se paridade exigir.
+
+### EXT-05 Miro interno com paginacao
+Extracao Miro roda 100% no backend via Miro REST API v2 com `MIRO_TOKEN` centralizado no `.env`. `/v2/boards/{id}/items` e paginado via cursor (`cursor` + `limit=50`) ate `cursor` ausente — corrige o bug atual do workflow n8n que so le pagina 1 e trunca boards grandes.
+
+### EXT-06 Cutover n8n
+`extractViaN8n`, `N8N_EXTRACT_WEBHOOK_URL`, `PLATFORM_TO_N8N` e `n8nLimiter` removidos do codigo. Feature flag `INTERNAL_EXTRACTORS=transcricao,google,figma,miro` em `.env` permite rollout por plataforma durante cutover. Workflow n8n `uiUUXegcBHe3z2fg` e ARQUIVADO (nao deletado) como referencia historica. `.env.example` e `.planning/codebase/INTEGRATIONS.md` atualizados.
