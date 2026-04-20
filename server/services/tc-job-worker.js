@@ -52,10 +52,45 @@ async function updateProgress(jobId, progresso) {
   )
 }
 
+// D-01/D-02: resolve o user_id responsavel pela analise.
+// Ordem: (1) job.triggered_by_user_id (trigger owner), (2) fallback Kommo via lead.responsible_user_id.
+// Se nenhum resolver, retorna { userId: null, source: 'missing' }.
+async function resolveOwnershipUserId(job) {
+  if (job.triggered_by_user_id) {
+    return { userId: job.triggered_by_user_id, source: 'trigger_owner' }
+  }
+  if (!job.lead_id) return { userId: null, source: 'missing' }
+  // tc_leads.responsible_user_id guarda o id Kommo; users.kommo_user_id tambem.
+  const { rows } = await pool.query(
+    `SELECT u.id AS user_id
+       FROM dashboards_hub.users u
+      WHERE u.kommo_user_id = (
+         SELECT responsible_user_id FROM dashboards_hub.tc_leads WHERE id = $1
+      )
+      LIMIT 1`,
+    [job.lead_id]
+  )
+  if (rows[0]?.user_id) return { userId: Number(rows[0].user_id), source: 'kommo_fallback' }
+  return { userId: null, source: 'missing' }
+}
+
 async function processJob(job) {
   const onProgress = (data) => updateProgress(job.id, data).catch(() => {})
   const projetoFaseId = job.progresso?.payload?.projetoFaseId || null
   try {
+    // D-01/D-02: resolve ownership antes de chamar runAnalysis/runFinalReport.
+    // Jobs que exigem token Google (analyze_phase/analyze_final) falham limpo se sem user_id.
+    const needsUser = job.tipo === 'analyze_phase' || job.tipo === 'analyze_final'
+    const { userId, source } = needsUser
+      ? await resolveOwnershipUserId(job)
+      : { userId: null, source: 'not_required' }
+    if (needsUser) {
+      console.log(`[${new Date().toISOString()}] [TC-WORKER] job ${job.id} ownership=${source} user=${userId || 'null'}`)
+      if (!userId) {
+        throw new Error('sem user_id para autenticar Google (trigger owner ausente + fallback Kommo sem mapping)')
+      }
+    }
+
     let resultado
     if (job.tipo === 'analyze_phase') {
       const payload = job.progresso?.payload || {}
@@ -63,24 +98,28 @@ async function processJob(job) {
         projetoFaseId: payload.projetoFaseId,
         leadId: job.lead_id,
         fase: payload.fase,
-        onProgress
+        onProgress,
+        userId
       })
     } else if (job.tipo === 'analyze_final') {
       const payload = job.progresso?.payload || {}
       resultado = await runFinalReport({
         projetoFaseId: payload.projetoFaseId,
         leadId: job.lead_id,
-        onProgress
+        onProgress,
+        userId
       })
     } else if (job.tipo === 'analyze_bulk') {
       const items = job.progresso?.payload?.items || []
+      // Propaga triggered_by_user_id do bulk para sub-jobs. Se o bulk job nao tem
+      // (ex: scheduled), sub-jobs caem no fallback Kommo por lead (D-02).
       for (const it of items) {
         const lockKey = `analyze:${it.leadId}:${it.fase}`
         await pool.query(`
-          INSERT INTO dashboards_hub.tc_jobs (tipo, lead_id, lock_key, progresso)
-          VALUES ('analyze_phase', $1, $2, $3)
+          INSERT INTO dashboards_hub.tc_jobs (tipo, lead_id, lock_key, progresso, triggered_by_user_id)
+          VALUES ('analyze_phase', $1, $2, $3, $4)
           ON CONFLICT DO NOTHING
-        `, [it.leadId, lockKey, JSON.stringify({ payload: it })])
+        `, [it.leadId, lockKey, JSON.stringify({ payload: it }), job.triggered_by_user_id || null])
       }
       resultado = { fanout: items.length }
     } else {
@@ -158,13 +197,13 @@ export function stopJobWorker() {
   stopRequested = true
 }
 
-export async function enqueueJob({ tipo, leadId, lockKey, payload }) {
+export async function enqueueJob({ tipo, leadId, lockKey, payload, triggeredByUserId }) {
   const { rows } = await pool.query(`
-    INSERT INTO dashboards_hub.tc_jobs (tipo, lead_id, lock_key, progresso)
-    VALUES ($1, $2, $3, $4)
+    INSERT INTO dashboards_hub.tc_jobs (tipo, lead_id, lock_key, progresso, triggered_by_user_id)
+    VALUES ($1, $2, $3, $4, $5)
     ON CONFLICT DO NOTHING
     RETURNING id, status
-  `, [tipo, leadId || null, lockKey || null, JSON.stringify({ payload })])
+  `, [tipo, leadId || null, lockKey || null, JSON.stringify({ payload }), triggeredByUserId || null])
 
   if (rows[0]) return rows[0]
 
