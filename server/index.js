@@ -9,6 +9,7 @@ import apiRoutes from './routes/api.js'
 import authRoutes from './routes/auth.js'
 import adminRoutes from './routes/admin.js'
 import torreControleRoutes from './routes/torre-controle.js'
+import googleRouter from './routes/google.js'
 import { requireAuth } from './middleware/requireAuth.js'
 import { startJobWorker, stopJobWorker } from './services/tc-job-worker.js'
 import { startCollaboratorCron } from './jobs/collaborator-analysis-cron.js'
@@ -81,6 +82,7 @@ app.use('/api/admin', requireAuth)
 app.use('/api', apiRoutes)
 app.use('/api/admin', adminRoutes)
 app.use('/api/tc', torreControleRoutes)
+app.use('/api/google', googleRouter)
 
 // Serve static files in production
 if (NODE_ENV === 'production') {
