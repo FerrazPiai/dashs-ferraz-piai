@@ -6,6 +6,9 @@ import { analyzeText, generateNote, getActiveProviderConfig } from './ai-client.
 import { generateEmbedding, countTokens } from './openai-client.js'
 import { buildRagContext } from './rag-engine.js'
 import { createRateLimiter, withRetry } from '../lib/rate-limiter.js'
+import bus from './event-bus.js'
+import { dispatchExtractor } from './extractors/index.js'
+import { GoogleReauthRequiredError } from './google-oauth.js'
 
 const N8N_URL = process.env.N8N_EXTRACT_WEBHOOK_URL
 const n8nLimiter = createRateLimiter({
@@ -67,7 +70,7 @@ async function extractViaN8n(url, platform) {
   }
 }
 
-async function getOrExtract(leadId, fase, plataforma, url) {
+async function getOrExtract(leadId, fase, plataforma, url, opts = {}) {
   const existing = await pool.query(
     `SELECT conteudo_full, conteudo_medium, conteudo_short, hash_conteudo
      FROM dashboards_hub.tc_extracoes
@@ -76,7 +79,13 @@ async function getOrExtract(leadId, fase, plataforma, url) {
   )
   if (existing.rows[0]) return existing.rows[0]
 
-  const extracted = await extractViaN8n(url, plataforma)
+  // Roteia via dispatcher (feature flag INTERNAL_EXTRACTORS) com fallback n8n.
+  // Extratores internos retornam { texto, imagens, erros, _meta }; o shape da
+  // versao n8n eh outro (data[]) — IA recebe ambos como JSON e interpreta.
+  const extracted = await dispatchExtractor(plataforma, url, {
+    userId: opts.userId || null,
+    fallbackN8n: extractViaN8n
+  })
   // O webhook n8n retorna shapes diferentes por plataforma (slides/reuniao/transcricao/figma/miro).
   // Salvamos o JSON bruto completo como string — a IA recebe tudo e interpreta.
   const rawJson = JSON.stringify(extracted, null, 2)
@@ -205,7 +214,8 @@ Retorne JSON valido com os seguintes campos:
 - veredicto: string curto (max 180 chars, ex: "Projeto de sucesso com upsell claro")
 - resumo: string (texto executivo da jornada completa)
 - analise_materiais: string (o que foi entregue em cada fase)
-- percepcao_cliente: { tom, engajamento, confianca } cada 0-10
+- percepcao_cliente: objeto com scores 0-10 para cada dimensao (como o cliente SE VE e AGE ao longo do projeto):
+    { tom, engajamento, confianca, abertura_mudanca, clareza_objetivos, maturidade_digital, disposicao_investir, velocidade_decisao }
 - dores: array de { descricao, gravidade } (dores RESIDUAIS pos-projeto)
 - riscos: array de { descricao, tipo, probabilidade, impacto } (risco de churn)
 - recomendacoes: array de { descricao, tipo, prioridade } (proximos passos)
@@ -219,8 +229,17 @@ Retorne JSON valido com os seguintes campos:
   }
 
 - qualidade_time: {
-    score: number 0-10,
+    score: number 0-10 (media ponderada das dimensoes abaixo),
     squad_nome: string (do contexto Kommo),
+    dimensoes: objeto com scores 0-10 (como o TIME executou o projeto):
+      {
+        exploracao_dor: number,        // quao bem o time entendeu e aprofundou as dores do cliente
+        empatia_atencao: number,       // atencao, cuidado, acompanhamento humano com o cliente
+        clareza_comunicacao: number,   // clareza dos diagnosticos, apresentacoes, reunioes
+        aderencia_metodologia: number, // quanto seguiu o playbook Saber (entregaveis, prazos, estrutura)
+        proatividade: number,          // antecipou problemas, levou solucoes sem esperar direcionamento
+        qualidade_entregaveis: number  // qualidade tecnica e visual de slides, docs, gravacoes
+      },
     pontos_fortes: array de strings (2-5 bullets curtos),
     pontos_atencao: array de strings (2-5 bullets curtos),
     observacao: string (1-3 frases sobre desempenho geral do time)
@@ -306,7 +325,7 @@ ${JSON.stringify(catalogos)}`
   return { analiseId: analise.id, versao: novaVersao, score: parsed.score, tipo: 'final_report' }
 }
 
-export async function runAnalysis({ projetoFaseId, leadId, fase, onProgress }) {
+export async function runAnalysis({ projetoFaseId, leadId, fase, onProgress, userId }) {
   const progress = (step, data = {}) => {
     try { onProgress?.({ step, ...data }) } catch { /* silencioso */ }
   }
@@ -319,20 +338,74 @@ export async function runAnalysis({ projetoFaseId, leadId, fase, onProgress }) {
   const entries = Object.entries(links)
   progress('extracting_content', { total: entries.length })
   const materials = {}
+  // Hub inteligente: cada falha e capturada, nao aborta o pipeline.
+  // Transcricao e a fonte PRINCIPAL — se houver transcricao ok, a analise sempre prossegue.
+  const extractionReport = { success: [], failed: [], hasTranscricao: false }
+  // D-04: se um extrator interno Google lancar GoogleReauthRequiredError no meio do loop,
+  // capturamos aqui e marcamos a analise como incompleta + erro_code='google_reauth_required'.
+  let reauthRequired = null
   for (let i = 0; i < entries.length; i++) {
     const [plataforma, url] = entries[i]
     try {
-      const extracao = await getOrExtract(leadId, fase, plataforma, url)
+      const extracao = await getOrExtract(leadId, fase, plataforma, url, { userId })
       // Passa o JSON bruto — IA interpreta o shape especifico de cada plataforma
       materials[plataforma] = extracao.raw || extracao.conteudo_full || ''
+      extractionReport.success.push(plataforma)
+      if (plataforma === 'transcricao') extractionReport.hasTranscricao = true
+      // Detecta transcricao embarcada em outras plataformas (ex: reuniao com whisper/transcript)
+      const raw = extracao.raw
+      if (!extractionReport.hasTranscricao && raw && typeof raw === 'object') {
+        const s = JSON.stringify(raw).toLowerCase()
+        if (s.includes('transcript') && s.length > 500) extractionReport.hasTranscricao = true
+      }
     } catch (err) {
-      materials[plataforma] = { error: `falha extracao: ${err.message}`, url }
+      // D-04: token Google revogado/expirado — interrompe loop e marca analise incompleta
+      if (err instanceof GoogleReauthRequiredError) {
+        reauthRequired = err
+        console.error(`[${new Date().toISOString()}] [tc-analyzer] GoogleReauthRequiredError em ${plataforma} (user ${err.userId}) — interrompendo loop`)
+        break
+      }
+      const msg = err?.message || String(err)
+      materials[plataforma] = { error: `falha extracao: ${msg}`, url, plataforma }
+      extractionReport.failed.push({ plataforma, motivo: msg, url })
+      console.warn(`[${new Date().toISOString()}] [tc-analyzer] extracao falhou: ${plataforma} -> ${msg} (prosseguindo com demais materiais)`)
     }
     // Pausa entre extracoes (exceto na ultima) — evita rate-limit e race conditions
     if (i < entries.length - 1) {
       progress('extracting_content', { current: i + 1, total: entries.length, waiting: true })
       await new Promise(r => setTimeout(r, EXTRACTION_WAIT_MS))
     }
+  }
+  progress('extracting_content', {
+    total: entries.length,
+    success: extractionReport.success.length,
+    failed: extractionReport.failed.length,
+    hasTranscricao: extractionReport.hasTranscricao
+  })
+
+  // D-04: fail-mark mid-job quando token Google expirou — persiste analise incompleta
+  // com erro_code='google_reauth_required' e retorna; frontend ativa banner de reauth.
+  if (reauthRequired) {
+    const { rows: [{ max_versao }] } = await pool.query(
+      `SELECT COALESCE(MAX(versao), 0) AS max_versao FROM dashboards_hub.tc_analises_ia WHERE projeto_fase_id = $1`,
+      [projetoFaseId]
+    )
+    const novaVersao = max_versao + 1
+    const { rows: [analise] } = await pool.query(`
+      INSERT INTO dashboards_hub.tc_analises_ia
+        (projeto_fase_id, versao, modelo_usado, status_avaliacao, erro_code, erro_mensagem, contexto_rag)
+      VALUES ($1, $2, $3, 'incompleta', 'google_reauth_required', $4, $5)
+      RETURNING id
+    `, [
+      projetoFaseId,
+      novaVersao,
+      'n/a (reauth_required)',
+      String(reauthRequired.message || '').slice(0, 1000),
+      JSON.stringify({ reauth_user_id: reauthRequired.userId, reason: reauthRequired.reason || null })
+    ])
+    console.error(`[${new Date().toISOString()}] [tc-analyzer] Analise ${analise.id} marcada incompleta: google_reauth_required (user ${reauthRequired.userId})`)
+    progress('done', { incompleta: true, erro_code: 'google_reauth_required' })
+    return { analiseId: analise.id, versao: novaVersao, status: 'incompleta', erro_code: 'google_reauth_required' }
   }
 
   progress('building_rag')
@@ -348,7 +421,17 @@ export async function runAnalysis({ projetoFaseId, leadId, fase, onProgress }) {
       const payload = typeof v === 'string' ? v : JSON.stringify(v, null, 2)
       return `### Plataforma: ${plataforma}\n\`\`\`json\n${payload}\n\`\`\``
     }).join('\n\n')
-  const parsed = await analyzeText(materialContent, ragContext)
+  // Briefing para a IA sobre o estado da extracao — evita que ela marque 'incompleta'
+  // quando na verdade ha material util (ex: transcricao ok, slides falharam).
+  const extractionBriefing = `
+## Estado da Extracao de Materiais
+- Materiais extraidos com sucesso: ${extractionReport.success.length > 0 ? extractionReport.success.join(', ') : 'nenhum'}
+- Materiais que falharam: ${extractionReport.failed.length > 0 ? extractionReport.failed.map(f => `${f.plataforma} (${f.motivo})`).join('; ') : 'nenhum'}
+- Transcricao disponivel (FONTE PRINCIPAL): ${extractionReport.hasTranscricao ? 'SIM — use como fonte primaria' : 'NAO'}
+
+REGRA: Se houver ao menos a transcricao ou material equivalente, GERE a analise (status_avaliacao = "parcial" ou "completa"). Mencione na recomendacoes quais materiais faltaram, mas NAO marque como "incompleta" se houver material util.
+`
+  const parsed = await analyzeText(materialContent + '\n\n' + extractionBriefing, ragContext)
 
   progress('persisting')
   const { rows: [{ max_versao }] } = await pool.query(
@@ -368,12 +451,27 @@ export async function runAnalysis({ projetoFaseId, leadId, fase, onProgress }) {
     console.warn(`[${new Date().toISOString()}] [tc-analyzer] veredicto truncado (${parsed.veredicto.length}>200)`)
   }
 
-  // status_avaliacao: vem da IA. Fallback: se score nulo ou veredicto sugere insufici, marca incompleta
+  // status_avaliacao: vem da IA, mas o hub aplica regras de supervisao.
+  // Hub inteligente: se ha transcricao (fonte primaria) + score gerado, nunca marca 'incompleta'.
   let statusAvaliacao = parsed.status_avaliacao || 'completa'
   if (!['completa', 'parcial', 'incompleta'].includes(statusAvaliacao)) {
     statusAvaliacao = 'completa'
   }
+  // Override #1: houve transcricao OK e a IA devolveu score — nunca incompleta.
+  if (extractionReport.hasTranscricao && parsed.score != null && statusAvaliacao === 'incompleta') {
+    console.warn(`[${new Date().toISOString()}] [tc-analyzer] IA marcou 'incompleta' mas ha transcricao + score — override para 'parcial'`)
+    statusAvaliacao = 'parcial'
+  }
+  // Override #2: extracoes falharam mas ha sucesso parcial e score — sinaliza 'parcial'.
+  if (statusAvaliacao === 'completa' && extractionReport.failed.length > 0 && extractionReport.success.length > 0) {
+    statusAvaliacao = 'parcial'
+  }
+  // Fallback original: score nulo + IA disse 'completa' = contradiz, vira incompleta.
   if (parsed.score == null && statusAvaliacao === 'completa') {
+    statusAvaliacao = 'incompleta'
+  }
+  // Override #3: nao ha NENHUM material extraido — realmente incompleta.
+  if (extractionReport.success.length === 0) {
     statusAvaliacao = 'incompleta'
   }
   const scoreFinal = statusAvaliacao === 'incompleta' ? null : parsed.score
@@ -393,7 +491,15 @@ export async function runAnalysis({ projetoFaseId, leadId, fase, onProgress }) {
     JSON.stringify(parsed.oportunidades || []),
     JSON.stringify(parsed.riscos || []),
     JSON.stringify(parsed.recomendacoes || []),
-    JSON.stringify(ragMeta),
+    JSON.stringify({
+      ...ragMeta,
+      extractionReport: {
+        success: extractionReport.success,
+        failed: extractionReport.failed,
+        hasTranscricao: extractionReport.hasTranscricao,
+        totalEsperado: entries.length
+      }
+    }),
     tokens_in, tokens_out, custo,
     statusAvaliacao
   ])
@@ -419,16 +525,52 @@ export async function runAnalysis({ projetoFaseId, leadId, fase, onProgress }) {
     // embedding falhou — nao bloqueia analise
   }
 
-  progress('posting_note')
-  try {
-    const noteText = await generateNote(parsed)
-    await updateLeadNote(leadId, noteText)
-    await pool.query(
-      `UPDATE dashboards_hub.tc_analises_ia SET nota_kommo = $1 WHERE id = $2`,
-      [noteText, analise.id]
-    )
-  } catch (err) {
-    // nota falhou — analise ja foi persistida
+  // Posting automatico no CRM e OPT-IN via env var.
+  // Default: NAO posta — usuario aprova manualmente atraves de acao explicita na UI.
+  // Setar TC_AUTO_POST_KOMMO_NOTE=true para restaurar comportamento automatico.
+  const autoPostEnabled = String(process.env.TC_AUTO_POST_KOMMO_NOTE || 'false').toLowerCase() === 'true'
+  if (autoPostEnabled) {
+    progress('posting_note')
+    try {
+      const noteText = await generateNote(parsed)
+      await updateLeadNote(leadId, noteText)
+      await pool.query(
+        `UPDATE dashboards_hub.tc_analises_ia SET nota_kommo = $1 WHERE id = $2`,
+        [noteText, analise.id]
+      )
+    } catch (err) {
+      console.warn(`[${new Date().toISOString()}] [tc-analyzer] posting_note falhou (nao-fatal): ${err.message}`)
+    }
+  } else {
+    // Apenas gera o texto da nota e armazena no banco, sem enviar ao Kommo.
+    // A UI pode acionar o post manualmente depois (endpoint separado a implementar).
+    try {
+      const noteText = await generateNote(parsed)
+      await pool.query(
+        `UPDATE dashboards_hub.tc_analises_ia SET nota_kommo = $1 WHERE id = $2`,
+        [noteText, analise.id]
+      )
+    } catch (err) {
+      console.warn(`[${new Date().toISOString()}] [tc-analyzer] generateNote falhou (nao-fatal): ${err.message}`)
+    }
+  }
+
+  // Emite evento de alerta se analise tem qualidade insuficiente OU materiais importantes faltaram.
+  // Alert-dispatcher decide se envia mensagem (baseado em config + dedup).
+  const failedPlatforms = (extractionReport.failed || []).map((f) => f.plataforma)
+  const shouldAlert = statusAvaliacao === 'incompleta' || failedPlatforms.length > 0
+  if (shouldAlert) {
+    const motivos = []
+    if (statusAvaliacao === 'incompleta') motivos.push('analise marcada como incompleta')
+    if (failedPlatforms.length) motivos.push(`extracao falhou em: ${failedPlatforms.join(', ')}`)
+    bus.emitSafe('analysis.bad_quality', {
+      leadId,
+      faseSlug: fase,
+      faseNome: fase,
+      analiseId: analise.id,
+      missing: failedPlatforms,
+      motivo: motivos.join(' · ')
+    })
   }
 
   progress('done')
