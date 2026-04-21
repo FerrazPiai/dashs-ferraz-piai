@@ -247,6 +247,31 @@ Cada dashboard possui um `workflowId` e `webhookEndpoint` em `config/dashboards.
 | Tx. Conversão Saber → Monetização | `rwnQ8GfuDdSuVZv-h4PR2` | `WEBHOOK_POST_TX_CONV_SABER_MONETIZACAO` | 2–5 min |
 | Raio-X Financeiro | `SdLdkXrCmlm0VL1zWp668` | `WEBHOOK_POST_DIAGRAMA_SANKEY` | ~1 seg |
 | Comparativo Entre Squads | `k13lPwqDqCfQoD8p` | `WEBHOOK_POST_COMPARATIVO_SQUADS` | ~1 seg |
+| Fechamento Financeiro Squads | — (sem workflowId) | `API_ENDPOINT_FECHAMENTO_FINANCEIRO_SQUADS` | ~1 seg |
+
+## Fechamento Financeiro Squads — Estrutura de Dados
+
+A API retorna `{ porSquadClienteMes: [...], porMesSquad: [...] }`. O frontend usa `porSquadClienteMes` (dados por cliente) e agrega via `transformApiData`.
+
+**Formato dos campos (API via N8N):**
+
+| Campo | Tipo | Observação |
+|---|---|---|
+| `Mes/Ano` | string (`"abril/2026"`) | Nome do mês em português/ano |
+| `Nome do cliente` | string | Identificação do cliente |
+| `Squad` | string | Nome do squad (já normalizado) |
+| `Descrição` | string | Descrição da transação |
+| `1.1.0x Aquisição \| [categoria] BR` | number | Receita de aquisição por categoria |
+| `1.2.0x Renovação \| [categoria] BR` | number | Receita de renovação por categoria |
+| `1.3.0x Expansão \| [categoria] BR` | number | Receita de expansão por categoria |
+| `1.4.0x Comissão ...` | number | Comissões (BV/Variável, Stack Digital) |
+| `total` | number | Soma total da linha |
+
+**Regras de negócio:**
+- Expansão "Outras Origens" é separada via regex `/monetiza/i` no campo `Descrição` — não entra no cálculo de NRR
+- Revenue Churn calculado pelo `churn-engine.js` (compara renovação M-1 com M, detecta cancelamentos/downsells/isenções)
+- NRR (R$) = Renovação + Expansão própria - Churn - Downsell
+- Clientes com múltiplas transações no mesmo mês/field são somados via `getClientTotal` (evita concatenação de strings formatadas)
 
 **Fluxo de atualização (todos os dashboards):**
 1. Frontend chama `GET /api/update-status/:dashboardId` (verifica file lock + N8N workflow)

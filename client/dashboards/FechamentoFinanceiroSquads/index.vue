@@ -166,9 +166,7 @@
                       :key="mes"
                       class="col-value col-value--client"
                     >
-                      <template v-for="(c, j) in getClientRows(mes, field.key)" :key="j">
-                        <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                      </template>
+                      {{ getClientTotal(mes, field.key, client.cliente) ? fmtBRL(getClientTotal(mes, field.key, client.cliente)) : '' }}
                     </td>
                   </tr>
                 </template>
@@ -223,9 +221,7 @@
                       :key="mes"
                       class="col-value col-value--client"
                     >
-                      <template v-for="(c, j) in getClientRows(mes, field.key)" :key="j">
-                        <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                      </template>
+                      {{ getClientTotal(mes, field.key, client.cliente) ? fmtBRL(getClientTotal(mes, field.key, client.cliente)) : '' }}
                     </td>
                   </tr>
                 </template>
@@ -280,9 +276,7 @@
                       :key="mes"
                       class="col-value col-value--client"
                     >
-                      <template v-for="(c, j) in getClientRows(mes, field.key)" :key="j">
-                        <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                      </template>
+                      {{ getClientTotal(mes, field.key, client.cliente) ? fmtBRL(getClientTotal(mes, field.key, client.cliente)) : '' }}
                     </td>
                   </tr>
                 </template>
@@ -394,9 +388,7 @@
                       :key="mes"
                       class="col-value col-value--client"
                     >
-                      <template v-for="(c, j) in getClientRows(mes, field.key)" :key="j">
-                        <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                      </template>
+                      {{ getClientTotal(mes, field.key, client.cliente) ? fmtBRL(getClientTotal(mes, field.key, client.cliente)) : '' }}
                     </td>
                   </tr>
                 </template>
@@ -469,9 +461,7 @@
                         class="col-value col-value--client"
                         :class="isChurnLossField(field.key) ? 'val-churn-loss' : 'val-churn-exempt'"
                       >
-                        <template v-for="(c, j) in getClientRowsByChurnCategory(mes, field.key, 'saber')" :key="j">
-                          <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                        </template>
+                        {{ getClientTotalByChurnCategory(mes, field.key, 'saber', client.cliente) ? fmtBRL(getClientTotalByChurnCategory(mes, field.key, 'saber', client.cliente)) : '' }}
                       </td>
                     </tr>
                   </template>
@@ -507,9 +497,7 @@
                         class="col-value col-value--client"
                         :class="isChurnLossField(field.key) ? 'val-churn-loss' : 'val-churn-exempt'"
                       >
-                        <template v-for="(c, j) in getClientRowsByChurnCategory(mes, field.key, 'ter')" :key="j">
-                          <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                        </template>
+                        {{ getClientTotalByChurnCategory(mes, field.key, 'ter', client.cliente) ? fmtBRL(getClientTotalByChurnCategory(mes, field.key, 'ter', client.cliente)) : '' }}
                       </td>
                     </tr>
                   </template>
@@ -545,9 +533,7 @@
                         class="col-value col-value--client"
                         :class="isChurnLossField(field.key) ? 'val-churn-loss' : 'val-churn-exempt'"
                       >
-                        <template v-for="(c, j) in getClientRowsByChurnCategory(mes, field.key, 'executar')" :key="j">
-                          <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                        </template>
+                        {{ getClientTotalByChurnCategory(mes, field.key, 'executar', client.cliente) ? fmtBRL(getClientTotalByChurnCategory(mes, field.key, 'executar', client.cliente)) : '' }}
                       </td>
                     </tr>
                   </template>
@@ -1433,6 +1419,16 @@ function getClientRowsByChurnCategory(mes, fieldKey, category) {
   return getClientRows(mes, fieldKey).filter(c => getClientChurnCategory(c.cliente, mes) === category)
 }
 
+/** Soma valor de todas as transações de um cliente em um mês/field/categoria de churn */
+function getClientTotalByChurnCategory(mes, fieldKey, category, clientName) {
+  const rows = getClientRowsByChurnCategory(mes, fieldKey, category)
+  let sum = 0
+  for (const c of rows) {
+    if (c.cliente === clientName) sum += c.valor
+  }
+  return sum
+}
+
 /** Lista única de clientes por categoria em todos os meses visíveis */
 function getAllClientsByChurnCategory(fieldKey, category) {
   const seen = new Map()
@@ -1904,6 +1900,16 @@ function getAllClients(fieldKey) {
     }))
     return maxB - maxA
   })
+}
+
+/** Soma o valor de todas as transações de um cliente em um mês/field */
+function getClientTotal(mes, fieldKey, clientName) {
+  const rows = getClientRows(mes, fieldKey)
+  let sum = 0
+  for (const c of rows) {
+    if (c.cliente === clientName) sum += c.valor
+  }
+  return sum
 }
 
 const loading = computed(() => apiLoading.value)
