@@ -28,25 +28,6 @@
       </div>
     </div>
 
-    <!-- Filtro de Squad + Toggles de variação -->
-    <div class="filters-bar">
-      <div class="filter-group">
-        <label class="filter-label">Squad</label>
-        <select class="filter-select" v-model="selectedSquad">
-          <option value="__all__">Consolidado</option>
-          <option v-for="s in squadsDisponiveis" :key="s" :value="s">{{ s }}</option>
-        </select>
-      </div>
-      <label class="filter-checkbox">
-        <input type="checkbox" v-model="showVarMM" />
-        <span>Var M/M</span>
-      </label>
-      <label class="filter-checkbox">
-        <input type="checkbox" v-model="showPctTotal" />
-        <span>% do Total</span>
-      </label>
-    </div>
-
     <!-- Scorecards: Resumo Executivo -->
     <div v-if="hasData" class="scorecards-grid">
       <div class="scorecards scorecards--positive">
@@ -89,6 +70,25 @@
           icon="pause-circle"
         />
       </div>
+    </div>
+
+    <!-- Filtro de Squad + Toggles de variação -->
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label class="filter-label">Squad</label>
+        <select class="filter-select" v-model="selectedSquad">
+          <option value="__all__">Consolidado</option>
+          <option v-for="s in squadsDisponiveis" :key="s" :value="s">{{ s }}</option>
+        </select>
+      </div>
+      <label class="filter-checkbox">
+        <input type="checkbox" v-model="showVarMM" />
+        <span>Var M/M</span>
+      </label>
+      <label class="filter-checkbox">
+        <input type="checkbox" v-model="showPctTotal" />
+        <span>% do Total</span>
+      </label>
     </div>
 
     <!-- Error State -->
@@ -1296,10 +1296,8 @@ function getChurnCountByCategory(mes) {
   if (!churnClients.length) return { saber: 0, ter: 0, executar: 0 }
 
   const churnNames = new Set(churnClients.map(c => c.cliente))
-  const prev = getMonthBefore(mes)
-  if (!prev) return { saber: churnClients.length, ter: 0, executar: 0 }
-
-  let rows = rawData.value.filter(r => r['Mes/Ano'] === prev)
+  // Para churn, mes já é o último mês com valor — usar direto
+  let rows = rawData.value.filter(r => r['Mes/Ano'] === mes)
   if (selectedSquad.value !== '__all__') {
     rows = rows.filter(r => r.Squad === selectedSquad.value)
   }
@@ -1338,8 +1336,9 @@ function getChurnValueByCategory(mes, fieldKey) {
   if (!clients.length) return { saber: 0, ter: 0, executar: 0 }
 
   const clientNames = new Set(clients.map(c => c.cliente))
-  const prev = getMonthBefore(mes)
-  const lookupMonth = prev || mes
+  // Para churn, o mes do evento já é o último mês com valor — usar direto
+  // Para downsell/isenção, o mes é quando caiu — precisamos do mês anterior
+  const lookupMonth = fieldKey === '__churn' ? mes : (getMonthBefore(mes) || mes)
 
   let rows = rawData.value.filter(r => r['Mes/Ano'] === lookupMonth)
   if (selectedSquad.value !== '__all__') {
@@ -1370,15 +1369,9 @@ function getChurnValueByCategory(mes, fieldKey) {
   const result = { saber: 0, ter: 0, executar: 0 }
   for (const [nome, valor] of clientValMap) {
     const cats = clientCats.get(nome)
-    if (!cats || cats.size === 0) {
-      result.saber += valor
-    } else if (cats.has('saber')) {
-      result.saber += valor
-    } else if (cats.has('executar')) {
-      result.executar += valor
-    } else {
-      result.saber += valor
-    }
+    if (!cats || cats.size === 0) continue
+    if (cats.has('saber')) result.saber += valor
+    else if (cats.has('executar')) result.executar += valor
   }
 
   return {
@@ -1395,9 +1388,9 @@ function fmtChurnCategory(mes, fieldKey, category) {
 }
 
 /** Retorna a categoria de renovação de um cliente no mês (saber/executar) */
-function getClientChurnCategory(clientName, mes) {
-  const prev = getMonthBefore(mes)
-  const lookupMonth = prev || mes
+function getClientChurnCategory(clientName, mes, fieldKey) {
+  // Para churn, mes já é o último mês com valor; para downsell/isenção, precisa do mês anterior
+  const lookupMonth = fieldKey === '__churn' ? mes : (getMonthBefore(mes) || mes)
 
   let rows = rawData.value.filter(r => r['Mes/Ano'] === lookupMonth && r['Nome do cliente'] === clientName)
   if (selectedSquad.value !== '__all__') {
@@ -1411,12 +1404,12 @@ function getClientChurnCategory(clientName, mes) {
   for (const r of rows) {
     if (typeof r['1.2.01 Renovação | [Saber] BR'] === 'number' && r['1.2.01 Renovação | [Saber] BR'] > 0) return 'saber'
   }
-  return 'saber'
+  return null
 }
 
 /** Filtra client rows do churn por categoria (saber/ter/executar) */
 function getClientRowsByChurnCategory(mes, fieldKey, category) {
-  return getClientRows(mes, fieldKey).filter(c => getClientChurnCategory(c.cliente, mes) === category)
+  return getClientRows(mes, fieldKey).filter(c => getClientChurnCategory(c.cliente, mes, fieldKey) === category)
 }
 
 /** Soma valor de todas as transações de um cliente em um mês/field/categoria de churn */
