@@ -170,35 +170,39 @@
 
     <!-- Filters + KPI Layout Toggle -->
     <div class="filters-bar">
-      <div class="filter-group">
-        <label class="filter-label">Canal</label>
-        <select class="filter-select" v-model="selectedChannel">
-          <option value="consolidado">Consolidado</option>
-          <option v-for="canal in channelOptions" :key="canal.id" :value="canal.id">
-            {{ canal.label }}
-          </option>
-        </select>
+      <VSelect
+        label="Canal"
+        :options="channelSelectOptions"
+        v-model="selectedChannel"
+        all-value="consolidado"
+        placeholder="Consolidado"
+      />
+      <div :class="{ 'filter-hide': tableDrilldown === 'closer' }">
+        <VSelect
+          label="Closer"
+          :options="closerSelectOptions"
+          v-model="selectedCloser"
+          all-value="todos"
+          placeholder="Todos"
+        />
       </div>
-      <div class="filter-group" :class="{ 'filter-hide': tableDrilldown === 'closer' }">
-        <label class="filter-label">Closer</label>
-        <select class="filter-select" v-model="selectedCloser">
-          <option value="todos">Todos</option>
-          <option v-for="c in closerOptions" :key="c" :value="c">{{ c }}</option>
-        </select>
+      <div :class="{ 'filter-hide': tableDrilldown === 'sdr' }">
+        <VSelect
+          label="SDR"
+          :options="sdrSelectOptions"
+          v-model="selectedSdr"
+          all-value="todos"
+          placeholder="Todos"
+        />
       </div>
-      <div class="filter-group" :class="{ 'filter-hide': tableDrilldown === 'sdr' }">
-        <label class="filter-label">SDR</label>
-        <select class="filter-select" v-model="selectedSdr">
-          <option value="todos">Todos</option>
-          <option v-for="s in sdrOptions" :key="s" :value="s">{{ s }}</option>
-        </select>
-      </div>
-      <div class="filter-group" :class="{ 'filter-hide': tableDrilldown === 'step' }">
-        <label class="filter-label">Step</label>
-        <select class="filter-select" v-model="selectedStep">
-          <option value="todos">Todos</option>
-          <option v-for="s in stepOptions" :key="s" :value="s">{{ s }}</option>
-        </select>
+      <div :class="{ 'filter-hide': tableDrilldown === 'step' }">
+        <VSelect
+          label="Step"
+          :options="stepSelectOptions"
+          v-model="selectedStep"
+          all-value="todos"
+          placeholder="Todos"
+        />
       </div>
     </div>
 
@@ -495,6 +499,7 @@ import { useDashboardData } from '../../composables/useDashboardData.js'
 import { formatNumber, formatCurrency, formatCurrencyAbbrev, formatDateTime } from '../../composables/useFormatters.js'
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
 import VConfirmModal from '../../components/ui/VConfirmModal.vue'
+import VSelect from '../../components/ui/VSelect.vue'
 import GtmScorecard from './components/GtmScorecard.vue'
 import GtmFunnelTable from './components/GtmFunnelTable.vue'
 import VToggleGroup from '../../components/ui/VToggleGroup.vue'
@@ -1622,6 +1627,24 @@ const channelOptions = computed(() => {
   if (!source?.channels) return []
   return Object.keys(source.channels).map(id => ({ id, label: id }))
 })
+
+// VSelect-friendly options (com "Consolidado"/"Todos" no topo)
+const channelSelectOptions = computed(() => [
+  { value: 'consolidado', label: 'Consolidado' },
+  ...channelOptions.value.map(c => ({ value: c.id, label: c.label }))
+])
+const closerSelectOptions = computed(() => [
+  { value: 'todos', label: 'Todos' },
+  ...closerOptions.value.map(v => ({ value: v, label: v }))
+])
+const sdrSelectOptions = computed(() => [
+  { value: 'todos', label: 'Todos' },
+  ...sdrOptions.value.map(v => ({ value: v, label: v }))
+])
+const stepSelectOptions = computed(() => [
+  { value: 'todos', label: 'Todos' },
+  ...stepOptions.value.map(v => ({ value: v, label: v }))
+])
 
 const activeChannelIds = computed(() => {
   if (!isConsolidado.value) return [selectedChannel.value]

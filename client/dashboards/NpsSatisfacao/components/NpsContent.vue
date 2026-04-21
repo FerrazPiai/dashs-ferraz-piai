@@ -267,34 +267,10 @@
           <i data-lucide="search" class="search-icon"></i>
           <input v-model="tableSearch" type="text" placeholder="Buscar por cliente..." class="search-input" />
         </div>
-        <div class="filter-group">
-          <label class="filter-label">Tier</label>
-          <select class="filter-select" v-model="tableTier">
-            <option value="todos">Todos</option>
-            <option v-for="t in tableTierOptions" :key="t" :value="t">{{ t }}</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Grupo LT</label>
-          <select class="filter-select" v-model="tableLtGroup">
-            <option value="todos">Todos</option>
-            <option v-for="g in tableLtGroupOptions" :key="g.key" :value="g.key">{{ g.label }}</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Coordenador</label>
-          <select class="filter-select" v-model="tableCoord">
-            <option value="todos">Todos</option>
-            <option v-for="c in tableCoordOptions" :key="c" :value="c">{{ c }}</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Classificação</label>
-          <select class="filter-select" v-model="tableClassif">
-            <option value="todos">Todos</option>
-            <option v-for="cl in tableClassifOptions" :key="cl.value" :value="cl.value">{{ cl.label }}</option>
-          </select>
-        </div>
+        <VSelect label="Tier" :options="tableTierSelectOptions" v-model="tableTier" all-value="todos" placeholder="Todos" />
+        <VSelect label="Grupo LT" :options="tableLtGroupSelectOptions" v-model="tableLtGroup" all-value="todos" placeholder="Todos" />
+        <VSelect label="Coordenador" :options="tableCoordSelectOptions" v-model="tableCoord" all-value="todos" placeholder="Todos" />
+        <VSelect label="Classificação" :options="tableClassifSelectOptions" v-model="tableClassif" all-value="todos" placeholder="Todos" />
       </div>
       <div class="nps-table-scroll">
         <table class="nps-detail-table">
@@ -330,6 +306,7 @@
 <script setup>
 import { ref, reactive, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import VToggleGroup from '../../../components/ui/VToggleGroup.vue'
+import VSelect from '../../../components/ui/VSelect.vue'
 
 const props = defineProps({
   data: { type: Array, default: () => [] },
@@ -631,6 +608,13 @@ const tableClassifOptions = [
   { value: 'neutral', label: 'Neutro' },
   { value: 'detractor', label: 'Detrator' },
 ]
+
+// Options no formato VSelect (com "Todos" no topo)
+const TODOS_OPT = { value: 'todos', label: 'Todos' }
+const tableTierSelectOptions = computed(() => [TODOS_OPT, ...tableTierOptions.value.map(v => ({ value: v, label: v }))])
+const tableCoordSelectOptions = computed(() => [TODOS_OPT, ...tableCoordOptions.value.map(v => ({ value: v, label: v }))])
+const tableLtGroupSelectOptions = [TODOS_OPT, ...tableLtGroupOptions.map(g => ({ value: g.key, label: g.label }))]
+const tableClassifSelectOptions = [TODOS_OPT, ...tableClassifOptions]
 
 const tableFilteredData = computed(() => {
   let rows = filteredData.value

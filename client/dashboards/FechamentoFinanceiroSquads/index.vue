@@ -30,13 +30,13 @@
 
     <!-- Filtros + Toggles de KPI em uma unica linha -->
     <div class="filters-bar">
-      <div class="filter-group">
-        <label class="filter-label">Squad</label>
-        <select class="filter-select" v-model="selectedSquad">
-          <option value="__all__">Consolidado</option>
-          <option v-for="s in squadsDisponiveis" :key="s" :value="s">{{ s }}</option>
-        </select>
-      </div>
+      <VSelect
+        label="Squad"
+        :options="squadOptions"
+        v-model="selectedSquad"
+        all-value="__all__"
+        placeholder="Consolidado"
+      />
       <label class="filter-checkbox">
         <input type="checkbox" v-model="showVarMM" />
         <span>Var M/M</span>
@@ -951,6 +951,7 @@ import { useRoute } from 'vue-router'
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
 import VConfirmModal from '../../components/ui/VConfirmModal.vue'
 import VToggleGroup from '../../components/ui/VToggleGroup.vue'
+import VSelect from '../../components/ui/VSelect.vue'
 import VChartCard from '../../components/charts/VChartCard.vue'
 import VBarChart from '../../components/charts/VBarChart.vue'
 import NrrEvolutionChart from './components/NrrEvolutionChart.vue'
@@ -1831,6 +1832,12 @@ const squadsDisponiveis = computed(() => {
   })
   return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
 })
+
+/** Options para VSelect (Consolidado + squads) */
+const squadOptions = computed(() => [
+  { value: '__all__', label: 'Consolidado' },
+  ...squadsDisponiveis.value.map(s => ({ value: s, label: s }))
+])
 
 // ---------------------------------------------------------------------------
 // Todos os meses disponíveis (parsed)

@@ -32,52 +32,12 @@
 
     <!-- Filtros (abaixo do header, igual GTM Motion) -->
     <div class="filters-bar">
-      <div class="filter-group">
-        <label class="filter-label">Tier</label>
-        <select class="filter-select" v-model="selectedTier">
-          <option value="todos">Todos</option>
-          <option v-for="t in tierOptions" :key="t" :value="t">{{ t }}</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label class="filter-label">Coordenador</label>
-        <select class="filter-select" v-model="selectedCoord">
-          <option value="todos">Todos</option>
-          <option v-for="c in coordOptions" :key="c" :value="c">{{ c }}</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label class="filter-label">Grupo LT</label>
-        <select class="filter-select" v-model="selectedLtGroup">
-          <option value="todos">Todos</option>
-          <option value="0-3">0 a 3 meses</option>
-          <option value="3-6">3 a 6 meses</option>
-          <option value="6-9">6 a 9 meses</option>
-          <option value="9-12">9 a 12 meses</option>
-          <option value="12+">12+ meses</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label class="filter-label">Categoria</label>
-        <select class="filter-select" v-model="selectedCategoria">
-          <option value="todos">Todos</option>
-          <option v-for="c in categoriaOptions" :key="c" :value="c">{{ c }}</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label class="filter-label">Tipo</label>
-        <select class="filter-select" v-model="selectedTipo">
-          <option value="todos">Todos</option>
-          <option v-for="t in tipoOptions" :key="t" :value="t">{{ t }}</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label class="filter-label">Modelo Vendas</label>
-        <select class="filter-select" v-model="selectedModelo">
-          <option value="todos">Todos</option>
-          <option v-for="m in modeloOptions" :key="m" :value="m">{{ m }}</option>
-        </select>
-      </div>
+      <VSelect label="Tier" :options="tierSelectOptions" v-model="selectedTier" all-value="todos" placeholder="Todos" />
+      <VSelect label="Coordenador" :options="coordSelectOptions" v-model="selectedCoord" all-value="todos" placeholder="Todos" />
+      <VSelect label="Grupo LT" :options="ltGroupSelectOptions" v-model="selectedLtGroup" all-value="todos" placeholder="Todos" />
+      <VSelect label="Categoria" :options="categoriaSelectOptions" v-model="selectedCategoria" all-value="todos" placeholder="Todos" />
+      <VSelect label="Tipo" :options="tipoSelectOptions" v-model="selectedTipo" all-value="todos" placeholder="Todos" />
+      <VSelect label="Modelo Vendas" :options="modeloSelectOptions" v-model="selectedModelo" all-value="todos" placeholder="Todos" />
     </div>
 
     <!-- Error State -->
@@ -130,6 +90,7 @@ import { useDashboardData } from '../../composables/useDashboardData.js'
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
 import VConfirmModal from '../../components/ui/VConfirmModal.vue'
 import VToggleGroup from '../../components/ui/VToggleGroup.vue'
+import VSelect from '../../components/ui/VSelect.vue'
 import NpsContent from './components/NpsContent.vue'
 
 const { data, loading, error, fetchData } = useDashboardData('nps-satisfacao')
@@ -412,6 +373,22 @@ const modeloOptions = computed(() => {
   }
   return [...set].sort()
 })
+
+// Options no formato do VSelect (com "Todos" no topo)
+const TODOS_OPT = { value: 'todos', label: 'Todos' }
+const tierSelectOptions = computed(() => [TODOS_OPT, ...tierOptions.value.map(v => ({ value: v, label: v }))])
+const coordSelectOptions = computed(() => [TODOS_OPT, ...coordOptions.value.map(v => ({ value: v, label: v }))])
+const categoriaSelectOptions = computed(() => [TODOS_OPT, ...categoriaOptions.value.map(v => ({ value: v, label: v }))])
+const tipoSelectOptions = computed(() => [TODOS_OPT, ...tipoOptions.value.map(v => ({ value: v, label: v }))])
+const modeloSelectOptions = computed(() => [TODOS_OPT, ...modeloOptions.value.map(v => ({ value: v, label: v }))])
+const ltGroupSelectOptions = [
+  TODOS_OPT,
+  { value: '0-3', label: '0 a 3 meses' },
+  { value: '3-6', label: '3 a 6 meses' },
+  { value: '6-9', label: '6 a 9 meses' },
+  { value: '9-12', label: '9 a 12 meses' },
+  { value: '12+', label: '12+ meses' }
+]
 
 const confirmMessage = computed(() => {
   const base = 'A atualização pode levar alguns minutos.'
