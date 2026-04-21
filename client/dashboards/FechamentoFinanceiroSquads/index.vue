@@ -28,7 +28,7 @@
       </div>
     </div>
 
-    <!-- Filtro de Squad + Toggles de variação -->
+    <!-- Filtros + Toggles de KPI em uma unica linha -->
     <div class="filters-bar">
       <div class="filter-group">
         <label class="filter-label">Squad</label>
@@ -45,91 +45,91 @@
         <input type="checkbox" v-model="showPctTotal" />
         <span>% do Total</span>
       </label>
-    </div>
 
-    <!-- Barra de toggles dos KPIs (layout + valor + legenda) -->
-    <div v-if="hasData" class="kpi-toggles-bar">
-      <div class="kpi-value-toggle">
-        <button
-          class="toggle-btn"
-          :class="{ active: kpiValueMode === 'abbrev' }"
-          @click="kpiValueMode = 'abbrev'"
-          title="Valores abreviados (ex: R$ 1,0M)"
-          aria-label="Valores abreviados"
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <text x="1" y="12" font-size="13" font-weight="700" fill="currentColor">K</text>
-          </svg>
-        </button>
-        <button
-          class="toggle-btn"
-          :class="{ active: kpiValueMode === 'full' }"
-          @click="kpiValueMode = 'full'"
-          title="Valores completos (ex: R$ 1.045.904,01)"
-          aria-label="Valores completos"
-        >
-          <svg width="22" height="14" viewBox="0 0 22 14" fill="none">
-            <text x="1" y="12" font-size="13" font-weight="700" fill="currentColor">0,0</text>
-          </svg>
-        </button>
-      </div>
-      <div class="kpi-layout-toggle">
-        <button
-          class="toggle-btn"
-          :class="{ active: kpiLayout === 'compact' }"
-          @click="kpiLayout = 'compact'"
-          title="1 linha"
-          aria-label="1 linha"
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <rect x="0" y="5" width="14" height="4" rx="1" fill="currentColor"/>
-          </svg>
-        </button>
-        <button
-          class="toggle-btn"
-          :class="{ active: kpiLayout === 'expanded' }"
-          @click="kpiLayout = 'expanded'"
-          title="2 linhas"
-          aria-label="2 linhas"
-        >
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <rect x="0" y="1" width="14" height="4" rx="1" fill="currentColor"/>
-            <rect x="0" y="9" width="14" height="4" rx="1" fill="currentColor"/>
-          </svg>
-        </button>
-      </div>
-      <div class="legend-wrapper" @click.stop="legendOpen = !legendOpen">
-        <button class="legend-btn" :class="{ active: legendOpen }" aria-label="Legenda de cores">
-          <i data-lucide="info"></i>
-        </button>
-        <div v-if="!legendOpen" class="legend-tooltip">
-          <div class="legend-title">Legenda de Cores</div>
-          <div class="legend-item"><span class="legend-dot legend-dot--green"></span>Crescimento de receita</div>
-          <div class="legend-item"><span class="legend-dot legend-dot--red"></span>Perda de receita</div>
-          <div class="legend-item"><span class="legend-dot legend-dot--yellow"></span>Isenção (pausa)</div>
-          <div class="legend-item"><span class="legend-dot legend-dot--orange"></span>Expansão outras origens</div>
+      <!-- Toggles de KPI (alinhados a direita) -->
+      <div v-if="hasData" class="kpi-toggles-group">
+        <div class="kpi-value-toggle">
+          <button
+            class="toggle-btn"
+            :class="{ active: kpiValueMode === 'abbrev' }"
+            @click="kpiValueMode = 'abbrev'"
+            title="Valores abreviados (ex: R$ 1,0M)"
+            aria-label="Valores abreviados"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <text x="1" y="12" font-size="13" font-weight="700" fill="currentColor">K</text>
+            </svg>
+          </button>
+          <button
+            class="toggle-btn"
+            :class="{ active: kpiValueMode === 'full' }"
+            @click="kpiValueMode = 'full'"
+            title="Valores completos (ex: R$ 1.045.904,01)"
+            aria-label="Valores completos"
+          >
+            <svg width="22" height="14" viewBox="0 0 22 14" fill="none">
+              <text x="1" y="12" font-size="13" font-weight="700" fill="currentColor">0,0</text>
+            </svg>
+          </button>
         </div>
-        <div v-if="legendOpen" class="legend-popup" @click.stop>
-          <button class="legend-popup-close" @click="legendOpen = false" aria-label="Fechar">×</button>
-          <div class="legend-section">
-            <div class="legend-section-title">Cores nos KPIs</div>
-            <div class="legend-item"><span class="legend-dot legend-dot--white"></span><span><strong>Branco</strong> — Receita total (referência)</span></div>
-            <div class="legend-item"><span class="legend-dot legend-dot--green"></span><span><strong>Verde</strong> — NRR e Expansão (crescimento sobre base)</span></div>
-            <div class="legend-item"><span class="legend-dot legend-dot--red"></span><span><strong>Vermelho</strong> — Revenue Churn e Churn Rate (perda efetiva)</span></div>
-            <div class="legend-item"><span class="legend-dot legend-dot--yellow"></span><span><strong>Amarelo</strong> — Isenções (pausa contratual, não é churn)</span></div>
+        <div class="kpi-layout-toggle">
+          <button
+            class="toggle-btn"
+            :class="{ active: kpiLayout === 'compact' }"
+            @click="kpiLayout = 'compact'"
+            title="1 linha"
+            aria-label="1 linha"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <rect x="0" y="5" width="14" height="4" rx="1" fill="currentColor"/>
+            </svg>
+          </button>
+          <button
+            class="toggle-btn"
+            :class="{ active: kpiLayout === 'expanded' }"
+            @click="kpiLayout = 'expanded'"
+            title="2 linhas"
+            aria-label="2 linhas"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <rect x="0" y="1" width="14" height="4" rx="1" fill="currentColor"/>
+              <rect x="0" y="9" width="14" height="4" rx="1" fill="currentColor"/>
+            </svg>
+          </button>
+        </div>
+        <div class="legend-wrapper" @click.stop="legendOpen = !legendOpen">
+          <button class="legend-btn" :class="{ active: legendOpen }" aria-label="Legenda de cores">
+            <i data-lucide="info"></i>
+          </button>
+          <div v-if="!legendOpen" class="legend-tooltip">
+            <div class="legend-title">Legenda de Cores</div>
+            <div class="legend-item"><span class="legend-dot legend-dot--green"></span>Crescimento de receita</div>
+            <div class="legend-item"><span class="legend-dot legend-dot--red"></span>Perda de receita</div>
+            <div class="legend-item"><span class="legend-dot legend-dot--yellow"></span>Isenção (pausa)</div>
+            <div class="legend-item"><span class="legend-dot legend-dot--orange"></span>Expansão outras origens</div>
           </div>
-          <div class="legend-divider"></div>
-          <div class="legend-section">
-            <div class="legend-section-title">Cores na Tabela Consolidado</div>
-            <div class="legend-item"><span class="legend-dot legend-dot--green"></span><span><strong>Verde</strong> — Expansão</span></div>
-            <div class="legend-item"><span class="legend-dot legend-dot--orange"></span><span><strong>Laranja</strong> — Expansão outras origens</span></div>
-            <div class="legend-item"><span class="legend-dot legend-dot--red"></span><span><strong>Vermelho</strong> — Revenue Churn</span></div>
-            <div class="legend-item"><span class="legend-dot legend-dot--yellow"></span><span><strong>Amarelo</strong> — Isenções</span></div>
-          </div>
-          <div class="legend-divider"></div>
-          <div class="legend-section">
-            <div class="legend-section-title">Variação M/M (Δ M/M)</div>
-            <div class="legend-section-desc">Δ M/M compara o período selecionado com o período imediatamente anterior (mesma duração). Ative o toggle "Var M/M" no filtro para exibir nos cards.</div>
+          <div v-if="legendOpen" class="legend-popup" @click.stop>
+            <button class="legend-popup-close" @click="legendOpen = false" aria-label="Fechar">×</button>
+            <div class="legend-section">
+              <div class="legend-section-title">Cores nos KPIs</div>
+              <div class="legend-item"><span class="legend-dot legend-dot--white"></span><span><strong>Branco</strong> — Receita total (referência)</span></div>
+              <div class="legend-item"><span class="legend-dot legend-dot--green"></span><span><strong>Verde</strong> — NRR e Expansão (crescimento sobre base)</span></div>
+              <div class="legend-item"><span class="legend-dot legend-dot--red"></span><span><strong>Vermelho</strong> — Revenue Churn e Churn Rate (perda efetiva)</span></div>
+              <div class="legend-item"><span class="legend-dot legend-dot--yellow"></span><span><strong>Amarelo</strong> — Isenções (pausa contratual, não é churn)</span></div>
+            </div>
+            <div class="legend-divider"></div>
+            <div class="legend-section">
+              <div class="legend-section-title">Cores na Tabela Consolidado</div>
+              <div class="legend-item"><span class="legend-dot legend-dot--green"></span><span><strong>Verde</strong> — Expansão</span></div>
+              <div class="legend-item"><span class="legend-dot legend-dot--orange"></span><span><strong>Laranja</strong> — Expansão outras origens</span></div>
+              <div class="legend-item"><span class="legend-dot legend-dot--red"></span><span><strong>Vermelho</strong> — Revenue Churn</span></div>
+              <div class="legend-item"><span class="legend-dot legend-dot--yellow"></span><span><strong>Amarelo</strong> — Isenções</span></div>
+            </div>
+            <div class="legend-divider"></div>
+            <div class="legend-section">
+              <div class="legend-section-title">Variação M/M (Δ M/M)</div>
+              <div class="legend-section-desc">Δ M/M compara o período selecionado com o período imediatamente anterior (mesma duração). Ative o toggle "Var M/M" no filtro para exibir nos cards.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -2574,13 +2574,12 @@ async function confirmRefresh() {
   padding: 8px 12px;
 }
 
-/* ---- KPI Toggles Bar ---- */
-.kpi-toggles-bar {
+/* ---- KPI Toggles Group (embutido na filters-bar, alinhado a direita) ---- */
+.kpi-toggles-group {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 12px;
-  justify-content: flex-end;
+  margin-left: auto;
   position: relative;
 }
 
