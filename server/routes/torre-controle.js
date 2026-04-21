@@ -12,7 +12,8 @@ import {
   STAGE_TO_FASE,
   STAGE_PRE_PROJETO,
   PIPELINE_SABER,
-  EDITABLE_MATERIAL_FIELD_IDS
+  EDITABLE_MATERIAL_FIELD_IDS,
+  getLeadsCustomFieldsMetadata
 } from '../services/kommo-client.js'
 import { rodarSync, getSyncState } from '../services/kommo-sync.js'
 
@@ -25,6 +26,34 @@ function sessionRole(req) {
 
 function sessionUserId(req) {
   return req.session?.user?.id || null
+}
+
+function isPrivileged(role) {
+  return role === 'admin' || role === 'board'
+}
+
+// Ownership check — alinha com o filtro aplicado em /matriz (responsible_user_id
+// do lead deve bater com o kommo_user_id do user logado). admin/board passam direto.
+async function canAccessLead(req, leadId) {
+  const role = sessionRole(req)
+  if (isPrivileged(role)) return true
+  const userId = sessionUserId(req)
+  const leadIdNum = parseInt(leadId, 10)
+  if (!userId || !Number.isFinite(leadIdNum)) return false
+  const { rows } = await pool.query(
+    `SELECT 1 FROM dashboards_hub.tc_kommo_leads l
+       JOIN dashboards_hub.users u ON u.kommo_user_id = l.responsible_user_id
+      WHERE l.id = $1 AND u.id = $2
+      LIMIT 1`,
+    [leadIdNum, userId]
+  )
+  return rows.length > 0
+}
+
+async function ensureLeadAccess(req, res, leadId) {
+  if (await canAccessLead(req, leadId)) return true
+  res.status(403).json({ error: 'sem permissao para acessar este lead' })
+  return false
 }
 
 const STAGE_PRE_PROJETO_ARRAY = [...STAGE_PRE_PROJETO]
@@ -152,7 +181,8 @@ router.get('/matriz', async (req, res, next) => {
         if (a) {
           if (incompleta) statusCor = 'incompleta'
           else if (score == null) statusCor = null
-          else statusCor = score >= 7 ? 'verde' : score >= 5 ? 'amarelo' : 'vermelho'
+          // Escala: 9-10 = verde, 7-8 = amarelo, <=6 = vermelho
+          else statusCor = score >= 9 ? 'verde' : score >= 7 ? 'amarelo' : 'vermelho'
         }
         fasesDados[f.id] = {
           status_cor: statusCor,
@@ -215,6 +245,7 @@ router.get('/cliente/:id/fase/:faseId', async (req, res, next) => {
     const stageId = parseInt(req.params.faseId, 10)
     const stageInfo = STAGE_TO_FASE[stageId]
     if (!stageInfo) return res.status(400).json({ error: 'stage_id invalido' })
+    if (!(await ensureLeadAccess(req, res, leadId))) return
 
     // Le lead do DB
     const { rows: [lead] } = await pool.query(`
@@ -310,6 +341,19 @@ router.get('/cliente/:id/fase/:faseId', async (req, res, next) => {
         [projetoFaseId]
       ).catch(() => ({ rows: [] }))
 
+      // Busca job em andamento para esta fase — frontend usa pra re-atachar polling
+      // quando o usuario volta para a fase depois de navegar. Sem isso, a barra de progresso
+      // some mesmo com o worker ainda rodando, passando ideia falsa de erro.
+      const { rows: [jobAtivo] } = await pool.query(
+        `SELECT id, status, progresso, tipo, created_at
+         FROM dashboards_hub.tc_jobs
+         WHERE status IN ('pending', 'running')
+           AND tipo IN ('analyze_phase', 'analyze_final')
+           AND (progresso -> 'payload' ->> 'projetoFaseId')::int = $1
+         ORDER BY created_at DESC LIMIT 1`,
+        [projetoFaseId]
+      ).catch(() => ({ rows: [] }))
+
       res.json({
         fase: {
           id: projetoFaseId,
@@ -322,7 +366,8 @@ router.get('/cliente/:id/fase/:faseId', async (req, res, next) => {
           ultima_falha_em: falhaRow?.ultima_falha_em || null,
           ultima_falha_msg: falhaRow?.ultima_falha_msg || null
         },
-        analises
+        analises,
+        job_ativo: jobAtivo || null
       })
     } catch (err) {
       await client.query('ROLLBACK')
@@ -343,6 +388,7 @@ router.post('/analisar', async (req, res, next) => {
     if (!projetoFaseId || !leadId || !fase) {
       return res.status(400).json({ error: 'projetoFaseId, leadId e fase obrigatorios' })
     }
+    if (!(await ensureLeadAccess(req, res, leadId))) return
     const lockKey = `analyze:${leadId}:${fase}`
     const job = await enqueueJob({
       tipo: 'analyze_phase', leadId, lockKey,
@@ -358,6 +404,7 @@ router.post('/analisar-final', async (req, res, next) => {
     if (!projetoFaseId || !leadId) {
       return res.status(400).json({ error: 'projetoFaseId e leadId obrigatorios' })
     }
+    if (!(await ensureLeadAccess(req, res, leadId))) return
     const lockKey = `analyze-final:${leadId}`
     const job = await enqueueJob({
       tipo: 'analyze_final', leadId, lockKey,
@@ -369,6 +416,11 @@ router.post('/analisar-final', async (req, res, next) => {
 
 router.post('/analisar-massa', async (req, res, next) => {
   try {
+    // Operacao em massa — somente admin/board. Usuarios comuns devem analisar
+    // seus leads individualmente via /analisar (com checagem de ownership).
+    if (!isPrivileged(sessionRole(req))) {
+      return res.status(403).json({ error: 'somente admin/board podem disparar analise em massa' })
+    }
     const { items } = req.body || {}
     if (!Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ error: 'items array obrigatorio' })
@@ -382,20 +434,64 @@ router.post('/analisar-massa', async (req, res, next) => {
   } catch (err) { next(err) }
 })
 
+// POST /api/torre-controle/analises/:id/retentar — re-enfileira analise que falhou.
+// Usada pelo banner VSharingRequiredBanner apos user compartilhar arquivos com as
+// contas V4. Reusa mesmo projeto_fase_id + fase da analise original.
+router.post('/analises/:id/retentar', async (req, res, next) => {
+  try {
+    const analiseId = parseInt(req.params.id, 10)
+    if (!Number.isFinite(analiseId)) {
+      return res.status(400).json({ error: 'analiseId invalido' })
+    }
+    const { rows } = await pool.query(`
+      SELECT a.projeto_fase_id, pf.fase_config_id, pf.projeto_id, p.lead_id, fc.nome AS fase_slug
+        FROM dashboards_hub.tc_analises_ia a
+        JOIN dashboards_hub.tc_projeto_fases pf ON pf.id = a.projeto_fase_id
+        JOIN dashboards_hub.tc_projetos p ON p.id = pf.projeto_id
+        JOIN dashboards_hub.tc_fases_config fc ON fc.id = pf.fase_config_id
+       WHERE a.id = $1
+       LIMIT 1
+    `, [analiseId])
+    const row = rows[0]
+    if (!row) return res.status(404).json({ error: 'analise nao encontrada' })
+
+    const fase = row.fase_slug
+    const leadId = row.lead_id
+    const projetoFaseId = row.projeto_fase_id
+    if (!(await ensureLeadAccess(req, res, leadId))) return
+    const lockKey = `analyze:${leadId}:${fase}:retry-${analiseId}`
+    const job = await enqueueJob({
+      tipo: 'analyze_phase', leadId, lockKey,
+      payload: { projetoFaseId, fase }
+    })
+    res.json({ jobId: job.id, status: job.status, reQueuedFor: { projetoFaseId, fase } })
+  } catch (err) { next(err) }
+})
+
 router.get('/job/:id', async (req, res, next) => {
   try {
     const { rows: [job] } = await pool.query(
-      `SELECT id, tipo, status, progresso, resultado, tentativas, created_at, updated_at
+      `SELECT id, lead_id, tipo, status, progresso, resultado, tentativas, created_at, updated_at
        FROM dashboards_hub.tc_jobs WHERE id = $1`,
       [req.params.id]
     )
     if (!job) return res.status(404).json({ error: 'job nao encontrado' })
+    // Jobs sem lead_id (ex: bulk) sao apenas admin/board. Jobs com lead_id
+    // exigem ownership do lead alvo.
+    if (!isPrivileged(sessionRole(req))) {
+      if (!job.lead_id) return res.status(403).json({ error: 'sem permissao para este job' })
+      if (!(await ensureLeadAccess(req, res, job.lead_id))) return
+    }
     res.json(job)
   } catch (err) { next(err) }
 })
 
 router.post('/kommo/lead', async (req, res, next) => {
   try {
+    // Criar lead arbitrario em qualquer pipeline/status e acao administrativa.
+    if (!isPrivileged(sessionRole(req))) {
+      return res.status(403).json({ error: 'somente admin/board podem criar leads no Kommo' })
+    }
     const { pipelineId, statusId, ...leadData } = req.body || {}
     if (!pipelineId || !statusId) {
       return res.status(400).json({ error: 'pipelineId e statusId obrigatorios' })
@@ -424,8 +520,22 @@ router.post('/kommo/oportunidade', async (req, res, next) => {
     if (produtos.length > 4) {
       return res.status(400).json({ error: 'Maximo 4 produtos por lead (slots Kommo)' })
     }
+    // admin/board podem criar oportunidade livremente. Demais users precisam
+    // ter acesso ao lead origem (alinhado com o filtro do Super Painel).
+    if (!isPrivileged(sessionRole(req))) {
+      const leadOrigem = fonte.lead_origem_id
+      if (!leadOrigem) {
+        return res.status(403).json({ error: 'fonte.lead_origem_id obrigatorio para criar oportunidade' })
+      }
+      if (!(await ensureLeadAccess(req, res, leadOrigem))) return
+    }
 
-    const lead = await createLeadMultiProduto({ name, produtos, campos })
+    const lead = await createLeadMultiProduto({
+      name,
+      produtos,
+      campos,
+      leadOrigemId: fonte.lead_origem_id || null
+    })
 
     // Persiste rastreabilidade (analise -> lead Kommo)
     try {
@@ -449,6 +559,19 @@ router.post('/kommo/oportunidade', async (req, res, next) => {
       lead,
       kommo_url: lead?.id ? `https://edisonv4companycom.kommo.com/leads/detail/${lead.id}` : null
     })
+  } catch (err) { next(err) }
+})
+
+// Retorna metadata (type + enums) dos custom fields editaveis via Hub.
+// Usado pelo editor de materiais para renderizar <select> com opcoes reais do Kommo.
+router.get('/custom-fields/metadata', async (req, res, next) => {
+  try {
+    const full = await getLeadsCustomFieldsMetadata()
+    const out = {}
+    for (const fid of EDITABLE_MATERIAL_FIELD_IDS) {
+      if (full[fid]) out[fid] = full[fid]
+    }
+    res.json({ fields: out })
   } catch (err) { next(err) }
 })
 
@@ -588,7 +711,6 @@ router.get('/painel-geral', async (req, res, next) => {
 
     const scorecards = await pool.query(`
       SELECT
-        COUNT(DISTINCT c.id) AS clientes_ativos,
         ROUND(AVG(a.score)::numeric, 1) AS score_medio,
         COUNT(DISTINCT c.id) FILTER (WHERE a.score < 5) AS em_risco,
         COALESCE(SUM(o.valor_estimado) FILTER (WHERE o.status IN ('identificada','qualificada')), 0) AS oportunidades_brl,
@@ -605,6 +727,12 @@ router.get('/painel-geral', async (req, res, next) => {
       LEFT JOIN dashboards_hub.tc_oportunidades o ON o.projeto_fase_id = pf.id
       WHERE c.id = ANY($1) AND c.ativo = true
     `, [ids])
+
+    // clientes_ativos vem da mesma fonte da matriz (Kommo) para evitar
+    // divergencia — tc_clientes so tem entrada quando o detalhe foi aberto.
+    const clientesAtivosFromKommo = (role === 'admin' || role === 'board')
+      ? kommoLeads.length
+      : null
 
     const churn = await pool.query(`
       SELECT c.id, c.nome, a.score, a.veredicto,
@@ -640,8 +768,34 @@ router.get('/painel-geral', async (req, res, next) => {
       ORDER BY fc.ordem
     `, [ids])
 
+    const scBase = scorecards.rows[0] || emptyPainel().scorecards
+    const scorecardsOut = {
+      ...scBase,
+      clientes_ativos: clientesAtivosFromKommo != null
+        ? clientesAtivosFromKommo
+        : ids.length
+    }
+
+    // taxa_analise agora usa como denominador leads_ativos * n_fases,
+    // para refletir "quanto do universo de auditoria foi coberto"
+    const nFases = Object.keys(STAGE_TO_FASE).length
+    const denom = scorecardsOut.clientes_ativos * nFases
+    if (denom > 0 && scBase.taxa_analise != null) {
+      const { rows: [covered] } = await pool.query(`
+        SELECT COUNT(DISTINCT a.projeto_fase_id) AS total
+        FROM dashboards_hub.tc_analises_ia a
+        JOIN dashboards_hub.tc_projeto_fases pf ON pf.id = a.projeto_fase_id
+        JOIN dashboards_hub.tc_projetos p ON p.id = pf.projeto_id
+        WHERE p.cliente_id = ANY($1)
+          AND COALESCE(a.status_avaliacao, 'completa') <> 'incompleta'
+      `, [ids])
+      scorecardsOut.taxa_analise = Math.round(
+        (100.0 * (Number(covered?.total) || 0)) / denom * 10
+      ) / 10
+    }
+
     res.json({
-      scorecards: scorecards.rows[0] || emptyPainel().scorecards,
+      scorecards: scorecardsOut,
       squads: [],
       churn: churn.rows,
       oportunidades: oportunidades.rows,
@@ -745,6 +899,7 @@ router.get('/lead/:leadId/notes', async (req, res, next) => {
   try {
     const leadId = parseInt(req.params.leadId, 10)
     if (!leadId) return res.status(400).json({ error: 'leadId invalido' })
+    if (!(await ensureLeadAccess(req, res, leadId))) return
     const { rows } = await pool.query(`
       SELECT n.*, u.name AS author_user_name
       FROM dashboards_hub.tc_lead_notes n
@@ -760,6 +915,7 @@ router.post('/lead/:leadId/notes', async (req, res, next) => {
   try {
     const leadId = parseInt(req.params.leadId, 10)
     if (!leadId) return res.status(400).json({ error: 'leadId invalido' })
+    if (!(await ensureLeadAccess(req, res, leadId))) return
     const { conteudo, tipo = 'observacao', fase_ordem = null, importante = false, pinned = false } = req.body || {}
     if (!conteudo || !String(conteudo).trim()) {
       return res.status(400).json({ error: 'conteudo obrigatorio' })
@@ -784,14 +940,17 @@ router.patch('/lead/:leadId/notes/:noteId', async (req, res, next) => {
     const noteId = parseInt(req.params.noteId, 10)
     const userId = sessionUserId(req)
     const role = sessionRole(req)
-    const isAdmin = ['admin', 'board'].includes(role)
+    const isAdmin = isPrivileged(role)
 
     const { rows: [existing] } = await pool.query(
       `SELECT * FROM dashboards_hub.tc_lead_notes WHERE id = $1`, [noteId]
     )
     if (!existing) return res.status(404).json({ error: 'note nao encontrada' })
-    if (!isAdmin && existing.author_user_id !== userId) {
-      return res.status(403).json({ error: 'sem permissao' })
+    if (!isAdmin) {
+      if (existing.author_user_id !== userId) {
+        return res.status(403).json({ error: 'sem permissao' })
+      }
+      if (!(await ensureLeadAccess(req, res, existing.lead_id))) return
     }
 
     const { conteudo, tipo, importante, pinned } = req.body || {}
@@ -815,17 +974,55 @@ router.delete('/lead/:leadId/notes/:noteId', async (req, res, next) => {
     const noteId = parseInt(req.params.noteId, 10)
     const userId = sessionUserId(req)
     const role = sessionRole(req)
-    const isAdmin = ['admin', 'board'].includes(role)
+    const isAdmin = isPrivileged(role)
 
     const { rows: [existing] } = await pool.query(
-      `SELECT author_user_id FROM dashboards_hub.tc_lead_notes WHERE id = $1`, [noteId]
+      `SELECT author_user_id, lead_id FROM dashboards_hub.tc_lead_notes WHERE id = $1`, [noteId]
     )
     if (!existing) return res.status(404).json({ error: 'note nao encontrada' })
-    if (!isAdmin && existing.author_user_id !== userId) {
-      return res.status(403).json({ error: 'sem permissao' })
+    if (!isAdmin) {
+      if (existing.author_user_id !== userId) {
+        return res.status(403).json({ error: 'sem permissao' })
+      }
+      if (!(await ensureLeadAccess(req, res, existing.lead_id))) return
     }
     await pool.query(`DELETE FROM dashboards_hub.tc_lead_notes WHERE id = $1`, [noteId])
     res.json({ deleted: true })
+  } catch (err) { next(err) }
+})
+
+// ============ PAINEL GERAL — REGRESSOES DE FASE ============
+// Le do tc_alert_dispatch_log (alert_type='lead.stage_regressed'), incluindo
+// entradas com status='skipped' (quando alerta esta desabilitado mas log e mantido).
+router.get('/painel-geral/regressoes', async (req, res, next) => {
+  try {
+    const role = req.session.user?.role
+    if (role !== 'admin' && role !== 'board') {
+      return res.status(403).json({ error: 'acesso restrito a admin/board' })
+    }
+    const limit = Math.min(parseInt(req.query.limit || '30', 10) || 30, 200)
+    const { rows } = await pool.query(
+      `SELECT dl.id, dl.created_at, dl.status, dl.payload,
+              l.name AS lead_name, c.name AS company_name
+         FROM dashboards_hub.tc_alert_dispatch_log dl
+         LEFT JOIN dashboards_hub.tc_kommo_leads l
+                ON l.id = (dl.payload->>'leadId')::bigint
+         LEFT JOIN dashboards_hub.tc_kommo_companies c ON c.id = l.company_id
+        WHERE dl.alert_type = 'lead.stage_regressed'
+        ORDER BY dl.created_at DESC
+        LIMIT $1`,
+      [limit]
+    )
+    const regressoes = rows.map((r) => ({
+      id: r.id,
+      created_at: r.created_at,
+      status: r.status,
+      lead_id: r.payload?.leadId || null,
+      empresa: r.company_name || r.lead_name || r.payload?.empresa || '—',
+      fase_anterior: r.payload?.faseAnterior || '—',
+      fase_nova: r.payload?.faseNova || '—'
+    }))
+    res.json({ regressoes })
   } catch (err) { next(err) }
 })
 
