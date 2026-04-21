@@ -182,33 +182,4 @@ watch(() => props.icon, () => nextTick(renderIcons))
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }
-
-/* Compact mode (1 linha) — reduzir tamanhos */
-:global(.kpi-grid--compact) .ffs-scorecard {
-  padding: 10px 10px;
-  gap: 4px;
-}
-
-:global(.kpi-grid--compact) .ffs-scorecard-label {
-  font-size: 10px;
-  letter-spacing: 0.3px;
-}
-
-:global(.kpi-grid--compact) .ffs-scorecard-icon {
-  width: 13px;
-  height: 13px;
-}
-
-:global(.kpi-grid--compact) .ffs-scorecard-value {
-  font-size: 16px;
-  min-height: 20px;
-}
-
-:global(.kpi-grid--compact) .delta-key {
-  font-size: 9px;
-}
-
-:global(.kpi-grid--compact) .delta-val {
-  font-size: 10px;
-}
 </style>

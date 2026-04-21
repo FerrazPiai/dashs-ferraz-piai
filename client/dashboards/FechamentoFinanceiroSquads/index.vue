@@ -2773,11 +2773,41 @@ async function confirmRefresh() {
   grid-template-columns: repeat(3, 1fr);
   gap: 12px;
   margin-bottom: 16px;
+  width: 100%;
 }
 
 .kpi-grid--compact {
   grid-template-columns: repeat(6, 1fr);
   gap: 8px;
+}
+
+/* Overrides do FfsScorecard em modo compacto (via :deep pois filho e scoped) */
+.kpi-grid--compact :deep(.ffs-scorecard) {
+  padding: 10px 10px;
+  gap: 4px;
+}
+
+.kpi-grid--compact :deep(.ffs-scorecard-label) {
+  font-size: 10px;
+  letter-spacing: 0.3px;
+}
+
+.kpi-grid--compact :deep(.ffs-scorecard-icon) {
+  width: 13px;
+  height: 13px;
+}
+
+.kpi-grid--compact :deep(.ffs-scorecard-value) {
+  font-size: 16px;
+  min-height: 20px;
+}
+
+.kpi-grid--compact :deep(.delta-key) {
+  font-size: 9px;
+}
+
+.kpi-grid--compact :deep(.delta-val) {
+  font-size: 10px;
 }
 
 @media (max-width: 1400px) {
