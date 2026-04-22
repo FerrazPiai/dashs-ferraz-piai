@@ -418,7 +418,16 @@ router.get('/dashboards', async (req, res, next) => {
     const filtered = []
     for (const d of dashboards) {
       if (!d.hidden && (await canAccessDashboard(d, userRole))) {
-        filtered.push({ id: d.id, title: d.title, icon: d.icon, status: d.status, statusMessage: d.statusMessage })
+        filtered.push({
+          id: d.id,
+          title: d.title,
+          icon: d.icon,
+          status: d.status,
+          statusMessage: d.statusMessage,
+          category: d.category || null,
+          shortDescription: d.shortDescription || '',
+          docs: d.docs || null
+        })
       }
     }
 
