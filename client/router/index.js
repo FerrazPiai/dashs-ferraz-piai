@@ -1,6 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth.js'
+import { useDashboardsStore } from '../stores/dashboards.js'
+import { initActivityTracker, trackPageView } from '../composables/useActivityTracker.js'
 import LoginView from '../views/LoginView.vue'
+import HomeView from '../views/Home.vue'
 
 // Import dashboards registry
 // In production, this should be loaded from API, but for routing we need it statically
@@ -15,18 +18,9 @@ const dashboardRoutes = dashboardsConfig.map((dashboard) => ({
   component: () => import(`../dashboards/${dashboard.componentPath}/index.vue`),
   meta: {
     title: dashboard.title,
-    allowedRoles: dashboard.allowedRoles || null
+    isDashboard: true
   }
 }))
-
-/**
- * Rota padrao por role — primeiro dashboard acessivel
- */
-function getDefaultRoute(role) {
-  if (role === 'admin' || role === 'board') return '/raio-x-financeiro'
-  if (role === 'operacao') return '/nps-satisfacao'
-  return '/nps-satisfacao'
-}
 
 /**
  * Router configuration
@@ -41,11 +35,12 @@ const router = createRouter({
       component: LoginView
     },
 
-    // Redirect root — resolvido no beforeEach baseado no role do usuario
+    // Home — Central de Dashboards (renderiza, nao redireciona)
     {
       path: '/',
       name: 'home',
-      component: { render: () => null }
+      component: HomeView,
+      meta: { title: 'Central de Dashboards' }
     },
 
     // Dashboard routes (auto-generated)
@@ -98,20 +93,26 @@ router.beforeEach(async (to) => {
     return { name: 'set-password' }
   }
 
-  // Redirect root baseado no role do usuario
-  if (to.name === 'home') {
-    return { path: getDefaultRoute(auth.role) }
+  // Admin: libera tudo, sem checks extras
+  if (auth.isAdmin) {
+    if (to.meta.title) document.title = `${to.meta.title} - Dashboards V4`
+    else document.title = 'Dashboards V4'
+    return true
   }
 
-  // Check admin-only routes
-  if (to.meta.requireAdmin && !auth.isAdmin) {
-    return { path: getDefaultRoute(auth.role) }
+  // Bloquear rotas admin-only
+  if (to.meta.requireAdmin) {
+    return { name: 'home' }
   }
 
-  // Check role-based dashboard access — redireciona silenciosamente
-  const allowedRoles = to.meta.allowedRoles
-  if (allowedRoles && auth.role !== 'admin' && !allowedRoles.includes(auth.role)) {
-    return { path: getDefaultRoute(auth.role) }
+  // Checagem de acesso para dashboards especificos (home e sempre acessivel)
+  if (to.meta.isDashboard) {
+    const dashboards = useDashboardsStore()
+    await dashboards.load()
+    const accessibleIds = dashboards.list.map((d) => d.id)
+    if (!accessibleIds.includes(to.name)) {
+      return { name: 'home' }
+    }
   }
 
   // Update page title
@@ -128,5 +129,20 @@ if (import.meta.env.DEV) {
     console.log('[Router] Navigated to:', to.path)
   })
 }
+
+// Tracker de atividade (sendBeacon, nao-bloqueante)
+initActivityTracker()
+router.afterEach((to) => {
+  // So traqueia rotas com usuario autenticado (auth guard ja rodou no beforeEach)
+  const auth = useAuthStore()
+  if (!auth.authenticated) return
+  if (to.name === 'login' || to.name === 'set-password' || to.name === 'access-denied') return
+
+  trackPageView({
+    path: to.path,
+    dashboardId: to.meta?.isDashboard ? (to.name || null) : null,
+    meta: to.meta?.title ? { title: to.meta.title } : null
+  })
+})
 
 export default router
