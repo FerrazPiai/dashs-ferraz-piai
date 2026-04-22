@@ -13,18 +13,36 @@ async function apiFetch(path, options = {}) {
     throw new Error('unauthorized')
   }
   if (!res.ok) {
-    const err = await res.json().catch(() => ({}))
-    throw new Error(err.error || `HTTP ${res.status}`)
+    const body = await res.json().catch(() => ({}))
+    // Monta mensagem detalhada: inclui validation_errors do Kommo (se presente)
+    // para o user ver exatamente que campo/enum a API rejeitou.
+    let msg = body.error || `HTTP ${res.status}`
+    if (Array.isArray(body.validation_errors) && body.validation_errors.length) {
+      const lines = []
+      for (const item of body.validation_errors) {
+        const errs = Array.isArray(item.errors) ? item.errors : []
+        for (const e of errs) lines.push(`${e.path || '?'}: ${e.detail || e.code || ''}`.trim())
+      }
+      if (lines.length) msg += ` — ${lines.join(' | ')}`
+    }
+    const err = new Error(msg)
+    err.status = res.status
+    err.body = body
+    throw err
   }
   return res.json()
 }
 
+// State SINGLETON — compartilhado entre index.vue, SuperPainel e outros consumidores.
+// Era local a cada useTorreControle() antes, o que fazia a matriz do SuperPainel atualizar
+// mas a do index nao, exigindo F5 depois de cada analise concluida.
+const matriz = shallowRef({ clientes: [], fases: [] })
+const painelGeral = shallowRef(null)
+const loading = ref(false)
+const error = ref(null)
+const activeJobs = ref(new Map())
+
 export function useTorreControle() {
-  const matriz = shallowRef({ clientes: [], fases: [] })
-  const painelGeral = shallowRef(null)
-  const loading = ref(false)
-  const error = ref(null)
-  const activeJobs = ref(new Map())
 
   async function carregarMatriz() {
     loading.value = true; error.value = null
@@ -103,9 +121,24 @@ export function useTorreControle() {
     })
   }
 
-  function pollJob(jobId) {
+  // Metadata (type + enums) dos custom fields editaveis — cache in-memory
+  const customFieldsMetadata = shallowRef(null)
+  async function carregarCustomFieldsMetadata() {
+    if (customFieldsMetadata.value) return customFieldsMetadata.value
+    const res = await apiFetch('/custom-fields/metadata')
+    customFieldsMetadata.value = res?.fields || {}
+    return customFieldsMetadata.value
+  }
+
+  function pollJob(jobId, createdAt = null) {
     if (activeJobs.value.has(jobId)) return
-    activeJobs.value.set(jobId, { id: jobId, status: 'pending', progresso: {} })
+    // Preserva created_at desde o inicio para o cronometro (TcJobProgress) usar
+    activeJobs.value.set(jobId, {
+      id: jobId,
+      status: 'pending',
+      progresso: {},
+      created_at: createdAt
+    })
     const tick = async () => {
       try {
         const job = await apiFetch(`/job/${jobId}`)
@@ -113,7 +146,9 @@ export function useTorreControle() {
           id: jobId,
           status: job.status,
           progresso: job.progresso || {},
-          resultado: job.resultado
+          resultado: job.resultado,
+          // Backend retorna created_at; mantem o que ja tinhamos como fallback
+          created_at: job.created_at || createdAt || activeJobs.value.get(jobId)?.created_at || null
         })
         if (['completed', 'failed'].includes(job.status)) {
           if (job.status === 'completed') await carregarMatriz()
@@ -188,12 +223,14 @@ export function useTorreControle() {
 
   return {
     matriz, painelGeral, loading, error,
-    activeJobs, jobsEmAndamento,
+    activeJobs, jobsEmAndamento, pollJob,
     carregarMatriz, carregarPainelGeral, carregarDetalheFase,
     analisar, analisarFinal, analisarMassa,
     criarLeadKommo, criarOportunidadeKommo,
     catalogoKommo, carregarCatalogoKommo,
     atualizarCustomFieldLead,
+    carregarCustomFieldsMetadata,
+    customFieldsMetadata,
     syncStatus, carregarStatusSync, dispararAtualizacao, iniciarPollingSync, pararPollingSync
   }
 }

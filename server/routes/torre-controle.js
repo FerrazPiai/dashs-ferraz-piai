@@ -58,6 +58,11 @@ async function ensureLeadAccess(req, res, leadId) {
 
 const STAGE_PRE_PROJETO_ARRAY = [...STAGE_PRE_PROJETO]
 
+// "Projeto Concluido" = contrato encerrado, nao conta mais como cliente ATIVO
+// no painel/accounts. Fica visivel na matriz para auditoria retroativa.
+const STAGE_CONCLUIDO = 100273444
+const STAGE_NAO_ATIVO_ARRAY = [...STAGE_PRE_PROJETO, STAGE_CONCLUIDO]
+
 // ──────────────────────────────────────────────────────────
 // Sync endpoints
 // ──────────────────────────────────────────────────────────
@@ -341,15 +346,32 @@ router.get('/cliente/:id/fase/:faseId', async (req, res, next) => {
         [projetoFaseId]
       ).catch(() => ({ rows: [] }))
 
+      // Marca jobs orfaos (pending/running ha > 15min) como failed.
+      // Sem isso, um worker que morreu deixa jobs "rodando" para sempre e o frontend
+      // exibe cronometro de dias atras como se fosse uma analise ativa.
+      await pool.query(
+        `UPDATE dashboards_hub.tc_jobs
+            SET status = 'failed',
+                resultado = COALESCE(resultado, '{}'::jsonb) || jsonb_build_object('erro', 'job expirado (sem heartbeat do worker)'),
+                updated_at = NOW()
+          WHERE status IN ('pending', 'running')
+            AND tipo IN ('analyze_phase', 'analyze_final')
+            AND (progresso -> 'payload' ->> 'projetoFaseId')::int = $1
+            AND created_at < NOW() - INTERVAL '15 minutes'`,
+        [projetoFaseId]
+      ).catch(() => {})
+
       // Busca job em andamento para esta fase — frontend usa pra re-atachar polling
       // quando o usuario volta para a fase depois de navegar. Sem isso, a barra de progresso
       // some mesmo com o worker ainda rodando, passando ideia falsa de erro.
+      // O filtro de 15min garante que jobs orfaos (worker morto) nao sejam tratados como ativos.
       const { rows: [jobAtivo] } = await pool.query(
         `SELECT id, status, progresso, tipo, created_at
          FROM dashboards_hub.tc_jobs
          WHERE status IN ('pending', 'running')
            AND tipo IN ('analyze_phase', 'analyze_final')
            AND (progresso -> 'payload' ->> 'projetoFaseId')::int = $1
+           AND created_at > NOW() - INTERVAL '15 minutes'
          ORDER BY created_at DESC LIMIT 1`,
         [projetoFaseId]
       ).catch(() => ({ rows: [] }))
@@ -530,12 +552,28 @@ router.post('/kommo/oportunidade', async (req, res, next) => {
       if (!(await ensureLeadAccess(req, res, leadOrigem))) return
     }
 
-    const lead = await createLeadMultiProduto({
-      name,
-      produtos,
-      campos,
-      leadOrigemId: fonte.lead_origem_id || null
-    })
+    let lead
+    try {
+      lead = await createLeadMultiProduto({
+        name,
+        produtos,
+        campos,
+        leadOrigemId: fonte.lead_origem_id || null
+      })
+    } catch (err) {
+      // Propaga erro da Kommo com detalhes (validation-errors) ao inves de cair no handler global.
+      // Sem isso, o frontend recebe "Kommo 400: Bad Request" generico e o user fica cego.
+      const status = err.status && err.status >= 400 && err.status < 600 ? err.status : 502
+      console.error(
+        `[${new Date().toISOString()}] [oportunidade] falha ao criar lead Kommo: ${err.message}`,
+        err.kommoValidationErrors ? { validationErrors: err.kommoValidationErrors } : ''
+      )
+      return res.status(status).json({
+        error: err.message || 'Falha ao criar lead no Kommo',
+        kommo_status: err.status || null,
+        validation_errors: err.kommoValidationErrors || null
+      })
+    }
 
     // Persiste rastreabilidade (analise -> lead Kommo)
     try {
@@ -680,14 +718,14 @@ router.get('/painel-geral', async (req, res, next) => {
     const role = sessionRole(req)
     const userId = sessionUserId(req)
 
-    // Le leads do DB para agregados Kommo
+    // Le leads ATIVOS do DB — exclui pre-projeto, perdidos (143) e projeto-concluido
     const { rows: kommoLeads } = await pool.query(`
       SELECT custom_fields FROM dashboards_hub.tc_kommo_leads
       WHERE pipeline_id = $1
         AND removed_from_kommo = false
         AND status_id <> 143
         AND status_id <> ALL($2::bigint[])
-    `, [PIPELINE_SABER, STAGE_PRE_PROJETO_ARRAY])
+    `, [PIPELINE_SABER, STAGE_NAO_ATIVO_ARRAY])
 
     const financeiro = agregarFinanceiro(kommoLeads)
     const distribuicao = agregarDistribuicao(kommoLeads)
@@ -849,7 +887,7 @@ router.get('/colaboradores', async (req, res, next) => {
       GROUP BY u.id, u.name, u.email
       HAVING COUNT(DISTINCT l.id) > 0
       ORDER BY score_medio ASC NULLS LAST, total_clientes DESC
-    `, [PIPELINE_SABER, STAGE_PRE_PROJETO_ARRAY])
+    `, [PIPELINE_SABER, STAGE_NAO_ATIVO_ARRAY])
 
     // Cache de analise IA semanal
     const colaboradores = []

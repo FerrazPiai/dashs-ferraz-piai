@@ -9,21 +9,22 @@ const props = defineProps({
 // para que jobs antigos em andamento continuem renderizando corretamente.
 const STEPS = [
   { key: 'fetching_kommo',     label: 'Lendo Kommo',              hint: 'Buscando custom fields e links da fase' },
-  { key: 'extracting_content', label: 'Extraindo materiais',      hint: 'Slides, gravacoes, transcricoes, Figma e Miro' },
+  { key: 'extracting_content', label: 'Extraindo materiais',      hint: 'Slides, transcricao, Figma e Miro' },
   { key: 'building_rag',       label: 'Montando contexto',        hint: 'Composicao do contexto RAG em 4 camadas' },
   { key: 'calling_ia',         label: 'Analisando com IA',        hint: 'Modelo configurado avaliando materiais' },
   { key: 'calling_openai',     label: 'Analisando com IA',        hint: 'Modelo configurado avaliando materiais', hidden: true },
   { key: 'persisting',         label: 'Salvando analise',         hint: 'Gravando no banco (versao nova)' },
   { key: 'embedding',          label: 'Indexando para busca',     hint: 'Embedding vetorial para RAG futuro' },
-  { key: 'posting_note',       label: 'Atualizando CRM',          hint: 'Postando nota no Kommo' },
+  { key: 'posting_note',       label: 'Indexando para busca',     hint: 'Embedding vetorial para RAG futuro', hidden: true },
   { key: 'done',               label: 'Concluido',                hint: 'Analise disponivel na tela' }
 ]
 
 const visibleSteps = STEPS.filter(s => !s.hidden)
 const totalSteps = visibleSteps.length
 
-// Alias de keys (jobs legados -> steps atuais)
-const STEP_ALIAS = { calling_openai: 'calling_ia' }
+// Alias de keys (jobs legados / steps internos -> steps atuais visiveis)
+// posting_note e oculto no front: mapeamos para 'embedding' para a barra nao voltar ao inicio.
+const STEP_ALIAS = { calling_openai: 'calling_ia', posting_note: 'embedding' }
 
 const currentKey = computed(() => {
   const raw = props.job?.progresso?.step || ''
@@ -47,12 +48,21 @@ function isDone(key) {
   return currentIdx.value > idx || props.job?.status === 'completed'
 }
 
-// Cronometro leve — atualiza a cada segundo enquanto o job roda
-const startedAt = ref(Date.now())
+// Cronometro leve — atualiza a cada segundo enquanto o job roda.
+// startedAt e SEMPRE derivado de props.job.created_at. Se ausente, mostramos "—"
+// em vez de usar Date.now() (que causava o cronometro zerar a cada abertura do painel
+// e exibir jobs antigos/orfaos como se tivessem comecado agora).
 const now = ref(Date.now())
 let tickTimer = null
 
+const startedAt = computed(() => {
+  if (!props.job?.created_at) return null
+  const t = new Date(props.job.created_at).getTime()
+  return isNaN(t) ? null : t
+})
+
 const elapsedStr = computed(() => {
+  if (startedAt.value === null) return '—'
   const sec = Math.max(0, Math.floor((now.value - startedAt.value) / 1000))
   const m = Math.floor(sec / 60)
   const s = sec % 60
@@ -60,10 +70,6 @@ const elapsedStr = computed(() => {
 })
 
 onMounted(() => {
-  if (props.job?.created_at) {
-    const t = new Date(props.job.created_at).getTime()
-    if (!isNaN(t)) startedAt.value = t
-  }
   tickTimer = setInterval(() => { now.value = Date.now() }, 1000)
 })
 onBeforeUnmount(() => { if (tickTimer) clearInterval(tickTimer) })
@@ -86,9 +92,10 @@ const subhead = computed(() => {
   <div class="tc-job-progress" :class="{ 'is-done': job?.status === 'completed', 'is-failed': job?.status === 'failed' }">
     <div class="jp-top">
       <div class="jp-indicator">
-        <span v-if="job?.status === 'running' || job?.status === 'pending' || !job?.status" class="spinner spinner-lg"></span>
-        <i v-else-if="job?.status === 'completed'" data-lucide="check-circle-2" class="jp-icon jp-icon--done"></i>
-        <i v-else data-lucide="alert-circle" class="jp-icon jp-icon--fail"></i>
+        <!-- spinner sempre visivel enquanto nao completou nem falhou (inclui status inesperados) -->
+        <i v-if="job?.status === 'completed'" data-lucide="check-circle-2" class="jp-icon jp-icon--done"></i>
+        <i v-else-if="job?.status === 'failed'" data-lucide="alert-circle" class="jp-icon jp-icon--fail"></i>
+        <span v-else class="spinner spinner-lg"></span>
       </div>
       <div class="jp-heads">
         <div class="jp-headline">{{ headline }}</div>
@@ -108,7 +115,9 @@ const subhead = computed(() => {
       <li v-for="s in visibleSteps" :key="s.key"
           :class="{ active: isActive(s.key), done: isDone(s.key) }">
         <span class="jp-dot">
-          <i v-if="isDone(s.key)" data-lucide="check" class="jp-check"></i>
+          <svg v-if="isDone(s.key)" class="jp-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
           <span v-else-if="isActive(s.key)" class="jp-pulse"></span>
         </span>
         <span class="jp-label">{{ s.label }}</span>
