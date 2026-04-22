@@ -9,7 +9,14 @@
     "workflowId": "rwnQ8GfuDdSuVZv-h4PR2",
     "cacheTTL": 1800000,
     "status": "available",
-    "allowedRoles": ["board", "operacao"]
+    "allowedRoles": ["board", "operacao"],
+    "category": "revenue",
+    "shortDescription": "Taxa de conversão de Saber para Monetização",
+    "docs": {
+      "whatItShows": "Evolução da taxa de conversão entre estágios da jornada do cliente (Saber → Ter → Executar → Potencializar) por safra, com breakdown por tier e três visões tabulares toggleáveis (consolidado, por tier e por cliente).",
+      "keyMetrics": ["Taxa de conversão por estágio", "Evolução por safra", "Breakdown por tier", "Breakdown por cliente"],
+      "whenToUse": "Monitorar a eficiência do funil de monetização pós-aquisição e identificar safras com baixa conversão."
+    }
   },
   {
     "id": "gtm-motion",
@@ -21,7 +28,14 @@
     "workflowId": "2sVzeUPxpwI6lsK2",
     "cacheTTL": 300000,
     "status": "available",
-    "allowedRoles": ["board", "operacao"]
+    "allowedRoles": ["board", "operacao"],
+    "category": "revenue",
+    "shortDescription": "Funil de vendas por canal e tier",
+    "docs": {
+      "whatItShows": "Funil completo de vendas com 7 scorecards (Leads, MQL, SQL, SAL, Commit, Ticket Médio e Booking), tabela de taxas CR1–CR4 e MQL Won, e breakdown por tier (Enterprise, Large, Medium, Small, Tiny, Non-ICP) com subcategorias Saber/Ter/Executar/Potencializar.",
+      "keyMetrics": ["Leads", "MQL", "SQL", "SAL", "Commit", "Ticket Médio", "Booking", "Taxas CR1–CR4"],
+      "whenToUse": "Analisar performance comercial por canal, identificar gargalos no funil e comparar resultados entre canais e tiers."
+    }
   },
   {
     "id": "marketing-vendas",
@@ -32,7 +46,14 @@
     "webhookEndpoint": "WEBHOOK_POST_MARKETING_VENDAS",
     "cacheTTL": 300000,
     "hidden": true,
-    "allowedRoles": ["board", "operacao"]
+    "allowedRoles": ["board", "operacao"],
+    "category": "revenue",
+    "shortDescription": "Visão consolidada de marketing e vendas",
+    "docs": {
+      "whatItShows": "Três tabelas (visão por tier, por analista e por canal) com métricas agregadas de marketing e vendas.",
+      "keyMetrics": ["Métricas por tier", "Métricas por analista", "Métricas por canal"],
+      "whenToUse": "Análise cruzada de performance entre tiers, analistas e canais."
+    }
   },
   {
     "id": "raio-x-financeiro",
@@ -44,7 +65,14 @@
     "workflowId": "SdLdkXrCmlm0VL1zWp668",
     "cacheTTL": 300000,
     "status": "available",
-    "allowedRoles": ["board"]
+    "allowedRoles": ["board"],
+    "category": "financeiro",
+    "shortDescription": "Fluxo de caixa e indicadores executivos",
+    "docs": {
+      "whatItShows": "Diagrama de Sankey do fluxo financeiro, 4 KPIs executivos (Receita, Lucro Bruto, EBITDA, Lucro Líquido) e 5 pills de despesas com breakdown de custos.",
+      "keyMetrics": ["Receita", "Lucro Bruto", "EBITDA", "Lucro Líquido", "Despesas por categoria"],
+      "whenToUse": "Visão executiva da saúde financeira — entender de onde vem a receita, pra onde vai o dinheiro e o lucro final."
+    }
   },
   {
     "id": "nps-satisfacao",
@@ -55,7 +83,14 @@
     "webhookEndpoint": "WEBHOOK_POST_NPS_SATISFACAO",
     "cacheTTL": 300000,
     "status": "available",
-    "allowedRoles": ["board", "operacao"]
+    "allowedRoles": ["board", "operacao"],
+    "category": "operacao",
+    "shortDescription": "Índice NPS e satisfação de clientes",
+    "docs": {
+      "whatItShows": "Score NPS consolidado, distribuição entre promotores, neutros e detratores, evolução histórica e breakdown por cliente.",
+      "keyMetrics": ["NPS Score", "Promotores", "Neutros", "Detratores"],
+      "whenToUse": "Medir satisfação da base e identificar clientes detratores que precisam de atenção imediata."
+    }
   },
   {
     "id": "torre-de-controle",
@@ -66,7 +101,14 @@
     "cacheTTL": 300000,
     "status": "available",
     "statusMessage": "",
-    "allowedRoles": ["board", "operacao", "admin"]
+    "allowedRoles": ["board", "operacao", "admin"],
+    "category": "operacao",
+    "shortDescription": "Saúde operacional e oportunidades por cliente",
+    "docs": {
+      "whatItShows": "Visão consolidada com scorecards, avanço, pontos, qualidade do time e oportunidades por cliente. Inclui matriz de clientes, painel de detalhe e integração com Kommo para oportunidades.",
+      "keyMetrics": ["Scorecards", "Avanço", "Pontos", "Qualidade do Time", "Oportunidades"],
+      "whenToUse": "Monitorar a saúde operacional da carteira e identificar clientes com oportunidades ou riscos."
+    }
   },
   {
     "id": "comparativo-squads",
@@ -78,6 +120,31 @@
     "workflowId": "k13lPwqDqCfQoD8p",
     "cacheTTL": 300000,
     "status": "available",
-    "allowedRoles": ["board", "operacao"]
+    "allowedRoles": ["board", "operacao"],
+    "category": "operacao",
+    "shortDescription": "Comparativo financeiro e operacional entre squads",
+    "docs": {
+      "whatItShows": "Agregação por squad com métricas de receita recorrente, churn, isenção, monetização recorrente e variável. Comparação mensal entre squads e coordenadores.",
+      "keyMetrics": ["Receita Recorrente", "Revenue Churn", "Monetização Recorrente", "Monetização Variável", "Isenção"],
+      "whenToUse": "Comparar performance entre squads, identificar outliers de churn e tendências por coordenador."
+    }
+  },
+  {
+    "id": "fechamento-financeiro-squads",
+    "title": "Fechamento Financeiro — Squads",
+    "icon": "wallet",
+    "componentPath": "FechamentoFinanceiroSquads",
+    "apiEndpoint": "API_ENDPOINT_FECHAMENTO_FINANCEIRO_SQUADS",
+    "cacheTTL": 300000,
+    "status": "development",
+    "statusMessage": "Este dashboard está em desenvolvimento. Os dados serão integrados com o ERP em breve.",
+    "allowedRoles": ["board"],
+    "category": "financeiro",
+    "shortDescription": "Fechamento financeiro mensal por squad",
+    "docs": {
+      "whatItShows": "Em desenvolvimento. Integrará dados do ERP com breakdown financeiro por squad — receita, custos e margem por time.",
+      "keyMetrics": ["Em definição durante a integração com ERP"],
+      "whenToUse": "Acompanhar a rentabilidade por squad no fechamento mensal (disponível após integração com ERP)."
+    }
   }
 ]
