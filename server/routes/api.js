@@ -396,7 +396,8 @@ async function canAccessDashboard(dashboard, userRole) {
   if (profiles) {
     const profile = profiles.find(p => p.name === userRole)
     if (profile) {
-      if (!profile.allowed_dashboards || profile.allowed_dashboards.length === 0) return true
+      // Allowlist: array vazio ou nulo = nega tudo. Admin ja foi liberado antes (linha 393).
+      if (!Array.isArray(profile.allowed_dashboards)) return false
       return profile.allowed_dashboards.includes(dashboard.id)
     }
   }
