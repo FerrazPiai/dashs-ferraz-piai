@@ -1,42 +1,33 @@
 <template>
-  <template v-if="route.name !== 'login'">
-    <VLayout :dashboards="dashboards">
+  <template v-if="route.name === 'login' || route.name === 'home'">
+    <router-view />
+  </template>
+  <template v-else>
+    <VLayout :dashboards="dashboardsStore.list">
       <router-view v-slot="{ Component }">
         <component :is="Component" :key="route.path" />
       </router-view>
     </VLayout>
   </template>
-  <template v-else>
-    <router-view />
-  </template>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { watch } from 'vue'
 import { useRoute } from 'vue-router'
 import VLayout from './components/layout/VLayout.vue'
+import { useDashboardsStore } from './stores/dashboards.js'
 
 const route = useRoute()
-const dashboards = ref([])
-
-const loadDashboards = async () => {
-  try {
-    const response = await fetch('/api/dashboards')
-    if (!response.ok) return
-    const data = await response.json()
-    dashboards.value = data.dashboards
-  } catch (error) {
-    console.error('Error loading dashboards:', error)
-  }
-}
+const dashboardsStore = useDashboardsStore()
 
 // Carrega dashboards ao sair do login (usuário autenticado)
 watch(
   () => route.name,
   (name) => {
-    if (name !== 'login' && dashboards.value.length === 0) {
-      loadDashboards()
+    if (name && name !== 'login') {
+      dashboardsStore.load()
     }
-  }
+  },
+  { immediate: true }
 )
 </script>
