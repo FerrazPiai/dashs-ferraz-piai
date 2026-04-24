@@ -71,19 +71,16 @@ async function hasPainelGeralAccess(req) {
   return features.includes('tc_painel_geral')
 }
 
-// Ownership check — alinha com o filtro aplicado em /matriz. admin/board + perfis
-// com feature 'tc_painel_geral' passam direto (visao completa). Demais: so leads proprios.
+// Qualquer usuario com acesso ao dashboard Torre de Controle pode ver qualquer lead.
+// O controle de acesso ao dashboard ja foi feito upstream (requireAuth + allowed_dashboards
+// do perfil). A feature 'tc_painel_geral' controla APENAS a visao agregada (Painel Geral),
+// nao a matriz nem o detalhe de clientes.
 async function canAccessLead(req, leadId) {
-  if (await hasPainelGeralAccess(req)) return true
-  const userId = sessionUserId(req)
   const leadIdNum = parseInt(leadId, 10)
-  if (!userId || !Number.isFinite(leadIdNum)) return false
+  if (!Number.isFinite(leadIdNum)) return false
   const { rows } = await pool.query(
-    `SELECT 1 FROM dashboards_hub.tc_kommo_leads l
-       JOIN dashboards_hub.users u ON u.kommo_user_id = l.responsible_user_id
-      WHERE l.id = $1 AND u.id = $2
-      LIMIT 1`,
-    [leadIdNum, userId]
+    `SELECT 1 FROM dashboards_hub.tc_kommo_leads WHERE id = $1 LIMIT 1`,
+    [leadIdNum]
   )
   return rows.length > 0
 }
@@ -148,9 +145,6 @@ router.post('/atualizar', async (req, res, next) => {
 
 router.get('/matriz', async (req, res, next) => {
   try {
-    const role = sessionRole(req)
-    const userId = sessionUserId(req)
-
     const fases = Object.entries(STAGE_TO_FASE).map(([stageId, info]) => ({
       id: parseInt(stageId, 10),
       nome: info.nome,
@@ -275,23 +269,10 @@ router.get('/matriz', async (req, res, next) => {
       }
     })
 
-    // admin/board e perfis com feature 'tc_painel_geral' ganham visao completa.
-    // Demais (ex: operacao) veem apenas leads atribuidos ao seu kommo_user_id.
-    let visibles = clientes
-    if (!(await hasPainelGeralAccess(req))) {
-      if (!userId) {
-        visibles = []
-      } else {
-        const { rows: userRow } = await pool.query(
-          `SELECT kommo_user_id FROM dashboards_hub.users WHERE id = $1`,
-          [userId]
-        ).catch(() => ({ rows: [] }))
-        const kommoUid = userRow?.[0]?.kommo_user_id
-        visibles = kommoUid ? clientes.filter(c => c.responsible_user_id === Number(kommoUid)) : []
-      }
-    }
-
-    res.json({ clientes: visibles, fases })
+    // A matriz e visivel para todos que tem acesso ao dashboard Torre de Controle.
+    // O controle de acesso ao dashboard em si e feito upstream (allowed_dashboards do perfil).
+    // A feature 'tc_painel_geral' gateia APENAS a visao agregada (Painel Geral), nao a matriz.
+    res.json({ clientes, fases })
   } catch (err) { next(err) }
 })
 
