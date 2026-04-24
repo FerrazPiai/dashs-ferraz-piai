@@ -13,12 +13,30 @@
         </div>
         <div class="fg">
           <label class="fl">Dashboards com Acesso</label>
-          <p class="fl-hint">Selecione quais dashboards este perfil pode acessar. Nenhum selecionado = acesso total.</p>
+          <p class="fl-hint">Marque categorias inteiras ou dashboards individuais. Nenhum selecionado = acesso total.</p>
           <div class="dash-grid">
-            <label v-for="d in dashboards" :key="d.id" class="dash-check" :class="{ checked: form.allowed.includes(d.id) }">
-              <input type="checkbox" :value="d.id" v-model="form.allowed" class="dash-input" />
-              <span class="dash-label">{{ d.title }}</span>
-            </label>
+            <div v-for="cat in dashboardsByCategory" :key="cat.key" class="cat-block">
+              <label class="cat-header" :class="{ checked: cat.state === 'all', partial: cat.state === 'partial' }">
+                <input
+                  type="checkbox"
+                  class="dash-input"
+                  :checked="cat.state === 'all'"
+                  :indeterminate.prop="cat.state === 'partial'"
+                  @change="toggleCategory(cat)"
+                />
+                <span class="cat-label">{{ cat.label }}</span>
+                <span class="cat-count">{{ cat.selectedCount }}/{{ cat.items.length }}</span>
+              </label>
+              <label
+                v-for="d in cat.items"
+                :key="d.id"
+                class="dash-check dash-check--nested"
+                :class="{ checked: form.allowed.includes(d.id) }"
+              >
+                <input type="checkbox" :value="d.id" v-model="form.allowed" class="dash-input" />
+                <span class="dash-label">{{ d.title }}</span>
+              </label>
+            </div>
           </div>
         </div>
 
@@ -52,7 +70,14 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, onMounted } from 'vue'
+import { ref, reactive, watch, onMounted, computed } from 'vue'
+
+const CATEGORY_ORDER = ['revenue', 'financeiro', 'operacao']
+const CATEGORY_LABELS = {
+  revenue: 'Revenue',
+  financeiro: 'Financeiro',
+  operacao: 'Operação'
+}
 
 const props = defineProps({
   profile: { type: Object, default: null }
@@ -95,6 +120,47 @@ onMounted(async () => {
   } catch { features.value = [] }
 })
 
+// Agrupa dashboards por categoria respeitando CATEGORY_ORDER; categorias desconhecidas vao no final.
+const dashboardsByCategory = computed(() => {
+  const groups = new Map()
+  for (const d of dashboards.value) {
+    const key = d.category || 'outros'
+    if (!groups.has(key)) groups.set(key, [])
+    groups.get(key).push(d)
+  }
+  const sortedKeys = [...groups.keys()].sort((a, b) => {
+    const ia = CATEGORY_ORDER.indexOf(a)
+    const ib = CATEGORY_ORDER.indexOf(b)
+    return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib)
+  })
+  return sortedKeys.map(key => {
+    const items = groups.get(key)
+    const selectedCount = items.filter(d => form.allowed.includes(d.id)).length
+    let state = 'none'
+    if (selectedCount === items.length && items.length > 0) state = 'all'
+    else if (selectedCount > 0) state = 'partial'
+    return {
+      key,
+      label: CATEGORY_LABELS[key] || (key.charAt(0).toUpperCase() + key.slice(1)),
+      items,
+      selectedCount,
+      state
+    }
+  })
+})
+
+function toggleCategory(cat) {
+  const ids = cat.items.map(d => d.id)
+  if (cat.state === 'all') {
+    // Desmarca a categoria inteira
+    form.allowed = form.allowed.filter(id => !ids.includes(id))
+  } else {
+    // Marca tudo da categoria (union com o que ja estava marcado)
+    const set = new Set([...form.allowed, ...ids])
+    form.allowed = [...set]
+  }
+}
+
 async function save() {
   error.value = ''; saving.value = true
   try {
@@ -128,12 +194,29 @@ async function save() {
 .fi:focus { border-color: rgba(255,0,0,0.4); }
 .fi:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.dash-grid { display: flex; flex-direction: column; gap: 6px; }
+.dash-grid { display: flex; flex-direction: column; gap: 10px; }
+.cat-block { display: flex; flex-direction: column; gap: 4px; }
+.cat-header {
+  display: flex; align-items: center; gap: 10px; padding: 9px 12px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px; cursor: pointer; transition: all 0.15s;
+  font-size: 12px; color: #bbb; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
+}
+.cat-header:hover { border-color: rgba(255,255,255,0.16); color: #fff; }
+.cat-header.checked { border-color: rgba(255,0,0,0.4); color: #fff; background: rgba(255,0,0,0.08); }
+.cat-header.partial { border-color: rgba(255,0,0,0.25); color: #fff; background: rgba(255,0,0,0.03); }
+.cat-label { flex: 1; }
+.cat-count { font-size: 11px; color: #666; letter-spacing: 0; font-weight: 500; }
+.cat-header.checked .cat-count,
+.cat-header.partial .cat-count { color: #ccc; }
+
 .dash-check {
   display: flex; align-items: center; gap: 10px; padding: 8px 12px;
   background: #141414; border: 1px solid rgba(255,255,255,0.06); border-radius: 4px;
   cursor: pointer; transition: all 0.15s; font-size: 13px; color: #999;
 }
+.dash-check--nested { margin-left: 18px; }
 .dash-check:hover { border-color: rgba(255,255,255,0.12); color: #ccc; }
 .dash-check.checked { border-color: rgba(255,0,0,0.25); color: #fff; background: rgba(255,0,0,0.04); }
 .dash-input { accent-color: #ff0000; width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }

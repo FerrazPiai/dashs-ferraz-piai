@@ -15,8 +15,19 @@ const router = Router()
 // Todas as rotas admin exigem role 'admin'
 router.use(requireRole(['admin']))
 
-// Roles validas (tambem usadas abaixo para validar bulk set-role e grant)
-const VALID_ROLES = ['admin', 'board', 'operacao']
+// Roles validas sao derivadas da tabela profiles — novos perfis criados pela UI
+// ficam disponiveis automaticamente; perfis deletados deixam de poder ser atribuidos.
+// 'admin' fica sempre na lista como fallback caso a tabela esteja vazia.
+async function getValidRoles() {
+  try {
+    const { rows } = await pool.query('SELECT name FROM profiles')
+    const names = rows.map(r => r.name)
+    return names.length > 0 ? names : ['admin']
+  } catch (err) {
+    console.error(`[${new Date().toISOString()}] getValidRoles fallback:`, err.message)
+    return ['admin', 'board', 'operacao']
+  }
+}
 
 // Helper: quem esta logado pode conceder a role target?
 // Apenas o "admin owner" (email configurado) pode conceder/remover role 'admin'.
@@ -84,8 +95,11 @@ router.post('/users', async (req, res) => {
     return res.status(400).json({ error: 'Email e nome obrigatorios' })
   }
 
-  if (role && !VALID_ROLES.includes(role)) {
-    return res.status(400).json({ error: `Role invalida. Validas: ${VALID_ROLES.join(', ')}` })
+  if (role) {
+    const validRoles = await getValidRoles()
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: `Role invalida. Validas: ${validRoles.join(', ')}` })
+    }
   }
 
   // Somente o admin-owner pode criar outro user com role 'admin'
@@ -122,8 +136,11 @@ router.put('/users/:id', async (req, res) => {
   const { id } = req.params
   const { name, role, active, password } = req.body
 
-  if (role && !VALID_ROLES.includes(role)) {
-    return res.status(400).json({ error: `Role invalida. Validas: ${VALID_ROLES.join(', ')}` })
+  if (role) {
+    const validRoles = await getValidRoles()
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ error: `Role invalida. Validas: ${validRoles.join(', ')}` })
+    }
   }
 
   try {
@@ -262,10 +279,10 @@ router.post('/profiles', async (req, res) => {
 router.put('/profiles/:name', async (req, res) => {
   const { name } = req.params
   const { label, allowed_dashboards, allowed_features } = req.body
-  // Perfis padrao (admin/board/operacao) nao podem ter name/label/permissoes alteradas
-  // via PUT — so por migration. DELETE ja tem a mesma protecao (linha ~303).
-  if (['admin', 'board', 'operacao'].includes(name)) {
-    return res.status(403).json({ error: 'Perfis padrao nao podem ser editados' })
+  // Apenas o perfil 'admin' e imutavel. board/operacao vem pre-configurados mas podem ser
+  // editados/deletados como qualquer outro perfil.
+  if (name === 'admin') {
+    return res.status(403).json({ error: 'Perfil admin nao pode ser editado' })
   }
   if (label !== undefined && !String(label).trim()) {
     return res.status(400).json({ error: 'Label nao pode ser vazio' })
@@ -320,8 +337,8 @@ router.get('/features-list', (req, res) => {
 // DELETE /api/admin/profiles/:name — Deletar perfil
 router.delete('/profiles/:name', async (req, res) => {
   const { name } = req.params
-  if (['admin', 'board', 'operacao'].includes(name)) {
-    return res.status(403).json({ error: 'Perfis padrao nao podem ser deletados' })
+  if (name === 'admin') {
+    return res.status(403).json({ error: 'Perfil admin nao pode ser deletado' })
   }
   try {
     // Verificar se ha usuarios com este perfil
@@ -378,8 +395,9 @@ router.post('/users/bulk', async (req, res) => {
       case 'set-role': {
         const { role } = req.body
         if (!role) return res.status(400).json({ error: 'Role obrigatoria para set-role' })
-        if (!VALID_ROLES.includes(role)) {
-          return res.status(400).json({ error: `Role invalida. Validas: ${VALID_ROLES.join(', ')}` })
+        const validRoles = await getValidRoles()
+        if (!validRoles.includes(role)) {
+          return res.status(400).json({ error: `Role invalida. Validas: ${validRoles.join(', ')}` })
         }
         // Gate 1: target = admin -> so owner
         if (role === 'admin' && !requireAdminOwner(req.session)) {
@@ -545,7 +563,8 @@ router.get('/dashboards-list', async (req, res) => {
     const registryPath = join(__dirname, '..', '..', 'config', 'dashboards.json')
     const content = await fs.readFile(registryPath, 'utf-8')
     const dashboards = JSON.parse(content)
-    res.json({ dashboards: dashboards.map(d => ({ id: d.id, title: d.title })) })
+    // Inclui category para permitir selecao agrupada no ProfileModal
+    res.json({ dashboards: dashboards.map(d => ({ id: d.id, title: d.title, category: d.category || null })) })
   } catch (err) {
     console.error(`[${new Date().toISOString()}] Admin dashboards-list error:`, err.message)
     res.status(500).json({ error: 'Erro ao listar dashboards' })
