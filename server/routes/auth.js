@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import pool from '../lib/db.js'
+import { trackActivity } from '../services/activity-logger.js'
 
 const router = Router()
 
@@ -18,7 +19,9 @@ router.post('/login', async (req, res) => {
   const envPass = process.env.USER_PASSWORD
   if (envUser && envPass && username === envUser && password === envPass) {
     req.session.user = { id: 0, email: 'admin@local', name: 'Admin', role: 'admin' }
+    req.session.loginAt = Date.now()
     return req.session.save(() => {
+      trackActivity({ userId: 0, userEmail: 'admin@local', eventType: 'login', loginMethod: 'backdoor', req })
       res.json({ authenticated: true, user: req.session.user })
     })
   }
@@ -32,16 +35,20 @@ router.post('/login', async (req, res) => {
     const user = result.rows[0]
 
     if (!user || !user.password_hash) {
+      trackActivity({ userEmail: username, eventType: 'login_failed', loginMethod: 'password', req, meta: { reason: 'user_not_found' } })
       return res.status(401).json({ error: 'Email ou senha invalidos' })
     }
 
     const valid = await bcrypt.compare(password, user.password_hash)
     if (!valid) {
+      trackActivity({ userId: user.id, userEmail: user.email, eventType: 'login_failed', loginMethod: 'password', req, meta: { reason: 'wrong_password' } })
       return res.status(401).json({ error: 'Email ou senha invalidos' })
     }
 
     req.session.user = { id: user.id, email: user.email, name: user.name, role: user.role, needsPassword: false }
+    req.session.loginAt = Date.now()
     req.session.save(() => {
+      trackActivity({ userId: user.id, userEmail: user.email, eventType: 'login', loginMethod: 'password', req })
       res.json({ authenticated: true, user: req.session.user })
     })
   } catch (err) {
@@ -146,8 +153,10 @@ router.get('/google/callback', async (req, res) => {
 
     const needsPassword = !dbUser.password_hash
     req.session.user = { id: dbUser.id, email: dbUser.email, name: dbUser.name, role: dbUser.role, needsPassword }
+    req.session.loginAt = Date.now()
     // Salvar sessao no Postgres ANTES de redirecionar (evita race condition)
     req.session.save(() => {
+      trackActivity({ userId: dbUser.id, userEmail: dbUser.email, eventType: 'login', loginMethod: 'google', req })
       res.redirect(needsPassword ? '/criar-senha' : '/')
     })
   } catch (err) {
@@ -179,7 +188,21 @@ router.get('/check', async (req, res) => {
     } catch { /* mantém valor da sessão */ }
   }
 
-  res.json({ authenticated: true, user })
+  // Carrega features liberadas pelo perfil (ex: 'tc_painel_geral').
+  // admin tem acesso a todas features implicitamente — bypass por seguranca.
+  // Sem sobrescrever o objeto da sessao: envia copia enriquecida ao cliente.
+  let features = []
+  if (user.role === 'admin') {
+    features = ['tc_painel_geral']
+  } else {
+    try {
+      const r = await pool.query('SELECT allowed_features FROM profiles WHERE name = $1', [user.role])
+      const raw = r.rows[0]?.allowed_features
+      features = Array.isArray(raw) ? raw : (raw ? JSON.parse(raw) : [])
+    } catch { features = [] }
+  }
+
+  res.json({ authenticated: true, user: { ...user, features } })
 })
 
 // ── Criar/Alterar senha ──
@@ -216,6 +239,7 @@ router.post('/set-password', async (req, res) => {
     // Atualizar sessao
     req.session.user.needsPassword = false
 
+    trackActivity({ userId: user.id, userEmail: user.email, eventType: 'password_change', req })
     res.json({ ok: true, message: 'Senha definida com sucesso' })
   } catch (err) {
     console.error(`[${new Date().toISOString()}] Set password error:`, err.message)
@@ -226,9 +250,22 @@ router.post('/set-password', async (req, res) => {
 // ── Logout ──
 
 router.post('/logout', (req, res) => {
+  const sessionUser = req.session?.user
+  const loginAt = req.session?.loginAt
+  const durationMs = loginAt ? Date.now() - loginAt : null
+
   req.session.destroy((err) => {
     if (err) {
       return res.status(500).json({ error: 'Erro ao encerrar sessao' })
+    }
+    if (sessionUser) {
+      trackActivity({
+        userId: sessionUser.id,
+        userEmail: sessionUser.email,
+        eventType: 'logout',
+        durationMs,
+        req
+      })
     }
     res.clearCookie('connect.sid')
     res.json({ authenticated: false })

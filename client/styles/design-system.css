@@ -38,12 +38,12 @@
   --bg-input: #0d0d0d;
   --bg-toggle-active: #2a2a2a;
 
-  /* === Texto === */
+  /* === Texto === (ajustado para WCAG AA sobre #0d0d0d/#141414) */
   --text-high: #ffffff;
   --text-medium: #cccccc;
-  --text-low: #999999;
-  --text-muted: #888888;
-  --text-lowest: #666666;
+  --text-low: #aaaaaa;
+  --text-muted: #a0a0a0;
+  --text-lowest: #808080;
 
   /* === Bordas === */
   --border-card: #2a2a2a;

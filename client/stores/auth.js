@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { useDashboardsStore } from './dashboards.js'
+import { flushTracker } from '../composables/useActivityTracker.js'
 
 export const useAuthStore = defineStore('auth', () => {
   const authenticated = ref(false)
@@ -31,6 +33,8 @@ export const useAuthStore = defineStore('auth', () => {
     if (!res.ok) throw new Error(data.error || 'Erro ao fazer login')
     authenticated.value = true
     user.value = data.user
+    // Forca recarregar lista de dashboards acessiveis para o novo usuario
+    useDashboardsStore().clear()
   }
 
   async function setPassword(password, currentPassword) {
@@ -45,9 +49,12 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function logout() {
+    // Flush tracker ANTES do logout (ainda temos sessao para receber o beacon)
+    try { flushTracker() } catch { /* silent */ }
     await fetch('/api/auth/logout', { method: 'POST' })
     authenticated.value = false
     user.value = null
+    useDashboardsStore().clear()
   }
 
   return { authenticated, user, role, isAdmin, needsPassword, check, login, setPassword, logout }

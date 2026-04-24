@@ -1,0 +1,1164 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e2018]
+        - generic: Dashboards V4
+      - button "Toggle sidebar" [ref=e9] [cursor=pointer]:
+        - img [ref=e2020]
+    - navigation [ref=e13]:
+      - list [ref=e14]:
+        - listitem [ref=e15]:
+          - link "Início" [ref=e16] [cursor=pointer]:
+            - /url: /
+            - img [ref=e2023]
+            - generic: Início
+      - list [ref=e35]:
+        - listitem [ref=e36]:
+          - link "Conversão Saber → Ter/Executar" [ref=e37] [cursor=pointer]:
+            - /url: /tx-conv-saber-monetizacao
+            - img [ref=e2026]
+            - generic: Conversão Saber → Ter/Executar
+        - listitem [ref=e41]:
+          - link "GTM Motion" [ref=e42] [cursor=pointer]:
+            - /url: /gtm-motion
+            - img [ref=e2029]
+            - generic: GTM Motion
+      - list [ref=e48]:
+        - listitem [ref=e49]:
+          - link "Raio-X Financeiro" [ref=e50] [cursor=pointer]:
+            - /url: /raio-x-financeiro
+            - img [ref=e2031]
+            - generic: Raio-X Financeiro
+        - listitem [ref=e55]:
+          - link "Fechamento Financeiro — Squads" [ref=e56] [cursor=pointer]:
+            - /url: /fechamento-financeiro-squads
+            - img [ref=e2035]
+            - generic: Fechamento Financeiro — Squads
+      - list [ref=e63]:
+        - listitem [ref=e64]:
+          - link "NPS Satisfação" [ref=e65] [cursor=pointer]:
+            - /url: /nps-satisfacao
+            - img [ref=e2038]
+            - generic: NPS Satisfação
+        - listitem [ref=e69]:
+          - link "Torre de Controle" [ref=e70] [cursor=pointer]:
+            - /url: /torre-de-controle
+            - img [ref=e2041]
+            - generic: Torre de Controle
+        - listitem [ref=e75]:
+          - link "Comparativo Squads" [ref=e76] [cursor=pointer]:
+            - /url: /comparativo-squads
+            - img [ref=e2045]
+            - generic: Comparativo Squads
+    - generic "adm" [ref=e21]:
+      - generic [ref=e22]: A
+  - main [ref=e23]:
+    - generic [ref=e82]:
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - heading "Torre de Controle" [level=1] [ref=e86]
+          - generic [ref=e87]: "|"
+          - heading "Pipeline Saber — Kommo" [level=2] [ref=e88]
+        - generic [ref=e89]:
+          - button "Painel Geral" [ref=e90] [cursor=pointer]:
+            - img [ref=e2050]
+            - generic [ref=e96]: Painel Geral
+          - generic [ref=e97]: Atualizado 23/04 às 13:11
+          - button "Atualizar Dados" [ref=e98] [cursor=pointer]:
+            - img [ref=e2055]
+            - generic [ref=e104]: Atualizar Dados
+      - generic [ref=e105]:
+        - generic [ref=e106]:
+          - img [ref=e2060]
+          - textbox "Buscar cliente..." [ref=e110]
+        - button "Account Todos" [ref=e112] [cursor=pointer]:
+          - generic [ref=e113]: Account
+          - generic [ref=e114]: Todos
+          - img [ref=e115]
+        - button "Tier Todos" [ref=e118] [cursor=pointer]:
+          - generic [ref=e119]: Tier
+          - generic [ref=e120]: Todos
+          - img [ref=e121]
+        - button "Fase Todos" [ref=e124] [cursor=pointer]:
+          - generic [ref=e125]: Fase
+          - generic [ref=e126]: Todos
+          - img [ref=e127]
+        - generic [ref=e129]: 75 clientes
+        - button "Ordenar" [ref=e130] [cursor=pointer]:
+          - img [ref=e2063]
+          - generic [ref=e134]: Ordenar
+        - button "Legenda das cores" [ref=e136] [cursor=pointer]:
+          - img [ref=e2066]
+          - generic [ref=e139]: Legenda das cores
+      - generic [ref=e140]:
+        - generic [ref=e141]:
+          - generic [ref=e142]:
+            - img [ref=e2068]
+            - generic [ref=e145]: Nota Média Geral
+          - generic [ref=e146]:
+            - generic [ref=e147]: "8.0"
+            - generic [ref=e148]: / 10
+          - generic [ref=e150]: 8 análises
+        - generic [ref=e151]:
+          - generic [ref=e152]:
+            - img [ref=e2070]
+            - generic [ref=e156]: Bom (9–10)
+          - generic [ref=e157]:
+            - generic [ref=e158]: "0"
+            - generic [ref=e159]: 0%
+        - generic [ref=e161]:
+          - generic [ref=e162]:
+            - img [ref=e2073]
+            - generic [ref=e165]: Mediano (7–8)
+          - generic [ref=e166]:
+            - generic [ref=e167]: "8"
+            - generic [ref=e168]: 100%
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - img [ref=e2075]
+            - generic [ref=e175]: Ruim (≤ 6)
+          - generic [ref=e176]:
+            - generic [ref=e177]: "0"
+            - generic [ref=e178]: 0%
+        - generic [ref=e180]:
+          - generic [ref=e181]:
+            - img [ref=e2077]
+            - generic [ref=e187]: Cobertura
+          - generic [ref=e188]:
+            - generic [ref=e189]: "4"
+            - generic [ref=e190]: / 75
+          - generic [ref=e192]: 5% dos leads auditados
+      - table [ref=e195]:
+        - rowgroup [ref=e196]:
+          - row "Cliente Account Fase 1 Fase 2 Fase 3 Fase 4 Fase 5 Projeto Concluido" [ref=e197]:
+            - columnheader "Cliente" [ref=e198]
+            - columnheader "Account" [ref=e199]
+            - columnheader "Fase 1" [ref=e200]
+            - columnheader "Fase 2" [ref=e201]
+            - columnheader "Fase 3" [ref=e202]
+            - columnheader "Fase 4" [ref=e203]
+            - columnheader "Fase 5" [ref=e204]
+            - columnheader "Projeto Concluido" [ref=e205]
+        - rowgroup [ref=e206]:
+          - row "Açoriana Corretora de Câmbio Renata Lie ?" [ref=e207]:
+            - cell "Açoriana Corretora de Câmbio" [ref=e208]
+            - cell "Renata Lie" [ref=e209]
+            - cell "?" [ref=e210]:
+              - generic [ref=e211] [cursor=pointer]: "?"
+            - cell [ref=e212]
+            - cell [ref=e214]
+            - cell [ref=e216]
+            - cell [ref=e218]
+            - cell [ref=e220]
+          - row "AGROJR —" [ref=e222]:
+            - cell "AGROJR" [ref=e223]
+            - cell "—" [ref=e224]
+            - cell [ref=e225]
+            - cell [ref=e227]
+            - cell [ref=e229]
+            - cell [ref=e231]
+            - cell [ref=e233]
+            - cell [ref=e235]
+          - row "AGROJR Gabriel Luqueci ?" [ref=e237]:
+            - cell "AGROJR" [ref=e238]
+            - cell "Gabriel Luqueci" [ref=e239]
+            - cell "?" [ref=e240]:
+              - generic [ref=e241] [cursor=pointer]: "?"
+            - cell [ref=e242]
+            - cell [ref=e244]
+            - cell [ref=e246]
+            - cell [ref=e248]
+            - cell [ref=e250]
+          - row "Albraplas Gustavo Ribeiro ? ?" [ref=e252]:
+            - cell "Albraplas" [ref=e253]
+            - cell "Gustavo Ribeiro" [ref=e254]
+            - cell "?" [ref=e255]:
+              - generic [ref=e256] [cursor=pointer]: "?"
+            - cell [ref=e257]
+            - cell [ref=e259]
+            - cell [ref=e261]
+            - cell "?" [ref=e263]:
+              - generic [ref=e264] [cursor=pointer]: "?"
+            - cell [ref=e265]
+          - row "Alto Padrão Elétrica e Automação Industrial LTDA —" [ref=e267]:
+            - cell "Alto Padrão Elétrica e Automação Industrial LTDA" [ref=e268]
+            - cell "—" [ref=e269]
+            - cell [ref=e270]
+            - cell [ref=e272]
+            - cell [ref=e274]
+            - cell [ref=e276]
+            - cell [ref=e278]
+            - cell [ref=e280]
+          - row "Ankor Contabilidade — ?" [ref=e282]:
+            - cell "Ankor Contabilidade" [ref=e283]
+            - cell "—" [ref=e284]
+            - cell "?" [ref=e285]:
+              - generic [ref=e286] [cursor=pointer]: "?"
+            - cell [ref=e287]
+            - cell [ref=e289]
+            - cell [ref=e291]
+            - cell [ref=e293]
+            - cell [ref=e295]
+          - row "Atual Labs —" [ref=e297]:
+            - cell "Atual Labs" [ref=e298]
+            - cell "—" [ref=e299]
+            - cell [ref=e300]
+            - cell [ref=e302]
+            - cell [ref=e304]
+            - cell [ref=e306]
+            - cell [ref=e308]
+            - cell [ref=e310]
+          - row "Behome Gustavo Ribeiro" [ref=e312]:
+            - cell "Behome" [ref=e313]
+            - cell "Gustavo Ribeiro" [ref=e314]
+            - cell [ref=e315]
+            - cell [ref=e317]
+            - cell [ref=e319]
+            - cell [ref=e321]
+            - cell [ref=e323]
+            - cell [ref=e325]
+          - row "BELEM TRANSPORTES LTDA —" [ref=e327]:
+            - cell "BELEM TRANSPORTES LTDA" [ref=e328]
+            - cell "—" [ref=e329]
+            - cell [ref=e330]
+            - cell [ref=e332]
+            - cell [ref=e334]
+            - cell [ref=e336]
+            - cell [ref=e338]
+            - cell [ref=e340]
+          - row "BELLALOFT COMERCIO DE ARTIGOS PARA ENXOVAIS LTDA —" [ref=e342]:
+            - cell "BELLALOFT COMERCIO DE ARTIGOS PARA ENXOVAIS LTDA" [ref=e343]
+            - cell "—" [ref=e344]
+            - cell [ref=e345]
+            - cell [ref=e347]
+            - cell [ref=e349]
+            - cell [ref=e351]
+            - cell [ref=e353]
+            - cell [ref=e355]
+          - row "Camisetas Express Lucas Gabriel" [ref=e357]:
+            - cell "Camisetas Express" [ref=e358]
+            - cell "Lucas Gabriel" [ref=e359]
+            - cell [ref=e360]
+            - cell [ref=e362]
+            - cell [ref=e364]
+            - cell [ref=e366]
+            - cell [ref=e368]
+            - cell [ref=e370]
+          - row "Careca das Capas Victor Santos" [ref=e372]:
+            - cell "Careca das Capas" [ref=e373]
+            - cell "Victor Santos" [ref=e374]
+            - cell [ref=e375]
+            - cell [ref=e377]
+            - cell [ref=e379]
+            - cell [ref=e381]
+            - cell [ref=e383]
+            - cell [ref=e385]
+          - row "Casa Dupac Viviane Bandeira" [ref=e387]:
+            - cell "Casa Dupac" [ref=e388]
+            - cell "Viviane Bandeira" [ref=e389]
+            - cell [ref=e390]
+            - cell [ref=e392]
+            - cell [ref=e394]
+            - cell [ref=e396]
+            - cell [ref=e398]
+            - cell [ref=e400]
+          - row "Casa para Idosos Itapolis —" [ref=e402]:
+            - cell "Casa para Idosos Itapolis" [ref=e403]
+            - cell "—" [ref=e404]
+            - cell [ref=e405]
+            - cell [ref=e407]
+            - cell [ref=e409]
+            - cell [ref=e411]
+            - cell [ref=e413]
+            - cell [ref=e415]
+          - row "Certa University Lucas Gabriel ?" [ref=e417]:
+            - cell "Certa University" [ref=e418]
+            - cell "Lucas Gabriel" [ref=e419]
+            - cell "?" [ref=e420]:
+              - generic [ref=e421] [cursor=pointer]: "?"
+            - cell [ref=e422]
+            - cell [ref=e424]
+            - cell [ref=e426]
+            - cell [ref=e428]
+            - cell [ref=e430]
+          - row "Certa University Lucas Gabriel ?" [ref=e432]:
+            - cell "Certa University" [ref=e433]
+            - cell "Lucas Gabriel" [ref=e434]
+            - cell "?" [ref=e435]:
+              - generic [ref=e436] [cursor=pointer]: "?"
+            - cell [ref=e437]
+            - cell [ref=e439]
+            - cell [ref=e441]
+            - cell [ref=e443]
+            - cell [ref=e445]
+          - row "Charles RB" [ref=e447]:
+            - cell "Charles" [ref=e448]
+            - cell "RB" [ref=e449]
+            - cell [ref=e450]
+            - cell [ref=e452]
+            - cell [ref=e454]
+            - cell [ref=e456]
+            - cell [ref=e458]
+            - cell [ref=e460]
+          - row "CLOSET E OUTLET —" [ref=e462]:
+            - cell "CLOSET E OUTLET" [ref=e463]
+            - cell "—" [ref=e464]
+            - cell [ref=e465]
+            - cell [ref=e467]
+            - cell [ref=e469]
+            - cell [ref=e471]
+            - cell [ref=e473]
+            - cell [ref=e475]
+          - row "CM comercio de alimentos Ltda Lucas Gabriel ?" [ref=e477]:
+            - cell "CM comercio de alimentos Ltda" [ref=e478]
+            - cell "Lucas Gabriel" [ref=e479]
+            - cell "?" [ref=e480]:
+              - generic [ref=e481] [cursor=pointer]: "?"
+            - cell [ref=e482]
+            - cell [ref=e484]
+            - cell [ref=e486]
+            - cell [ref=e488]
+            - cell [ref=e490]
+          - row "Contintas Dourados —" [ref=e492]:
+            - cell "Contintas Dourados" [ref=e493]
+            - cell "—" [ref=e494]
+            - cell [ref=e495]
+            - cell [ref=e497]
+            - cell [ref=e499]
+            - cell [ref=e501]
+            - cell [ref=e503]
+            - cell [ref=e505]
+          - row "Dalia PRO — ? ?" [ref=e507]:
+            - cell "Dalia PRO" [ref=e508]
+            - cell "—" [ref=e509]
+            - cell [ref=e510]
+            - cell [ref=e512]
+            - cell "?" [ref=e514]:
+              - generic [ref=e515] [cursor=pointer]: "?"
+            - cell [ref=e516]
+            - cell "?" [ref=e518]:
+              - generic [ref=e519] [cursor=pointer]: "?"
+            - cell [ref=e520]
+          - row "DBR Consultoria Lucas Gabriel ?" [ref=e522]:
+            - cell "DBR Consultoria" [ref=e523]
+            - cell "Lucas Gabriel" [ref=e524]
+            - cell "?" [ref=e525]:
+              - generic [ref=e526] [cursor=pointer]: "?"
+            - cell [ref=e527]
+            - cell [ref=e529]
+            - cell [ref=e531]
+            - cell [ref=e533]
+            - cell [ref=e535]
+          - row "Decarli Balas Gustavo Ribeiro ? ?" [ref=e537]:
+            - cell "Decarli Balas" [ref=e538]
+            - cell "Gustavo Ribeiro" [ref=e539]
+            - cell "?" [ref=e540]:
+              - generic [ref=e541] [cursor=pointer]: "?"
+            - cell "?" [ref=e542]:
+              - generic [ref=e543] [cursor=pointer]: "?"
+            - cell [ref=e544]
+            - cell [ref=e546]
+            - cell [ref=e548]
+            - cell [ref=e550]
+          - row "DELAWARE BRASIL Nelson" [ref=e552]:
+            - cell "DELAWARE BRASIL" [ref=e553]
+            - cell "Nelson" [ref=e554]
+            - cell [ref=e555]
+            - cell [ref=e557]
+            - cell [ref=e559]
+            - cell [ref=e561]
+            - cell [ref=e563]
+            - cell [ref=e565]
+          - row "Destefani Gustavo/Marco" [ref=e567]:
+            - cell "Destefani" [ref=e568]
+            - cell "Gustavo/Marco" [ref=e569]
+            - cell [ref=e570]
+            - cell [ref=e572]
+            - cell [ref=e574]
+            - cell [ref=e576]
+            - cell [ref=e578]
+            - cell [ref=e580]
+          - row "Destro Nelson ?" [ref=e582]:
+            - cell "Destro" [ref=e583]
+            - cell "Nelson" [ref=e584]
+            - cell "?" [ref=e585]:
+              - generic [ref=e586] [cursor=pointer]: "?"
+            - cell [ref=e587]
+            - cell [ref=e589]
+            - cell [ref=e591]
+            - cell [ref=e593]
+            - cell [ref=e595]
+          - row "DEX INVEST COMERCIO E VAREJO LTDA Emanuel" [ref=e597]:
+            - cell "DEX INVEST COMERCIO E VAREJO LTDA" [ref=e598]
+            - cell "Emanuel" [ref=e599]
+            - cell [ref=e600]
+            - cell [ref=e602]
+            - cell [ref=e604]
+            - cell [ref=e606]
+            - cell [ref=e608]
+            - cell [ref=e610]
+          - row "Dra Tammy Pessoa —" [ref=e612]:
+            - cell "Dra Tammy Pessoa" [ref=e613]
+            - cell "—" [ref=e614]
+            - cell [ref=e615]
+            - cell [ref=e617]
+            - cell [ref=e619]
+            - cell [ref=e621]
+            - cell [ref=e623]
+            - cell [ref=e625]
+          - row "DR MARCELO SECH — ? ? ?" [ref=e627]:
+            - cell "DR MARCELO SECH" [ref=e628]
+            - cell "—" [ref=e629]
+            - cell "?" [ref=e630]:
+              - generic [ref=e631] [cursor=pointer]: "?"
+            - cell [ref=e632]
+            - cell [ref=e634]
+            - cell "?" [ref=e636]:
+              - generic [ref=e637] [cursor=pointer]: "?"
+            - cell "?" [ref=e638]:
+              - generic [ref=e639] [cursor=pointer]: "?"
+            - cell [ref=e640]
+          - row "Dr. Sativa —" [ref=e642]:
+            - cell "Dr. Sativa" [ref=e643]
+            - cell "—" [ref=e644]
+            - cell [ref=e645]
+            - cell [ref=e647]
+            - cell [ref=e649]
+            - cell [ref=e651]
+            - cell [ref=e653]
+            - cell [ref=e655]
+          - row "Ellemary Sleepwear LTDA Gustavo Ribeiro" [ref=e657]:
+            - cell "Ellemary Sleepwear LTDA" [ref=e658]
+            - cell "Gustavo Ribeiro" [ref=e659]
+            - cell [ref=e660]
+            - cell [ref=e662]
+            - cell [ref=e664]
+            - cell [ref=e666]
+            - cell [ref=e668]
+            - cell [ref=e670]
+          - row "Elo Vitae ataide.nelson@v4company.com" [ref=e672]:
+            - cell "Elo Vitae" [ref=e673]
+            - cell "ataide.nelson@v4company.com" [ref=e674]
+            - cell [ref=e675]
+            - cell [ref=e677]
+            - cell [ref=e679]
+            - cell [ref=e681]
+            - cell [ref=e683]
+            - cell [ref=e685]
+          - row "Engesoftware Lucas Gabriel" [ref=e687]:
+            - cell "Engesoftware" [ref=e688]
+            - cell "Lucas Gabriel" [ref=e689]
+            - cell [ref=e690]
+            - cell [ref=e692]
+            - cell [ref=e694]
+            - cell [ref=e696]
+            - cell [ref=e698]
+            - cell [ref=e700]
+          - row "G J HOFF CONSTRUCAO DE EDIFICIOS LTDA —" [ref=e702]:
+            - cell "G J HOFF CONSTRUCAO DE EDIFICIOS LTDA" [ref=e703]
+            - cell "—" [ref=e704]
+            - cell [ref=e705]
+            - cell [ref=e707]
+            - cell [ref=e709]
+            - cell [ref=e711]
+            - cell [ref=e713]
+            - cell [ref=e715]
+          - row "Gleen Lab - Bio Ozonio Marco Claro" [ref=e717]:
+            - cell "Gleen Lab - Bio Ozonio" [ref=e718]
+            - cell "Marco Claro" [ref=e719]
+            - cell [ref=e720]
+            - cell [ref=e722]
+            - cell [ref=e724]
+            - cell [ref=e726]
+            - cell [ref=e728]
+            - cell [ref=e730]
+          - row "Gleen Lab - Bio Ozonio —" [ref=e732]:
+            - cell "Gleen Lab - Bio Ozonio" [ref=e733]
+            - cell "—" [ref=e734]
+            - cell [ref=e735]
+            - cell [ref=e737]
+            - cell [ref=e739]
+            - cell [ref=e741]
+            - cell [ref=e743]
+            - cell [ref=e745]
+          - row "Grupo frontlar —" [ref=e747]:
+            - cell "Grupo frontlar" [ref=e748]
+            - cell "—" [ref=e749]
+            - cell [ref=e750]
+            - cell [ref=e752]
+            - cell [ref=e754]
+            - cell [ref=e756]
+            - cell [ref=e758]
+            - cell [ref=e760]
+          - row "Gvitta lucasgabriel@v4company.com" [ref=e762]:
+            - cell "Gvitta" [ref=e763]
+            - cell "lucasgabriel@v4company.com" [ref=e764]
+            - cell [ref=e765]
+            - cell [ref=e767]
+            - cell [ref=e769]
+            - cell [ref=e771]
+            - cell [ref=e773]
+            - cell [ref=e775]
+          - row "IA Infinity —" [ref=e777]:
+            - cell "IA Infinity" [ref=e778]
+            - cell "—" [ref=e779]
+            - cell [ref=e780]
+            - cell [ref=e782]
+            - cell [ref=e784]
+            - cell [ref=e786]
+            - cell [ref=e788]
+            - cell [ref=e790]
+          - row "Implanta Gustavo Ribeiro" [ref=e792]:
+            - cell "Implanta" [ref=e793]
+            - cell "Gustavo Ribeiro" [ref=e794]
+            - cell [ref=e795]
+            - cell [ref=e797]
+            - cell [ref=e799]
+            - cell [ref=e801]
+            - cell [ref=e803]
+            - cell [ref=e805]
+          - row "INFULAB Victor" [ref=e807]:
+            - cell "INFULAB" [ref=e808]
+            - cell "Victor" [ref=e809]
+            - cell [ref=e810]
+            - cell [ref=e812]
+            - cell [ref=e814]
+            - cell [ref=e816]
+            - cell [ref=e818]
+            - cell [ref=e820]
+          - row "INOVIE SOLUCOES EM TECNOLOGIA D A INFORM ACAO —" [ref=e822]:
+            - cell "INOVIE SOLUCOES EM TECNOLOGIA D A INFORM ACAO" [ref=e823]
+            - cell "—" [ref=e824]
+            - cell [ref=e825]
+            - cell [ref=e827]
+            - cell [ref=e829]
+            - cell [ref=e831]
+            - cell [ref=e833]
+            - cell [ref=e835]
+          - row "JA Serviços Gustavo Ribeiro" [ref=e837]:
+            - cell "JA Serviços" [ref=e838]
+            - cell "Gustavo Ribeiro" [ref=e839]
+            - cell [ref=e840]
+            - cell [ref=e842]
+            - cell [ref=e844]
+            - cell [ref=e846]
+            - cell [ref=e848]
+            - cell [ref=e850]
+          - row "K2 Audiovisual Victor Santos ? ?" [ref=e852]:
+            - cell "K2 Audiovisual" [ref=e853]
+            - cell "Victor Santos" [ref=e854]
+            - cell "?" [ref=e855]:
+              - generic [ref=e856] [cursor=pointer]: "?"
+            - cell "?" [ref=e857]:
+              - generic [ref=e858] [cursor=pointer]: "?"
+            - cell [ref=e859]
+            - cell [ref=e861]
+            - cell [ref=e863]
+            - cell [ref=e865]
+          - row "kanastra real Gustavo Ribeiro" [ref=e867]:
+            - cell "kanastra real" [ref=e868]
+            - cell "Gustavo Ribeiro" [ref=e869]
+            - cell [ref=e870]
+            - cell [ref=e872]
+            - cell [ref=e874]
+            - cell [ref=e876]
+            - cell [ref=e878]
+            - cell [ref=e880]
+          - row "Kombusiness Gustavo Ribeiro-" [ref=e882]:
+            - cell "Kombusiness" [ref=e883]
+            - cell "Gustavo Ribeiro-" [ref=e884]
+            - cell [ref=e885]
+            - cell [ref=e887]
+            - cell [ref=e889]
+            - cell [ref=e891]
+            - cell [ref=e893]
+            - cell [ref=e895]
+          - row "L2P Engenharia —" [ref=e897]:
+            - cell "L2P Engenharia" [ref=e898]
+            - cell "—" [ref=e899]
+            - cell [ref=e900]
+            - cell [ref=e902]
+            - cell [ref=e904]
+            - cell [ref=e906]
+            - cell [ref=e908]
+            - cell [ref=e910]
+          - row "Madeira Guaranta —" [ref=e912]:
+            - cell "Madeira Guaranta" [ref=e913]
+            - cell "—" [ref=e914]
+            - cell [ref=e915]
+            - cell [ref=e917]
+            - cell [ref=e919]
+            - cell [ref=e921]
+            - cell [ref=e923]
+            - cell [ref=e925]
+          - row "Matekdata Telecom —" [ref=e927]:
+            - cell "Matekdata Telecom" [ref=e928]
+            - cell "—" [ref=e929]
+            - cell [ref=e930]
+            - cell [ref=e932]
+            - cell [ref=e934]
+            - cell [ref=e936]
+            - cell [ref=e938]
+            - cell [ref=e940]
+          - row "Megiro boteco Viviane" [ref=e942]:
+            - cell "Megiro boteco" [ref=e943]
+            - cell "Viviane" [ref=e944]
+            - cell [ref=e945]
+            - cell [ref=e947]
+            - cell [ref=e949]
+            - cell [ref=e951]
+            - cell [ref=e953]
+            - cell [ref=e955]
+          - row "Millkys —" [ref=e957]:
+            - cell "Millkys" [ref=e958]
+            - cell "—" [ref=e959]
+            - cell [ref=e960]
+            - cell [ref=e962]
+            - cell [ref=e964]
+            - cell [ref=e966]
+            - cell [ref=e968]
+            - cell [ref=e970]
+          - row "MUNDIAL MILHAS Gabriel" [ref=e972]:
+            - cell "MUNDIAL MILHAS" [ref=e973]
+            - cell "Gabriel" [ref=e974]
+            - cell [ref=e975]
+            - cell [ref=e977]
+            - cell [ref=e979]
+            - cell [ref=e981]
+            - cell [ref=e983]
+            - cell [ref=e985]
+          - row "Nivee Robótica —" [ref=e987]:
+            - cell "Nivee Robótica" [ref=e988]
+            - cell "—" [ref=e989]
+            - cell [ref=e990]
+            - cell [ref=e992]
+            - cell [ref=e994]
+            - cell [ref=e996]
+            - cell [ref=e998]
+            - cell [ref=e1000]
+          - row "Nivee USA Lucas" [ref=e1002]:
+            - cell "Nivee USA" [ref=e1003]
+            - cell "Lucas" [ref=e1004]
+            - cell [ref=e1005]
+            - cell [ref=e1007]
+            - cell [ref=e1009]
+            - cell [ref=e1011]
+            - cell [ref=e1013]
+            - cell [ref=e1015]
+          - row "Pedro Shark Gustavo Ribeiro" [ref=e1017]:
+            - cell "Pedro Shark" [ref=e1018]
+            - cell "Gustavo Ribeiro" [ref=e1019]
+            - cell [ref=e1020]
+            - cell [ref=e1022]
+            - cell [ref=e1024]
+            - cell [ref=e1026]
+            - cell [ref=e1028]
+            - cell [ref=e1030]
+          - row "PENSE REDE NETWORK Lucas Gabriel" [ref=e1032]:
+            - cell "PENSE REDE NETWORK" [ref=e1033]
+            - cell "Lucas Gabriel" [ref=e1034]
+            - cell [ref=e1035]
+            - cell [ref=e1037]
+            - cell [ref=e1039]
+            - cell [ref=e1041]
+            - cell [ref=e1043]
+            - cell [ref=e1045]
+          - row "Plasbox gustavo.ribeiro@v4company.com ?" [ref=e1047]:
+            - cell "Plasbox" [ref=e1048]
+            - cell "gustavo.ribeiro@v4company.com" [ref=e1049]
+            - cell "?" [ref=e1050]:
+              - generic [ref=e1051] [cursor=pointer]: "?"
+            - cell [ref=e1052]
+            - cell [ref=e1054]
+            - cell [ref=e1056]
+            - cell [ref=e1058]
+            - cell [ref=e1060]
+          - row "Pompei Tecidos Gustavo Ribeiro" [ref=e1062]:
+            - cell "Pompei Tecidos" [ref=e1063]
+            - cell "Gustavo Ribeiro" [ref=e1064]
+            - cell [ref=e1065]
+            - cell [ref=e1067]
+            - cell [ref=e1069]
+            - cell [ref=e1071]
+            - cell [ref=e1073]
+            - cell [ref=e1075]
+          - row "RBA Indústria e Aço —" [ref=e1077]:
+            - cell "RBA Indústria e Aço" [ref=e1078]
+            - cell "—" [ref=e1079]
+            - cell [ref=e1080]
+            - cell [ref=e1082]
+            - cell [ref=e1084]
+            - cell [ref=e1086]
+            - cell [ref=e1088]
+            - cell [ref=e1090]
+          - row "RBA Indústria e Aço —" [ref=e1092]:
+            - cell "RBA Indústria e Aço" [ref=e1093]
+            - cell "—" [ref=e1094]
+            - cell [ref=e1095]
+            - cell [ref=e1097]
+            - cell [ref=e1099]
+            - cell [ref=e1101]
+            - cell [ref=e1103]
+            - cell [ref=e1105]
+          - row "RBR Solar —" [ref=e1107]:
+            - cell "RBR Solar" [ref=e1108]
+            - cell "—" [ref=e1109]
+            - cell [ref=e1110]
+            - cell [ref=e1112]
+            - cell [ref=e1114]
+            - cell [ref=e1116]
+            - cell [ref=e1118]
+            - cell [ref=e1120]
+          - row "RDS —" [ref=e1122]:
+            - cell "RDS" [ref=e1123]
+            - cell "—" [ref=e1124]
+            - cell [ref=e1125]
+            - cell [ref=e1127]
+            - cell [ref=e1129]
+            - cell [ref=e1131]
+            - cell [ref=e1133]
+            - cell [ref=e1135]
+          - row "Rio Sul Securitizadora —" [ref=e1137]:
+            - cell "Rio Sul Securitizadora" [ref=e1138]
+            - cell "—" [ref=e1139]
+            - cell [ref=e1140]
+            - cell [ref=e1142]
+            - cell [ref=e1144]
+            - cell [ref=e1146]
+            - cell [ref=e1148]
+            - cell [ref=e1150]
+          - row "SA ALimentos Lucas Gabriel" [ref=e1152]:
+            - cell "SA ALimentos" [ref=e1153]
+            - cell "Lucas Gabriel" [ref=e1154]
+            - cell [ref=e1155]
+            - cell [ref=e1157]
+            - cell [ref=e1159]
+            - cell [ref=e1161]
+            - cell [ref=e1163]
+            - cell [ref=e1165]
+          - row "SANTA JOANA Pedro Mariano" [ref=e1167]:
+            - cell "SANTA JOANA" [ref=e1168]
+            - cell "Pedro Mariano" [ref=e1169]
+            - cell [ref=e1170]
+            - cell [ref=e1172]
+            - cell [ref=e1174]
+            - cell [ref=e1176]
+            - cell [ref=e1178]
+            - cell [ref=e1180]
+          - row "Success Corretora Lucas Gabriel" [ref=e1182]:
+            - cell "Success Corretora" [ref=e1183]
+            - cell "Lucas Gabriel" [ref=e1184]
+            - cell [ref=e1185]
+            - cell [ref=e1187]
+            - cell [ref=e1189]
+            - cell [ref=e1191]
+            - cell [ref=e1193]
+            - cell [ref=e1195]
+          - row "SULJETT DO BRASIL —" [ref=e1197]:
+            - cell "SULJETT DO BRASIL" [ref=e1198]
+            - cell "—" [ref=e1199]
+            - cell [ref=e1200]
+            - cell [ref=e1202]
+            - cell [ref=e1204]
+            - cell [ref=e1206]
+            - cell [ref=e1208]
+            - cell [ref=e1210]
+          - row "TECNODIESEL BOMBAS INJETORAS LTDA —" [ref=e1212]:
+            - cell "TECNODIESEL BOMBAS INJETORAS LTDA" [ref=e1213]
+            - cell "—" [ref=e1214]
+            - cell [ref=e1215]
+            - cell [ref=e1217]
+            - cell [ref=e1219]
+            - cell [ref=e1221]
+            - cell [ref=e1223]
+            - cell [ref=e1225]
+          - row "\"The fast pizzaria \" —" [ref=e1227]:
+            - cell "\"The fast pizzaria \"" [ref=e1228]
+            - cell "—" [ref=e1229]
+            - cell [ref=e1230]
+            - cell [ref=e1232]
+            - cell [ref=e1234]
+            - cell [ref=e1236]
+            - cell [ref=e1238]
+            - cell [ref=e1240]
+          - row "Torteria Adriana —" [ref=e1242]:
+            - cell "Torteria Adriana" [ref=e1243]
+            - cell "—" [ref=e1244]
+            - cell [ref=e1245]
+            - cell [ref=e1247]
+            - cell [ref=e1249]
+            - cell [ref=e1251]
+            - cell [ref=e1253]
+            - cell [ref=e1255]
+          - row "Ultra Popular Lucas Gabriel" [ref=e1257]:
+            - cell "Ultra Popular" [ref=e1258]
+            - cell "Lucas Gabriel" [ref=e1259]
+            - cell [ref=e1260]
+            - cell [ref=e1262]
+            - cell [ref=e1264]
+            - cell [ref=e1266]
+            - cell [ref=e1268]
+            - cell [ref=e1270]
+          - row "Wysia —" [ref=e1272]:
+            - cell "Wysia" [ref=e1273]
+            - cell "—" [ref=e1274]
+            - cell [ref=e1275]
+            - cell [ref=e1277]
+            - cell [ref=e1279]
+            - cell [ref=e1281]
+            - cell [ref=e1283]
+            - cell [ref=e1285]
+          - row "YIWU COMISSARIA DE DESPACHOS LTDA Lucas Gabriel" [ref=e1287]:
+            - cell "YIWU COMISSARIA DE DESPACHOS LTDA" [ref=e1288]
+            - cell "Lucas Gabriel" [ref=e1289]
+            - cell [ref=e1290]
+            - cell [ref=e1292]
+            - cell [ref=e1294]
+            - cell [ref=e1296]
+            - cell [ref=e1298]
+            - cell [ref=e1300]
+          - row "Zacharias Solução de Engenharia em Obras Ltda Lucas Gabriel" [ref=e1302]:
+            - cell "Zacharias Solução de Engenharia em Obras Ltda" [ref=e1303]
+            - cell "Lucas Gabriel" [ref=e1304]
+            - cell [ref=e1305]
+            - cell [ref=e1307]
+            - cell [ref=e1309]
+            - cell [ref=e1311]
+            - cell [ref=e1313]
+            - cell [ref=e1315]
+          - row "Chronos Gabriel" [ref=e1317]:
+            - cell "Chronos" [ref=e1318]
+            - cell "Gabriel" [ref=e1319]
+            - cell [ref=e1320]
+            - cell [ref=e1322]
+            - cell [ref=e1324]
+            - cell [ref=e1326]
+            - cell [ref=e1328]
+            - cell [ref=e1330]
+    - dialog [ref=e1826]:
+      - generic [ref=e1827]:
+        - generic [ref=e1828]:
+          - generic [ref=e1829]:
+            - heading "DR MARCELO SECH" [level=1] [ref=e2009]
+            - generic [ref=e1831]: "• Marco Claro• Score: 8.6"
+            - generic [ref=e1832]:
+              - generic [ref=e2010]: Small - 1.2 a 2.4 Mi
+              - generic [ref=e2011]: Care
+              - generic [ref=e1833]: "Squad: Marco Claro"
+          - generic [ref=e1834]:
+            - button "Fontes" [ref=e1836] [cursor=pointer]:
+              - img [ref=e2082]
+              - generic [ref=e1841]: Fontes
+            - button "Fechar" [ref=e1842] [cursor=pointer]: ×
+        - generic [ref=e1844]:
+          - generic "Analise marcada como incompleta — materiais insuficientes" [ref=e2012] [cursor=pointer]:
+            - generic [ref=e1846]: "?"
+            - generic [ref=e1848]: Fase 1
+          - generic "Fase auditavel — clique para ver" [ref=e1849] [cursor=pointer]:
+            - generic [ref=e2013]: "8.4"
+            - generic [ref=e1851]: Fase 2
+          - generic "Fase auditavel — clique para ver" [ref=e1852] [cursor=pointer]:
+            - generic [ref=e2014]: "8.6"
+            - generic [ref=e1854]: Fase 3
+          - generic "Analise marcada como incompleta — materiais insuficientes" [ref=e2015] [cursor=pointer]:
+            - generic [ref=e1856]: "?"
+            - generic [ref=e1857]: Fase 4
+          - generic "Analise marcada como incompleta — materiais insuficientes" [ref=e2016] [cursor=pointer]:
+            - generic [ref=e1859]: "?"
+            - generic [ref=e1860]: Fase 5
+          - generic "Projeto concluido — abrir Analise Consolidada" [ref=e1861] [cursor=pointer]:
+            - generic [ref=e2017]: "7.1"
+            - generic [ref=e1863]: Projeto Concluido
+      - generic [ref=e2086]:
+        - generic [ref=e2087]:
+          - generic [ref=e2088]:
+            - generic [ref=e2089]:
+              - generic [ref=e2090]:
+                - img [ref=e2091]
+                - heading "Percepção do Cliente" [level=3] [ref=e2094]
+                - generic [ref=e2095]:
+                  - generic [ref=e2096]: Detalhamento
+                  - combobox "Detalhamento" [ref=e2097] [cursor=pointer]:
+                    - option "Básico" [selected]
+                    - option "Avançado"
+              - generic [ref=e2098]:
+                - generic [ref=e2099]:
+                  - generic [ref=e2100]: Média
+                  - generic [ref=e2101]: "8.0"
+                - generic [ref=e2102]:
+                  - generic [ref=e2103]: Dimensões
+                  - generic [ref=e2104]: "3"
+            - generic [ref=e2105]:
+              - generic [ref=e2107]:
+                - generic [ref=e2109]: Tom
+                - generic [ref=e2110]: 8.0/10
+              - generic [ref=e2112]:
+                - generic [ref=e2114]: Engajamento
+                - generic [ref=e2115]: 8.0/10
+              - generic [ref=e2117]:
+                - generic [ref=e2119]: Confiança
+                - generic [ref=e2120]: 8.0/10
+          - generic [ref=e2121]:
+            - generic [ref=e2122]:
+              - generic [ref=e2123]:
+                - img [ref=e2124]
+                - heading "Avaliação da Equipe V4" [level=3] [ref=e2129]
+                - generic [ref=e2130]:
+                  - generic [ref=e2131]: Detalhamento
+                  - combobox "Detalhamento" [ref=e2132] [cursor=pointer]:
+                    - option "Básico" [selected]
+                    - option "Avançado"
+              - 'generic "inferido pela transcrição · Cliente: Dr. Marcelo Sech" [ref=e2134]':
+                - img [ref=e2135]
+                - generic [ref=e2139]: Diogo de Lima
+            - generic [ref=e2140]:
+              - generic [ref=e2141]:
+                - generic [ref=e2142]: Média
+                - generic [ref=e2143]: "7.7"
+              - generic [ref=e2144]:
+                - generic [ref=e2145]: Dimensões
+                - generic [ref=e2146]: "3"
+            - paragraph [ref=e2147]:
+              - img [ref=e2148]
+              - generic [ref=e2150]:
+                - text: Mostrando as
+                - strong [ref=e2151]: "3"
+                - text: dimensões principais —
+                - button "ver mais 2 avançadas" [ref=e2152] [cursor=pointer]
+            - generic [ref=e2153]:
+              - generic [ref=e2155]:
+                - generic [ref=e2157]: Condução da reunião
+                - generic [ref=e2158]: 8.0/10
+              - generic [ref=e2160]:
+                - generic [ref=e2162]: Escuta ativa
+                - generic [ref=e2163]: 8.0/10
+              - generic [ref=e2165]:
+                - generic [ref=e2167]: Clareza de próximos passos
+                - generic [ref=e2168]: 7.0/10
+        - generic [ref=e2169]:
+          - generic [ref=e2170]:
+            - generic [ref=e2171]:
+              - generic [ref=e2172]:
+                - img [ref=e2173]
+                - heading "Resumo Executivo" [level=2] [ref=e2176]
+              - generic [ref=e2177]:
+                - generic [ref=e2178]: Diagnóstico robusto, consultivo e bem conectado ao momento real do cliente.
+                - button [expanded] [ref=e2179] [cursor=pointer]:
+                  - img [ref=e2180]
+            - generic [ref=e2183]:
+              - heading "Momento do cliente" [level=4] [ref=e2184]
+              - text: O
+              - strong [ref=e2185]: Instituto Zayti / Zite
+              - text: ", liderado por"
+              - strong [ref=e2186]: Dr. Marcelo Sech
+              - text: ", está em um ponto de transição entre autoridade clínica já percebida e maturidade digital ainda em construção. A conversa mostra um negócio de"
+              - strong [ref=e2187]: ticket alto
+              - text: ", com proposta de valor sofisticada e ambição de crescimento, mas que ainda depende de estruturar melhor aquisição, conteúdo, ambiente digital e operação comercial para escalar sem gerar gargalo. O cliente demonstra consciência de que há demanda potencial, porém teme acelerar marketing antes de garantir capacidade de atendimento e uma experiência coerente com o posicionamento premium. Esse é um sinal importante: não se trata de um cliente buscando volume a qualquer custo, mas previsibilidade com controle."
+              - heading "Principais descobertas" [level=4] [ref=e2188]
+              - text: A reunião trouxe achados estratégicos relevantes. O primeiro é a ausência de um
+              - strong [ref=e2189]: CRM
+              - text: ", tratada corretamente como trava estrutural, porque compromete rastreabilidade, nutrição e leitura de origem dos leads. O segundo é a definição de uma lógica de mídia mais madura, com prioridade para"
+              - strong [ref=e2190]: Google Search
+              - text: "no fundo de funil antes de ampliar awareness, o que mostra preocupação com intenção de demanda e não apenas com alcance. O terceiro é a leitura de que o ativo orgânico ainda está subaproveitado: perfil novo, sem destaques, bio pouco estratégica, baixa exploração de"
+              - strong [ref=e2191]: SEO social
+              - text: ", pouca humanização e necessidade clara de vídeo. O quarto é a constatação de que o site institucional não sustenta a ambição comercial atual, especialmente no"
+              - strong [ref=e2192]: mobile
+              - text: ", justamente onde a equipe afirma que ocorre cerca de"
+              - strong [ref=e2193]: 90%
+              - text: das conversões.
+              - separator [ref=e2194]
+              - heading "Dinâmica do diagnóstico da V4" [level=4] [ref=e2195]
+              - text: A condução da
+              - strong [ref=e2196]: V4
+              - text: "foi dividida entre especialidades e isso funcionou bem:"
+              - strong [ref=e2197]: Eduardo Perozim
+              - text: trouxe racional de performance, benchmark e leitura de funil;
+              - strong [ref=e2198]: Diogo de Lima
+              - text: "aprofundou redes sociais, criativos, UX e ambiente digital. Há boa sofisticação no fato de o time não vender uma solução única, mas organizar o raciocínio por camadas: tráfego, autoridade, conteúdo, experiência e capacidade de atendimento. Também foi positiva a forma como o time conectou o discurso do cliente com implicações práticas, por exemplo quando a preocupação com agenda e capacidade instalada levou à discussão sobre"
+              - strong [ref=e2199]: infoprodutos
+              - text: e esteira de monetização. O diagnóstico não ficou só em opinião estética; ele foi ancorado em comportamento de usuário, lógica de funil e impacto em conversão.
+              - heading "Riscos e janela de oportunidade" [level=4] [ref=e2200]
+              - text: "O principal risco é a operação tentar acelerar aquisição antes de resolver três fundamentos:"
+              - strong [ref=e2201]: CRM
+              - text: ", experiência mobile e rotina de conteúdo com rosto e autoridade. Outro risco é a marca institucional ainda depender demais da figura do médico sem uma arquitetura clara de distribuição entre perfil pessoal, perfil da clínica e ativos de conversão. Em contrapartida, a janela de oportunidade é forte: há espaço para capturar demanda local qualificada via"
+              - strong [ref=e2202]: Google Ads
+              - text: ", construir autoridade orgânica com vídeos e collabs, e transformar o Instagram em um filtro de ICP em vez de apenas vitrine. O próximo movimento mais óbvio, estrategicamente, é transformar o diagnóstico em execução priorizada de base: organizar CRM, corrigir ambiente digital e iniciar uma cadência disciplinada de conteúdo e mídia orientada por intenção."
+          - generic [ref=e2203]:
+            - generic [ref=e2204]:
+              - generic [ref=e2205]:
+                - img [ref=e2206]
+                - heading "Análise dos Materiais" [level=2] [ref=e2211]
+              - button [expanded] [ref=e2213] [cursor=pointer]:
+                - img [ref=e2214]
+            - generic [ref=e2217]:
+              - heading "Leitura estratégica da conversa" [level=4] [ref=e2218]
+              - text: A reunião revela um cliente intelectualmente aberto, com boa capacidade de absorção, mas que precisa transformar entendimento em cadência operacional.
+              - strong [ref=e2219]: Dr. Marcelo Sech
+              - text: não reage como alguém que busca validação superficial; ele escuta, pondera capacidade instalada, questiona plataformas e demonstra preocupação com coerência entre crescimento e entrega. Isso sugere um decisor com perfil mais racional do que impulsivo, o que tende a favorecer projetos bem estruturados, mas também pode alongar decisões se a priorização não vier muito clara.
+              - heading "Sinais emocionais e de poder" [level=5] [ref=e2220]
+              - text: "Há um sinal importante de confiança quando o cliente admite que o volume de informação é grande, mas reconhece valor no diagnóstico em vez de se defender. Quando ele traz a preocupação com agenda e gargalo de atendimento, expõe uma dor real de operação, não apenas uma objeção comercial. Isso desloca a conversa de marketing para modelo de crescimento, elevando o nível consultivo da reunião. Também fica evidente que a autoridade técnica da equipe foi aceita: o cliente faz perguntas de implementação e plataforma, o que indica que já enxerga a"
+              - strong [ref=e2221]: V4
+              - text: não só como avaliadora, mas como possível executora.
+              - separator [ref=e2222]
+              - heading "Qualidade do diagnóstico por frente" [level=4] [ref=e2223]
+              - text: Na frente de
+              - strong [ref=e2224]: mídia paga
+              - text: ", o trabalho foi consistente ao contextualizar benchmark, custos e lógica de funil sem prometer números fechados. O destaque para"
+              - strong [ref=e2225]: Google Search
+              - text: como ponto de partida foi adequado ao contexto de clínica local e serviço de alta intenção, enquanto
+              - strong [ref=e2226]: Meta Ads
+              - text: apareceu mais como construção de autoridade e remarketing. A menção ao
+              - strong [ref=e2227]: TikTok
+              - text: foi interessante como canal de pulverização de marca, mas secundária diante da maturidade atual do cliente.
+              - paragraph [ref=e2228]:
+                - text: Na frente de
+                - strong [ref=e2229]: social media
+                - text: ", a análise foi mais rica do que apenas estética. Houve leitura de nome de perfil, bio, categoria, geolocalização, destaques, fixados, frequência, distribuição de conteúdo e papel do vídeo na humanização. O ponto mais forte aqui foi a compreensão de que o Instagram deve operar como mecanismo de atração, retenção e filtragem de público, e não apenas como mural institucional."
+              - paragraph [ref=e2230]:
+                - text: Na frente de
+                - strong [ref=e2231]: ambientes
+                - text: ", o diagnóstico foi objetivo ao apontar baixa performance, experiência ruim no celular e inadequação do site ao posicionamento premium. A recomendação de mentalidade"
+                - strong [ref=e2232]: mobile first
+                - text: foi coerente com a natureza do tráfego e com o comportamento de conversão descrito. A distinção entre
+                - strong [ref=e2233]: site institucional
+                - text: e
+                - strong [ref=e2234]: landing page
+                - text: também foi bem feita, evitando confusão entre ativo de marca e ativo de performance.
+              - heading "Contradições e não ditos" [level=4] [ref=e2235]
+              - text: Existe uma tensão implícita entre o desejo de crescer e a prontidão operacional para sustentar esse crescimento. O cliente quer avançar, mas a própria conversa mostra que ainda faltam estrutura comercial, CRM e ambiente preparado para absorver demanda. Outra contradição relevante é a ambição de posicionamento
+              - strong [ref=e2236]: high ticket
+              - text: convivendo com ativos digitais ainda embrionários; isso não inviabiliza a estratégia, mas aumenta a urgência de alinhar percepção de marca e experiência real. Também chama atenção que a discussão sobre produtos digitais surge mais como válvula de capacidade do que como tese de negócio já amadurecida, o que indica oportunidade, mas ainda não prioridade de execução imediata.
+              - separator [ref=e2237]
+              - heading "Maturidade consultiva da equipe" [level=4] [ref=e2238]
+              - text: A equipe foi bem ao não reduzir o diagnóstico a uma lista de correções táticas. Houve esforço de educar o cliente sobre funil, intenção, retenção, posicionamento e experiência, o que fortalece a percepção de autoridade.
+              - strong [ref=e2239]: Diogo de Lima
+              - text: se destacou pela profundidade e pela capacidade de traduzir conceitos em exemplos práticos, enquanto
+              - strong [ref=e2240]: Eduardo Perozim
+              - text: trouxe racional de mídia com boa prudência ao tratar benchmarks como referência, não promessa. O ponto que mais fortalece a reunião é a conexão entre diagnóstico e plano de ação em camadas, mostrando que a
+              - strong [ref=e2241]: V4
+              - text: entendeu que, para esse cliente, performance sem base geraria desperdício.
+              - heading "Leitura final do material" [level=4] [ref=e2242]
+              - text: O material sustenta a percepção de que o cliente está em um momento muito favorável para avanço, desde que a execução seja priorizada com disciplina. Há aderência entre as dores levantadas e as recomendações feitas, sem sensação de empurrar soluções desconectadas. A reunião também prepara terreno comercial de forma inteligente, porque mostra valor antes de tentar capturar execução. Em síntese, foi uma etapa de diagnóstico com densidade, boa leitura de contexto e potencial real de desdobramento em serviços de implementação e operação contínua.
+          - generic [ref=e2243]:
+            - button "Checklist de Auditoria Cobertura da lista esperada da fase Expandir" [ref=e2244] [cursor=pointer]:
+              - heading "Checklist de Auditoria" [level=2] [ref=e2245]:
+                - img [ref=e2246]
+                - text: Checklist de Auditoria
+              - generic [ref=e2249]:
+                - generic [ref=e2250]: Cobertura da lista esperada da fase
+                - button "Expandir" [ref=e2251]:
+                  - img [ref=e2252]
+            - generic [ref=e2254]:
+              - generic [ref=e2255]:
+                - img [ref=e2256]
+                - strong [ref=e2258]: "11"
+                - text: entregues
+              - generic [ref=e2259]:
+                - img [ref=e2260]
+                - strong [ref=e2263]: "1"
+                - text: ausente
+              - generic [ref=e2264]:
+                - img [ref=e2265]
+                - strong [ref=e2267]: "0"
+                - text: n/a
+              - generic [ref=e2268]:
+                - img [ref=e2269]
+                - strong [ref=e2272]: "2"
+                - text: extras
+          - generic [ref=e2273]:
+            - button "Revisão de Português Não aplicável Recolher" [expanded] [ref=e2274] [cursor=pointer]:
+              - heading "Revisão de Português" [level=2] [ref=e2275]:
+                - img [ref=e2276]
+                - text: Revisão de Português
+              - generic [ref=e2279]:
+                - generic [ref=e2280]:
+                  - img [ref=e2281]
+                  - generic [ref=e2283]: Não aplicável
+                - button "Recolher" [ref=e2284]:
+                  - img [ref=e2285]
+            - paragraph [ref=e2288]: A revisão de português não se aplica, porque o conteúdo textual auditável disponível é uma transcrição automática de reunião, e não um material redigido pela equipe para avaliação formal de escrita.
+          - generic [ref=e2289]:
+            - heading "Insatisfações do Cliente" [level=2] [ref=e2290]
+            - list [ref=e2291]:
+              - listitem [ref=e2292]:
+                - generic [ref=e2293]: ALTA
+                - text: Ausência de **CRM** para organizar, rastrear e nutrir leads, o que compromete mensuração de origem, follow-up e previsibilidade comercial.
+              - listitem [ref=e2294]:
+                - generic [ref=e2295]: BAIXA
+                - text: Perfil do **Instagram** ainda pouco estruturado para autoridade e conversão, com bio, destaques, SEO social e rotina de conteúdo aquém do potencial da marca.
+              - listitem [ref=e2296]:
+                - generic [ref=e2297]: ALTA
+                - text: Site institucional com baixa performance e experiência ruim no **mobile**, desalinhado com a expectativa de um serviço **high ticket**.
+              - listitem [ref=e2298]:
+                - generic [ref=e2299]: ALTA
+                - text: Risco de gerar demanda acima da capacidade instalada do consultório, criando gargalo operacional e possível perda de qualidade no atendimento.
+              - listitem [ref=e2300]:
+                - generic [ref=e2301]: BAIXA
+                - text: Dependência excessiva da autoridade pessoal do médico sem uma arquitetura digital madura que transforme essa autoridade em escala previsível.
+        - generic [ref=e2302]:
+          - generic [ref=e2303]:
+            - generic [ref=e2304]:
+              - heading "Oportunidades" [level=2] [ref=e2305]:
+                - img [ref=e2306]
+                - text: Oportunidades
+              - generic [ref=e2311]: 5 produtos sugeridos
+            - generic [ref=e2312]:
+              - generic [ref=e2313]:
+                - generic [ref=e2314]: Produtos sugeridos
+                - strong [ref=e2315]: "5"
+              - generic [ref=e2316]:
+                - generic [ref=e2317]:
+                  - strong [ref=e2318]: "4"
+                  - text: alta
+                - generic [ref=e2319]:
+                  - strong [ref=e2320]: "1"
+                  - text: média
+                - generic [ref=e2321]:
+                  - strong [ref=e2322]: "0"
+                  - text: baixa
+              - button "Ver produtos" [ref=e2323] [cursor=pointer]:
+                - img [ref=e2324]
+                - text: Ver produtos
+            - generic [ref=e2326]:
+              - generic [ref=e2327]: Selecione ate 4 produtos na proxima etapa
+              - button "Criar oportunidade no Kommo" [ref=e2328] [cursor=pointer]:
+                - img [ref=e2329]
+                - text: Criar oportunidade no Kommo
+          - generic [ref=e2330]:
+            - heading "Recomendações de como lidar com o Cliente" [level=2] [ref=e2331]
+            - paragraph [ref=e2332]: Foco em comunicação, engajamento e pontos que o cliente valoriza — não em ações estratégicas do negócio.
+            - list [ref=e2333]:
+              - listitem [ref=e2334]:
+                - generic [ref=e2335]: alta
+                - generic [ref=e2336]: Estrategica
+                - text: "Priorizar uma trilha de execução em **3 frentes**: **CRM**, **LP/site mobile** e **rotina de conteúdo orgânico**, nessa ordem de impacto estrutural."
+              - listitem [ref=e2337]:
+                - generic [ref=e2338]: alta
+                - generic [ref=e2339]: Midia Paga
+                - text: Definir um plano de mídia inicial centrado em **Google Search** para captura de demanda local, com expansão para **Meta Ads** apenas após base mínima de conversão e remarketing.
+              - listitem [ref=e2340]:
+                - generic [ref=e2341]: media
+                - generic [ref=e2342]: Branding
+                - text: Formalizar a arquitetura de marca entre perfil do **Dr. Marcelo Sech** e perfil do instituto, usando collabs e papéis complementares para evitar dispersão de autoridade.
+              - listitem [ref=e2343]:
+                - generic [ref=e2344]: alta
+                - generic [ref=e2345]: Social Media
+                - text: Transformar o Instagram em ativo de funil, com distribuição clara entre atração, retenção e conversão, além de destaques estratégicos e uso diário de stories.
+              - listitem [ref=e2346]:
+                - generic [ref=e2347]: media
+                - generic [ref=e2348]: Oferta
+                - text: Planejar a esteira de produtos digitais como expansão futura de monetização e capacidade, mas sem competir com a prioridade atual de estruturar aquisição e conversão da oferta principal.
+              - listitem [ref=e2349]:
+                - generic [ref=e2350]: alta
+                - generic [ref=e2351]: Gestao
+                - text: Amarrar próximos passos com responsáveis, prazo e critério de sucesso por frente, para evitar que o diagnóstico fique apenas como material inspiracional sem execução prática.
+      - generic [ref=e1999]:
+        - generic [ref=e2000]: Versao 1
+        - generic [ref=e2001]:
+          - button "Editar materiais" [ref=e2002] [cursor=pointer]:
+            - img [ref=e2352]
+            - text: Editar materiais
+          - button "Re-analisar fase atual" [ref=e2005] [cursor=pointer]:
+            - img [ref=e2354]
+            - text: Re-analisar fase atual

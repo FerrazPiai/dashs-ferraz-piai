@@ -1,0 +1,18 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e7]
+        - generic: Dashboards V4
+      - button "Toggle sidebar" [ref=e9] [cursor=pointer]:
+        - img [ref=e10]
+    - navigation [ref=e13]:
+      - list [ref=e14]:
+        - listitem [ref=e15]:
+          - link "Início" [ref=e16] [cursor=pointer]:
+            - /url: /
+            - img [ref=e17]
+            - generic: Início
+    - generic "Usuário" [ref=e21]:
+      - generic [ref=e22]: U
+  - main [ref=e23]

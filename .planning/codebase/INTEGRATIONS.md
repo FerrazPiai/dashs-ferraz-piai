@@ -217,4 +217,46 @@ These are loaded from CDN in `client/index.html` (not bundled by Vite):
 
 ---
 
+## Phase 04 — Internalizacao do Extrator Torre de Controle (2026-04-20)
+
+**Cutover:** Extratores de materiais do Torre de Controle (Slides/Docs/Figma/Miro) agora rodam **nativos em Node** no backend; o workflow n8n `uiUUXegcBHe3z2fg` foi arquivado (nao deletado) como referencia historica. Dispatcher central: `server/services/extractors/index.js` com feature flag `INTERNAL_EXTRACTORS` (csv de plataformas ou `all`).
+
+### Novas integracoes ativas
+
+| Servico | Endpoint base | Auth | Consumidor | Notas |
+|---------|---------------|------|------------|-------|
+| **Google OAuth 2.0 (Drive/Docs/Slides)** | `accounts.google.com`, `oauth2.googleapis.com` | per-user refresh token (AES-256-GCM em Postgres `google_oauth_tokens`) | `server/services/google-oauth.js`, `server/routes/google.js` | Flow secundario (distinto do login). Scopes: `drive.readonly`, `documents.readonly`, `presentations.readonly`. Cache de access_token em memoria com margem de 60s. |
+| **Google Docs API v1** | `https://docs.googleapis.com/v1/documents/{id}` | Bearer token per-user | `server/services/extractors/google-docs.js` | Walk recursivo em `body.content[]` (paragraph/table/sectionBreak/tableOfContents). Sem download de PDF, sem OCR. 401/403 -> `GoogleReauthRequiredError`. |
+| **Google Slides API v1** | `https://slides.googleapis.com/v1/presentations/{id}` | Bearer token per-user | `server/services/extractors/google-slides.js` | Extrai pageElements (shape.text, table, elementGroup, image) + speaker notes. Cada imagem -> GPT-4o vision `detail=high`. Narrativa final via gpt-4.1. |
+| **Figma REST API** | `https://api.figma.com/v1/files/{fileKey}` + `/v1/images/{fileKey}?ids=...&format=png` | `X-Figma-Token` (FIGMA_TOKEN centralizado) | `server/services/extractors/figma.js` | Export PNG por pagina + vision GPT-4o + narrativa gpt-4.1. Rate limit: 2 req/s (OK no uso atual). |
+| **Miro REST API v2** | `https://api.miro.com/v2/boards/{boardId}/items` | `Bearer MIRO_TOKEN` | `server/services/extractors/miro.js` | **Cursor pagination obrigatoria** — corrige bug do workflow n8n legado que so lia pagina 1. Loop `do { ... } while (cursor)` com `limit=50`. |
+| **OpenAI Chat Completions (GPT-4o vision)** | `https://api.openai.com/v1/chat/completions` | `Bearer OPENAI_API_KEY` | `google-slides.js`, `figma.js` | Model `gpt-4o` com `detail: 'high'` fixo. Prompt em `openai-prompts.js` (VISION_IMAGE_PROMPT). Rate-limit via `createRateLimiter` (3 concurrent / 60 rpm configuravel). |
+| **OpenAI Chat Completions (GPT-4.1 narrativa)** | mesmo endpoint | mesmo Bearer | `google-slides.js`, `figma.js` | Model `gpt-4.1` `temperature=0`. Prompt AUDITORIA_NARRATIVA_PROMPT. Step final apos concatenacao das descricoes de imagens. |
+
+### Removido (Phase 04)
+
+| Integracao | Substituicao | Obs |
+|------------|--------------|-----|
+| **n8n extract webhook `uiUUXegcBHe3z2fg`** | dispatcher interno (`server/services/extractors/index.js` + 4 extratores nativos) | `N8N_EXTRACT_WEBHOOK_URL` e `N8N_MAX_CONCURRENT` removidos do `.env.example`. `extractViaN8n`, `PLATFORM_TO_N8N` e `n8nLimiter` removidos de `tc-analyzer.js`. Workflow arquivado em n8n editor (nao deletado). |
+
+### Contrato do dispatcher
+
+`dispatchExtractor(platform, url, { userId })` roteia por `INTERNAL_EXTRACTORS`:
+- `transcricao` -> `extractGoogleDoc` (requer userId)
+- `slides` / `reuniao` -> `extractGoogleSlides` (requer userId)
+- `figma` -> `extractFigma` (token central)
+- `miro` -> `extractMiro` (token central)
+
+`GoogleReauthRequiredError` (code `google_reauth_required`) capturado em `runAnalysis` persiste `tc_analises_ia.status_avaliacao='incompleta'` + `erro_code='google_reauth_required'` para o frontend ativar banner de reauth.
+
+### Job worker ownership (D-01/D-02)
+
+`tc_jobs.triggered_by_user_id` armazena o user que disparou a analise. Worker resolve user_id para OAuth Google em 2 etapas:
+1. trigger_owner (direto do job)
+2. fallback Kommo: `users.kommo_user_id = tc_leads.responsible_user_id`
+
+Se nenhum, job falha limpo com mensagem `sem user_id para autenticar Google`.
+
+---
+
 *Integration audit: 2026-04-16*

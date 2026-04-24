@@ -60,9 +60,9 @@ watch(() => [positivos.value, negativos.value], () => nextTick(() => window.luci
 
 <style scoped>
 .pp-section {
-  background: var(--bg-card, #141414);
-  border: 1px solid var(--border-card, rgba(255,255,255,0.06));
-  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
@@ -73,11 +73,11 @@ watch(() => [positivos.value, negativos.value], () => nextTick(() => window.luci
   align-items: baseline; gap: 10px; flex-wrap: wrap;
 }
 .pp-section-head h2 {
-  font-size: 15px; color: #fff; margin: 0; font-weight: 600;
+  font-size: 15px; color: var(--text-high); margin: 0; font-weight: var(--font-weight-semibold);
   display: flex; align-items: center; gap: 8px;
 }
-.pp-section-icon { width: 16px; height: 16px; color: #888; }
-.pp-section-hint { font-size: 11.5px; color: #666; }
+.pp-section-icon { width: 16px; height: 16px; color: var(--text-muted); }
+.pp-section-hint { font-size: var(--font-size-sm); color: var(--text-lowest); }
 
 .pp-grid {
   display: grid;
@@ -86,24 +86,24 @@ watch(() => [positivos.value, negativos.value], () => nextTick(() => window.luci
 }
 
 .pp-col {
-  background: rgba(255,255,255,0.02);
-  border-radius: 6px;
+  background: var(--bg-inner);
+  border-radius: var(--radius-md);
   padding: 12px 14px;
   border-left: 3px solid transparent;
 }
-.pp-col--pos { border-left-color: #22c55e; background: rgba(34, 197, 94, 0.04); }
-.pp-col--neg { border-left-color: #ef4444; background: rgba(239, 68, 68, 0.04); }
+.pp-col--pos { border-left-color: var(--color-safe); background: rgba(var(--color-safe-rgb), 0.04); }
+.pp-col--neg { border-left-color: var(--color-danger); background: rgba(var(--color-danger-rgb), 0.04); }
 
 .pp-col-head {
   display: flex; align-items: center; gap: 8px;
-  font-size: 12px; color: #ddd; font-weight: 600;
+  font-size: var(--font-size-base); color: var(--text-medium); font-weight: var(--font-weight-semibold);
   text-transform: uppercase; letter-spacing: 0.4px;
   margin-bottom: 10px;
 }
 .pp-col-icon { width: 14px; height: 14px; }
-.pp-col--pos .pp-col-icon { color: #22c55e; }
-.pp-col--neg .pp-col-icon { color: #ef4444; }
-.pp-count { margin-left: auto; color: #666; font-weight: 400; font-size: 11px; }
+.pp-col--pos .pp-col-icon { color: var(--color-safe); }
+.pp-col--neg .pp-col-icon { color: var(--color-danger); }
+.pp-count { margin-left: auto; color: var(--text-lowest); font-weight: var(--font-weight-normal); font-size: var(--font-size-sm); }
 
 .pp-list {
   list-style: none; padding: 0; margin: 0;
@@ -119,14 +119,14 @@ watch(() => [positivos.value, negativos.value], () => nextTick(() => window.luci
   display: inline-flex; align-items: center; justify-content: center;
   font-size: 13px; font-weight: 700; line-height: 1;
 }
-.pp-marker--pos { background: rgba(34,197,94,0.2); color: #22c55e; }
-.pp-marker--neg { background: rgba(239,68,68,0.2); color: #ef4444; }
+.pp-marker--pos { background: rgba(var(--color-safe-rgb), 0.2); color: var(--color-safe); }
+.pp-marker--neg { background: rgba(var(--color-danger-rgb), 0.2); color: var(--color-danger); }
 .pp-text {
-  color: #ddd; font-size: 13px; line-height: 1.5;
+  color: var(--text-medium); font-size: var(--font-size-md); line-height: 1.5;
 }
 
 .pp-vazio {
-  color: #666; font-size: 12.5px; font-style: italic; margin: 0;
+  color: var(--text-lowest); font-size: var(--font-size-base); font-style: italic; margin: 0;
 }
 
 @media (max-width: 720px) {

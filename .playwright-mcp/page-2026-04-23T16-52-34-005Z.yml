@@ -1,0 +1,200 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e2786]
+        - generic: Dashboards V4
+      - button "Toggle sidebar" [ref=e9] [cursor=pointer]:
+        - img [ref=e2788]
+    - navigation [ref=e13]:
+      - list [ref=e14]:
+        - listitem [ref=e15]:
+          - link "Início" [ref=e16] [cursor=pointer]:
+            - /url: /
+            - img [ref=e2791]
+            - generic: Início
+      - list [ref=e35]:
+        - listitem [ref=e36]:
+          - link "Conversão Saber → Ter/Executar" [ref=e37] [cursor=pointer]:
+            - /url: /tx-conv-saber-monetizacao
+            - img [ref=e2794]
+            - generic: Conversão Saber → Ter/Executar
+        - listitem [ref=e41]:
+          - link "GTM Motion" [ref=e42] [cursor=pointer]:
+            - /url: /gtm-motion
+            - img [ref=e2797]
+            - generic: GTM Motion
+      - list [ref=e48]:
+        - listitem [ref=e49]:
+          - link "Raio-X Financeiro" [ref=e50] [cursor=pointer]:
+            - /url: /raio-x-financeiro
+            - img [ref=e2799]
+            - generic: Raio-X Financeiro
+        - listitem [ref=e55]:
+          - link "Fechamento Financeiro — Squads" [ref=e56] [cursor=pointer]:
+            - /url: /fechamento-financeiro-squads
+            - img [ref=e2803]
+            - generic: Fechamento Financeiro — Squads
+      - list [ref=e63]:
+        - listitem [ref=e64]:
+          - link "NPS Satisfação" [ref=e65] [cursor=pointer]:
+            - /url: /nps-satisfacao
+            - img [ref=e2806]
+            - generic: NPS Satisfação
+        - listitem [ref=e69]:
+          - link "Torre de Controle" [ref=e70] [cursor=pointer]:
+            - /url: /torre-de-controle
+            - img [ref=e2809]
+            - generic: Torre de Controle
+        - listitem [ref=e75]:
+          - link "Comparativo Squads" [ref=e76] [cursor=pointer]:
+            - /url: /comparativo-squads
+            - img [ref=e2813]
+            - generic: Comparativo Squads
+    - generic "adm" [ref=e21]:
+      - generic [ref=e22]: A
+  - main [ref=e23]:
+    - generic [ref=e82]:
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - heading "Torre de Controle" [level=1] [ref=e86]
+          - generic [ref=e87]: "|"
+          - heading "Pipeline Saber — Kommo" [level=2] [ref=e88]
+        - generic [ref=e89]:
+          - button "Painel Geral" [ref=e90] [cursor=pointer]:
+            - img [ref=e2818]
+            - generic [ref=e96]: Painel Geral
+          - generic [ref=e97]: Atualizado 23/04 às 13:11
+          - button "Atualizar Dados" [ref=e98] [cursor=pointer]:
+            - img [ref=e2823]
+            - generic [ref=e104]: Atualizar Dados
+      - generic [ref=e105]:
+        - generic [ref=e106]:
+          - img [ref=e2828]
+          - textbox "Buscar cliente..." [ref=e110]: DR
+        - button "Account Todos" [ref=e112] [cursor=pointer]:
+          - generic [ref=e113]: Account
+          - generic [ref=e114]: Todos
+          - img [ref=e115]
+        - button "Tier Todos" [ref=e118] [cursor=pointer]:
+          - generic [ref=e119]: Tier
+          - generic [ref=e120]: Todos
+          - img [ref=e121]
+        - button "Fase Todos" [ref=e124] [cursor=pointer]:
+          - generic [ref=e125]: Fase
+          - generic [ref=e126]: Todos
+          - img [ref=e127]
+        - generic [ref=e129]: 6 clientes
+        - button "Ordenar" [ref=e130] [cursor=pointer]:
+          - img [ref=e2831]
+          - generic [ref=e134]: Ordenar
+        - button "Legenda das cores" [ref=e136] [cursor=pointer]:
+          - img [ref=e2834]
+          - generic [ref=e139]: Legenda das cores
+      - generic [ref=e140]:
+        - generic [ref=e141]:
+          - generic [ref=e142]:
+            - img [ref=e2836]
+            - generic [ref=e145]: Nota Média Geral
+          - generic [ref=e146]:
+            - generic [ref=e147]: "8.0"
+            - generic [ref=e148]: / 10
+          - generic [ref=e150]: 3 análises
+        - generic [ref=e151]:
+          - generic [ref=e152]:
+            - img [ref=e2838]
+            - generic [ref=e156]: Bom (9–10)
+          - generic [ref=e157]:
+            - generic [ref=e158]: "0"
+            - generic [ref=e159]: 0%
+        - generic [ref=e161]:
+          - generic [ref=e162]:
+            - img [ref=e2841]
+            - generic [ref=e165]: Mediano (7–8)
+          - generic [ref=e166]:
+            - generic [ref=e167]: "3"
+            - generic [ref=e168]: 100%
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - img [ref=e2843]
+            - generic [ref=e175]: Ruim (≤ 6)
+          - generic [ref=e176]:
+            - generic [ref=e177]: "0"
+            - generic [ref=e178]: 0%
+        - generic [ref=e180]:
+          - generic [ref=e181]:
+            - img [ref=e2845]
+            - generic [ref=e187]: Cobertura
+          - generic [ref=e188]:
+            - generic [ref=e189]: "1"
+            - generic [ref=e190]: / 6
+          - generic [ref=e192]: 17% dos leads auditados
+      - table [ref=e195]:
+        - rowgroup [ref=e196]:
+          - row "Cliente Account Fase 1 Fase 2 Fase 3 Fase 4 Fase 5 Projeto Concluido" [ref=e197]:
+            - columnheader "Cliente" [ref=e198]
+            - columnheader "Account" [ref=e199]
+            - columnheader "Fase 1" [ref=e200]
+            - columnheader "Fase 2" [ref=e201]
+            - columnheader "Fase 3" [ref=e202]
+            - columnheader "Fase 4" [ref=e203]
+            - columnheader "Fase 5" [ref=e204]
+            - columnheader "Projeto Concluido" [ref=e205]
+        - rowgroup [ref=e206]:
+          - row "Alto Padrão Elétrica e Automação Industrial LTDA —" [ref=e267]:
+            - cell "Alto Padrão Elétrica e Automação Industrial LTDA" [ref=e268]
+            - cell "—" [ref=e269]
+            - cell [ref=e270]
+            - cell [ref=e272]
+            - cell [ref=e274]
+            - cell [ref=e276]
+            - cell [ref=e278]
+            - cell [ref=e280]
+          - row "Dra Tammy Pessoa —" [ref=e612]:
+            - cell "Dra Tammy Pessoa" [ref=e613]
+            - cell "—" [ref=e614]
+            - cell [ref=e615]
+            - cell [ref=e617]
+            - cell [ref=e619]
+            - cell [ref=e621]
+            - cell [ref=e623]
+            - cell [ref=e625]
+          - row "DR MARCELO SECH — ? ? ?" [ref=e627]:
+            - cell "DR MARCELO SECH" [ref=e628]
+            - cell "—" [ref=e629]
+            - cell "?" [ref=e630]:
+              - generic [ref=e631] [cursor=pointer]: "?"
+            - cell [ref=e632]
+            - cell [ref=e634]
+            - cell "?" [ref=e636]:
+              - generic [ref=e637] [cursor=pointer]: "?"
+            - cell "?" [ref=e638]:
+              - generic [ref=e639] [cursor=pointer]: "?"
+            - cell [ref=e640]
+          - row "Dr. Sativa —" [ref=e642]:
+            - cell "Dr. Sativa" [ref=e643]
+            - cell "—" [ref=e644]
+            - cell [ref=e645]
+            - cell [ref=e647]
+            - cell [ref=e649]
+            - cell [ref=e651]
+            - cell [ref=e653]
+            - cell [ref=e655]
+          - row "Pedro Shark Gustavo Ribeiro" [ref=e1017]:
+            - cell "Pedro Shark" [ref=e1018]
+            - cell "Gustavo Ribeiro" [ref=e1019]
+            - cell [ref=e1020]
+            - cell [ref=e1022]
+            - cell [ref=e1024]
+            - cell [ref=e1026]
+            - cell [ref=e1028]
+            - cell [ref=e1030]
+          - row "Torteria Adriana —" [ref=e1242]:
+            - cell "Torteria Adriana" [ref=e1243]
+            - cell "—" [ref=e1244]
+            - cell [ref=e1245]
+            - cell [ref=e1247]
+            - cell [ref=e1249]
+            - cell [ref=e1251]
+            - cell [ref=e1253]
+            - cell [ref=e1255]

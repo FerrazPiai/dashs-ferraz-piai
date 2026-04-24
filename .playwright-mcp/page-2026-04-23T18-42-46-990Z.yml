@@ -1,0 +1,1280 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e1914]
+        - generic: Dashboards V4
+      - button "Toggle sidebar" [ref=e9] [cursor=pointer]:
+        - img [ref=e1916]
+    - navigation [ref=e13]:
+      - list [ref=e14]:
+        - listitem [ref=e15]:
+          - link "Início" [ref=e16] [cursor=pointer]:
+            - /url: /
+            - img [ref=e1919]
+            - generic: Início
+      - list [ref=e35]:
+        - listitem [ref=e36]:
+          - link "Conversão Saber → Ter/Executar" [ref=e37] [cursor=pointer]:
+            - /url: /tx-conv-saber-monetizacao
+            - img [ref=e1922]
+            - generic: Conversão Saber → Ter/Executar
+        - listitem [ref=e41]:
+          - link "GTM Motion" [ref=e42] [cursor=pointer]:
+            - /url: /gtm-motion
+            - img [ref=e1925]
+            - generic: GTM Motion
+      - list [ref=e48]:
+        - listitem [ref=e49]:
+          - link "Raio-X Financeiro" [ref=e50] [cursor=pointer]:
+            - /url: /raio-x-financeiro
+            - img [ref=e1927]
+            - generic: Raio-X Financeiro
+        - listitem [ref=e55]:
+          - link "Fechamento Financeiro — Squads" [ref=e56] [cursor=pointer]:
+            - /url: /fechamento-financeiro-squads
+            - img [ref=e1931]
+            - generic: Fechamento Financeiro — Squads
+      - list [ref=e63]:
+        - listitem [ref=e64]:
+          - link "NPS Satisfação" [ref=e65] [cursor=pointer]:
+            - /url: /nps-satisfacao
+            - img [ref=e1934]
+            - generic: NPS Satisfação
+        - listitem [ref=e69]:
+          - link "Torre de Controle" [ref=e70] [cursor=pointer]:
+            - /url: /torre-de-controle
+            - img [ref=e1937]
+            - generic: Torre de Controle
+        - listitem [ref=e75]:
+          - link "Comparativo Squads" [ref=e76] [cursor=pointer]:
+            - /url: /comparativo-squads
+            - img [ref=e1941]
+            - generic: Comparativo Squads
+    - generic "adm" [ref=e21]:
+      - generic [ref=e22]: A
+  - main [ref=e23]:
+    - generic [ref=e82]:
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - heading "Torre de Controle" [level=1] [ref=e86]
+          - generic [ref=e87]: "|"
+          - heading "Pipeline Saber — Kommo" [level=2] [ref=e88]
+        - generic [ref=e89]:
+          - button "Painel Geral" [ref=e90] [cursor=pointer]:
+            - img [ref=e1946]
+            - generic [ref=e96]: Painel Geral
+          - generic [ref=e97]: Atualizado 23/04 às 15:11
+          - button "Atualizar Dados" [ref=e98] [cursor=pointer]:
+            - img [ref=e1951]
+            - generic [ref=e104]: Atualizar Dados
+      - generic [ref=e105]:
+        - generic [ref=e106]:
+          - img [ref=e1956]
+          - textbox "Buscar cliente..." [ref=e110]
+        - button "Account Todos" [ref=e112] [cursor=pointer]:
+          - generic [ref=e113]: Account
+          - generic [ref=e114]: Todos
+          - img [ref=e115]
+        - button "Tier Todos" [ref=e118] [cursor=pointer]:
+          - generic [ref=e119]: Tier
+          - generic [ref=e120]: Todos
+          - img [ref=e121]
+        - button "Fase Todos" [ref=e124] [cursor=pointer]:
+          - generic [ref=e125]: Fase
+          - generic [ref=e126]: Todos
+          - img [ref=e127]
+        - generic [ref=e129]: 75 clientes
+        - button "Ordenar" [ref=e130] [cursor=pointer]:
+          - img [ref=e1959]
+          - generic [ref=e134]: Ordenar
+        - button "Legenda das cores" [ref=e136] [cursor=pointer]:
+          - img [ref=e1962]
+          - generic [ref=e139]: Legenda das cores
+      - generic [ref=e140]:
+        - generic [ref=e141]:
+          - generic [ref=e142]:
+            - img [ref=e1964]
+            - generic [ref=e145]: Nota Média Geral
+          - generic [ref=e146]:
+            - generic [ref=e147]: "6.1"
+            - generic [ref=e148]: / 10
+          - generic [ref=e150]: 17 análises
+        - generic [ref=e151]:
+          - generic [ref=e152]:
+            - img [ref=e1966]
+            - generic [ref=e156]: Bom (9–10)
+          - generic [ref=e157]:
+            - generic [ref=e158]: "0"
+            - generic [ref=e159]: 0%
+        - generic [ref=e161]:
+          - generic [ref=e162]:
+            - img [ref=e1969]
+            - generic [ref=e165]: Mediano (7–8)
+          - generic [ref=e166]:
+            - generic [ref=e167]: "9"
+            - generic [ref=e168]: 53%
+        - generic [ref=e171]:
+          - generic [ref=e172]:
+            - img [ref=e1971]
+            - generic [ref=e175]: Ruim (≤ 6)
+          - generic [ref=e176]:
+            - generic [ref=e177]: "8"
+            - generic [ref=e178]: 47%
+        - generic [ref=e181]:
+          - generic [ref=e182]:
+            - img [ref=e1973]
+            - generic [ref=e188]: Cobertura
+          - generic [ref=e189]:
+            - generic [ref=e190]: "7"
+            - generic [ref=e191]: / 75
+          - generic [ref=e193]: 9% dos leads auditados
+      - table [ref=e196]:
+        - rowgroup [ref=e197]:
+          - row "Cliente Account Fase 1 Fase 2 Fase 3 Fase 4 Fase 5 Projeto Concluido" [ref=e198]:
+            - columnheader "Cliente" [ref=e199]
+            - columnheader "Account" [ref=e200]
+            - columnheader "Fase 1" [ref=e201]
+            - columnheader "Fase 2" [ref=e202]
+            - columnheader "Fase 3" [ref=e203]
+            - columnheader "Fase 4" [ref=e204]
+            - columnheader "Fase 5" [ref=e205]
+            - columnheader "Projeto Concluido" [ref=e206]
+        - rowgroup [ref=e207]:
+          - row "Açoriana Corretora de Câmbio Renata Lie ?" [ref=e208]:
+            - cell "Açoriana Corretora de Câmbio" [ref=e209]
+            - cell "Renata Lie" [ref=e210]
+            - cell "?" [ref=e211]:
+              - generic [ref=e212] [cursor=pointer]: "?"
+            - cell [ref=e213]
+            - cell [ref=e215]
+            - cell [ref=e217]
+            - cell [ref=e219]
+            - cell [ref=e221]
+          - row "AGROJR — ?" [ref=e223]:
+            - cell "AGROJR" [ref=e224]
+            - cell "—" [ref=e225]
+            - cell "?" [ref=e226]:
+              - generic [ref=e227] [cursor=pointer]: "?"
+            - cell [ref=e228]
+            - cell [ref=e230]
+            - cell [ref=e232]
+            - cell [ref=e234]
+            - cell [ref=e236]
+          - row "AGROJR Gabriel Luqueci ?" [ref=e238]:
+            - cell "AGROJR" [ref=e239]
+            - cell "Gabriel Luqueci" [ref=e240]
+            - cell "?" [ref=e241]:
+              - generic [ref=e242] [cursor=pointer]: "?"
+            - cell [ref=e243]
+            - cell [ref=e245]
+            - cell [ref=e247]
+            - cell [ref=e249]
+            - cell [ref=e251]
+          - row "Albraplas Gustavo Ribeiro ? ? ? ?" [ref=e253]:
+            - cell "Albraplas" [ref=e254]
+            - cell "Gustavo Ribeiro" [ref=e255]
+            - cell "?" [ref=e256]:
+              - generic [ref=e257] [cursor=pointer]: "?"
+            - cell "?" [ref=e258]:
+              - generic [ref=e259] [cursor=pointer]: "?"
+            - cell "?" [ref=e260]:
+              - generic [ref=e261] [cursor=pointer]: "?"
+            - cell [ref=e262]
+            - cell "?" [ref=e264]:
+              - generic [ref=e265] [cursor=pointer]: "?"
+            - cell [ref=e266]
+          - row "Alto Padrão Elétrica e Automação Industrial LTDA —" [ref=e268]:
+            - cell "Alto Padrão Elétrica e Automação Industrial LTDA" [ref=e269]
+            - cell "—" [ref=e270]
+            - cell [ref=e271]
+            - cell [ref=e273]
+            - cell [ref=e275]
+            - cell [ref=e277]
+            - cell [ref=e279]
+            - cell [ref=e281]
+          - row "Ankor Contabilidade — ?" [ref=e283]:
+            - cell "Ankor Contabilidade" [ref=e284]
+            - cell "—" [ref=e285]
+            - cell "?" [ref=e286]:
+              - generic [ref=e287] [cursor=pointer]: "?"
+            - cell [ref=e288]
+            - cell [ref=e290]
+            - cell [ref=e292]
+            - cell [ref=e294]
+            - cell [ref=e296]
+          - row "Atual Labs — ?" [ref=e298]:
+            - cell "Atual Labs" [ref=e299]
+            - cell "—" [ref=e300]
+            - cell [ref=e301]
+            - cell [ref=e303]
+            - cell [ref=e305]
+            - cell "?" [ref=e307]:
+              - generic [ref=e308] [cursor=pointer]: "?"
+            - cell [ref=e309]
+            - cell [ref=e311]
+          - row "Behome Gustavo Ribeiro ? ?" [ref=e313]:
+            - cell "Behome" [ref=e314]
+            - cell "Gustavo Ribeiro" [ref=e315]
+            - cell [ref=e316]
+            - cell [ref=e318]
+            - cell [ref=e320]
+            - cell "?" [ref=e322]:
+              - generic [ref=e323] [cursor=pointer]: "?"
+            - cell "?" [ref=e324]:
+              - generic [ref=e325] [cursor=pointer]: "?"
+            - cell [ref=e326]
+          - row "BELEM TRANSPORTES LTDA — ? ? ?" [ref=e328]:
+            - cell "BELEM TRANSPORTES LTDA" [ref=e329]
+            - cell "—" [ref=e330]
+            - cell "?" [ref=e331]:
+              - generic [ref=e332] [cursor=pointer]: "?"
+            - cell [ref=e333]
+            - cell [ref=e335]
+            - cell "?" [ref=e337]:
+              - generic [ref=e338] [cursor=pointer]: "?"
+            - cell "?" [ref=e339]:
+              - generic [ref=e340] [cursor=pointer]: "?"
+            - cell [ref=e341]
+          - row "BELLALOFT COMERCIO DE ARTIGOS PARA ENXOVAIS LTDA — ?" [ref=e343]:
+            - cell "BELLALOFT COMERCIO DE ARTIGOS PARA ENXOVAIS LTDA" [ref=e344]
+            - cell "—" [ref=e345]
+            - cell "?" [ref=e346]:
+              - generic [ref=e347] [cursor=pointer]: "?"
+            - cell [ref=e348]
+            - cell [ref=e350]
+            - cell [ref=e352]
+            - cell [ref=e354]
+            - cell [ref=e356]
+          - row "Camisetas Express Lucas Gabriel ?" [ref=e358]:
+            - cell "Camisetas Express" [ref=e359]
+            - cell "Lucas Gabriel" [ref=e360]
+            - cell "?" [ref=e361]:
+              - generic [ref=e362] [cursor=pointer]: "?"
+            - cell [ref=e363]
+            - cell [ref=e365]
+            - cell [ref=e367]
+            - cell [ref=e369]
+            - cell [ref=e371]
+          - row "Careca das Capas Victor Santos" [ref=e373]:
+            - cell "Careca das Capas" [ref=e374]
+            - cell "Victor Santos" [ref=e375]
+            - cell [ref=e376]
+            - cell [ref=e378]
+            - cell [ref=e380]
+            - cell [ref=e382]
+            - cell [ref=e384]
+            - cell [ref=e386]
+          - row "Casa Dupac Viviane Bandeira ?" [ref=e388]:
+            - cell "Casa Dupac" [ref=e389]
+            - cell "Viviane Bandeira" [ref=e390]
+            - cell "?" [ref=e391]:
+              - generic [ref=e392] [cursor=pointer]: "?"
+            - cell [ref=e393]
+            - cell [ref=e395]
+            - cell [ref=e397]
+            - cell [ref=e399]
+            - cell [ref=e401]
+          - row "Casa para Idosos Itapolis — ?" [ref=e403]:
+            - cell "Casa para Idosos Itapolis" [ref=e404]
+            - cell "—" [ref=e405]
+            - cell "?" [ref=e406]:
+              - generic [ref=e407] [cursor=pointer]: "?"
+            - cell [ref=e408]
+            - cell [ref=e410]
+            - cell [ref=e412]
+            - cell [ref=e414]
+            - cell [ref=e416]
+          - row "Certa University Lucas Gabriel ? ?" [ref=e418]:
+            - cell "Certa University" [ref=e419]
+            - cell "Lucas Gabriel" [ref=e420]
+            - cell "?" [ref=e421]:
+              - generic [ref=e422] [cursor=pointer]: "?"
+            - cell "?" [ref=e423]:
+              - generic [ref=e424] [cursor=pointer]: "?"
+            - cell [ref=e425]
+            - cell [ref=e427]
+            - cell [ref=e429]
+            - cell [ref=e431]
+          - row "Certa University Lucas Gabriel ? ?" [ref=e433]:
+            - cell "Certa University" [ref=e434]
+            - cell "Lucas Gabriel" [ref=e435]
+            - cell "?" [ref=e436]:
+              - generic [ref=e437] [cursor=pointer]: "?"
+            - cell "?" [ref=e438]:
+              - generic [ref=e439] [cursor=pointer]: "?"
+            - cell [ref=e440]
+            - cell [ref=e442]
+            - cell [ref=e444]
+            - cell [ref=e446]
+          - row "Charles RB ?" [ref=e448]:
+            - cell "Charles" [ref=e449]
+            - cell "RB" [ref=e450]
+            - cell "?" [ref=e451]:
+              - generic [ref=e452] [cursor=pointer]: "?"
+            - cell [ref=e453]
+            - cell [ref=e455]
+            - cell [ref=e457]
+            - cell [ref=e459]
+            - cell [ref=e461]
+          - row "CLOSET E OUTLET — ?" [ref=e463]:
+            - cell "CLOSET E OUTLET" [ref=e464]
+            - cell "—" [ref=e465]
+            - cell "?" [ref=e466]:
+              - generic [ref=e467] [cursor=pointer]: "?"
+            - cell [ref=e468]
+            - cell [ref=e470]
+            - cell [ref=e472]
+            - cell [ref=e474]
+            - cell [ref=e476]
+          - row "CM comercio de alimentos Ltda Lucas Gabriel ? ?" [ref=e478]:
+            - cell "CM comercio de alimentos Ltda" [ref=e479]
+            - cell "Lucas Gabriel" [ref=e480]
+            - cell "?" [ref=e481]:
+              - generic [ref=e482] [cursor=pointer]: "?"
+            - cell "?" [ref=e483]:
+              - generic [ref=e484] [cursor=pointer]: "?"
+            - cell [ref=e485]
+            - cell [ref=e487]
+            - cell [ref=e489]
+            - cell [ref=e491]
+          - row "Contintas Dourados —" [ref=e493]:
+            - cell "Contintas Dourados" [ref=e494]
+            - cell "—" [ref=e495]
+            - cell [ref=e496]
+            - cell [ref=e498]
+            - cell [ref=e500]
+            - cell [ref=e502]
+            - cell [ref=e504]
+            - cell [ref=e506]
+          - row "Dalia PRO — ? ?" [ref=e508]:
+            - cell "Dalia PRO" [ref=e509]
+            - cell "—" [ref=e510]
+            - cell [ref=e511]
+            - cell [ref=e513]
+            - cell "?" [ref=e515]:
+              - generic [ref=e516] [cursor=pointer]: "?"
+            - cell [ref=e517]
+            - cell "?" [ref=e519]:
+              - generic [ref=e520] [cursor=pointer]: "?"
+            - cell [ref=e521]
+          - row "DBR Consultoria Lucas Gabriel ?" [ref=e523]:
+            - cell "DBR Consultoria" [ref=e524]
+            - cell "Lucas Gabriel" [ref=e525]
+            - cell "?" [ref=e526]:
+              - generic [ref=e527] [cursor=pointer]: "?"
+            - cell [ref=e528]
+            - cell [ref=e530]
+            - cell [ref=e532]
+            - cell [ref=e534]
+            - cell [ref=e536]
+          - row "Decarli Balas Gustavo Ribeiro ? ? ?" [ref=e538]:
+            - cell "Decarli Balas" [ref=e539]
+            - cell "Gustavo Ribeiro" [ref=e540]
+            - cell "?" [ref=e541]:
+              - generic [ref=e542] [cursor=pointer]: "?"
+            - cell "?" [ref=e543]:
+              - generic [ref=e544] [cursor=pointer]: "?"
+            - cell "?" [ref=e545]:
+              - generic [ref=e546] [cursor=pointer]: "?"
+            - cell [ref=e547]
+            - cell [ref=e549]
+            - cell [ref=e551]
+          - row "DELAWARE BRASIL Nelson ?" [ref=e553]:
+            - cell "DELAWARE BRASIL" [ref=e554]
+            - cell "Nelson" [ref=e555]
+            - cell "?" [ref=e556]:
+              - generic [ref=e557] [cursor=pointer]: "?"
+            - cell [ref=e558]
+            - cell [ref=e560]
+            - cell [ref=e562]
+            - cell [ref=e564]
+            - cell [ref=e566]
+          - row "Destefani Gustavo/Marco ?" [ref=e568]:
+            - cell "Destefani" [ref=e569]
+            - cell "Gustavo/Marco" [ref=e570]
+            - cell "?" [ref=e571]:
+              - generic [ref=e572] [cursor=pointer]: "?"
+            - cell [ref=e573]
+            - cell [ref=e575]
+            - cell [ref=e577]
+            - cell [ref=e579]
+            - cell [ref=e581]
+          - row "Destro Nelson ? ?" [ref=e583]:
+            - cell "Destro" [ref=e584]
+            - cell "Nelson" [ref=e585]
+            - cell "?" [ref=e586]:
+              - generic [ref=e587] [cursor=pointer]: "?"
+            - cell "?" [ref=e588]:
+              - generic [ref=e589] [cursor=pointer]: "?"
+            - cell [ref=e590]
+            - cell [ref=e592]
+            - cell [ref=e594]
+            - cell [ref=e596]
+          - row "DEX INVEST COMERCIO E VAREJO LTDA Emanuel ?" [ref=e598]:
+            - cell "DEX INVEST COMERCIO E VAREJO LTDA" [ref=e599]
+            - cell "Emanuel" [ref=e600]
+            - cell "?" [ref=e601]:
+              - generic [ref=e602] [cursor=pointer]: "?"
+            - cell [ref=e603]
+            - cell [ref=e605]
+            - cell [ref=e607]
+            - cell [ref=e609]
+            - cell [ref=e611]
+          - row "Dra Tammy Pessoa — ?" [ref=e613]:
+            - cell "Dra Tammy Pessoa" [ref=e614]
+            - cell "—" [ref=e615]
+            - cell "?" [ref=e616]:
+              - generic [ref=e617] [cursor=pointer]: "?"
+            - cell [ref=e618]
+            - cell [ref=e620]
+            - cell [ref=e622]
+            - cell [ref=e624]
+            - cell [ref=e626]
+          - row "DR MARCELO SECH — ? ? ?" [ref=e628]:
+            - cell "DR MARCELO SECH" [ref=e629]
+            - cell "—" [ref=e630]
+            - cell "?" [ref=e631]:
+              - generic [ref=e632] [cursor=pointer]: "?"
+            - cell [ref=e633]
+            - cell [ref=e635]
+            - cell "?" [ref=e637]:
+              - generic [ref=e638] [cursor=pointer]: "?"
+            - cell "?" [ref=e639]:
+              - generic [ref=e640] [cursor=pointer]: "?"
+            - cell [ref=e641]
+          - row "Dr. Sativa — ?" [ref=e643]:
+            - cell "Dr. Sativa" [ref=e644]
+            - cell "—" [ref=e645]
+            - cell "?" [ref=e646]:
+              - generic [ref=e647] [cursor=pointer]: "?"
+            - cell [ref=e648]
+            - cell [ref=e650]
+            - cell [ref=e652]
+            - cell [ref=e654]
+            - cell [ref=e656]
+          - row "Ellemary Sleepwear LTDA Gustavo Ribeiro ?" [ref=e658]:
+            - cell "Ellemary Sleepwear LTDA" [ref=e659]
+            - cell "Gustavo Ribeiro" [ref=e660]
+            - cell "?" [ref=e661]:
+              - generic [ref=e662] [cursor=pointer]: "?"
+            - cell [ref=e663]
+            - cell [ref=e665]
+            - cell [ref=e667]
+            - cell [ref=e669]
+            - cell [ref=e671]
+          - row "Elo Vitae ataide.nelson@v4company.com" [ref=e673]:
+            - cell "Elo Vitae" [ref=e674]
+            - cell "ataide.nelson@v4company.com" [ref=e675]
+            - cell [ref=e676]
+            - cell [ref=e678]
+            - cell [ref=e680]
+            - cell [ref=e682]
+            - cell [ref=e684]
+            - cell [ref=e686]
+          - row "Engesoftware Lucas Gabriel ?" [ref=e688]:
+            - cell "Engesoftware" [ref=e689]
+            - cell "Lucas Gabriel" [ref=e690]
+            - cell "?" [ref=e691]:
+              - generic [ref=e692] [cursor=pointer]: "?"
+            - cell [ref=e693]
+            - cell [ref=e695]
+            - cell [ref=e697]
+            - cell [ref=e699]
+            - cell [ref=e701]
+          - row "G J HOFF CONSTRUCAO DE EDIFICIOS LTDA — ?" [ref=e703]:
+            - cell "G J HOFF CONSTRUCAO DE EDIFICIOS LTDA" [ref=e704]
+            - cell "—" [ref=e705]
+            - cell "?" [ref=e706]:
+              - generic [ref=e707] [cursor=pointer]: "?"
+            - cell [ref=e708]
+            - cell [ref=e710]
+            - cell [ref=e712]
+            - cell [ref=e714]
+            - cell [ref=e716]
+          - row "Gleen Lab - Bio Ozonio Marco Claro ?" [ref=e718]:
+            - cell "Gleen Lab - Bio Ozonio" [ref=e719]
+            - cell "Marco Claro" [ref=e720]
+            - cell "?" [ref=e721]:
+              - generic [ref=e722] [cursor=pointer]: "?"
+            - cell [ref=e723]
+            - cell [ref=e725]
+            - cell [ref=e727]
+            - cell [ref=e729]
+            - cell [ref=e731]
+          - row "Gleen Lab - Bio Ozonio — ?" [ref=e733]:
+            - cell "Gleen Lab - Bio Ozonio" [ref=e734]
+            - cell "—" [ref=e735]
+            - cell "?" [ref=e736]:
+              - generic [ref=e737] [cursor=pointer]: "?"
+            - cell [ref=e738]
+            - cell [ref=e740]
+            - cell [ref=e742]
+            - cell [ref=e744]
+            - cell [ref=e746]
+          - row "Grupo frontlar — ?" [ref=e748]:
+            - cell "Grupo frontlar" [ref=e749]
+            - cell "—" [ref=e750]
+            - cell "?" [ref=e751]:
+              - generic [ref=e752] [cursor=pointer]: "?"
+            - cell [ref=e753]
+            - cell [ref=e755]
+            - cell [ref=e757]
+            - cell [ref=e759]
+            - cell [ref=e761]
+          - row "Gvitta lucasgabriel@v4company.com ?" [ref=e763]:
+            - cell "Gvitta" [ref=e764]
+            - cell "lucasgabriel@v4company.com" [ref=e765]
+            - cell "?" [ref=e766]:
+              - generic [ref=e767] [cursor=pointer]: "?"
+            - cell [ref=e768]
+            - cell [ref=e770]
+            - cell [ref=e772]
+            - cell [ref=e774]
+            - cell [ref=e776]
+          - row "IA Infinity —" [ref=e778]:
+            - cell "IA Infinity" [ref=e779]
+            - cell "—" [ref=e780]
+            - cell [ref=e781]
+            - cell [ref=e783]
+            - cell [ref=e785]
+            - cell [ref=e787]
+            - cell [ref=e789]
+            - cell [ref=e791]
+          - row "Implanta Gustavo Ribeiro" [ref=e793]:
+            - cell "Implanta" [ref=e794]
+            - cell "Gustavo Ribeiro" [ref=e795]
+            - cell [ref=e796]
+            - cell [ref=e798]
+            - cell [ref=e800]
+            - cell [ref=e802]
+            - cell [ref=e804]
+            - cell [ref=e806]
+          - row "INFULAB Victor" [ref=e808]:
+            - cell "INFULAB" [ref=e809]
+            - cell "Victor" [ref=e810]
+            - cell [ref=e811]
+            - cell [ref=e813]
+            - cell [ref=e815]
+            - cell [ref=e817]
+            - cell [ref=e819]
+            - cell [ref=e821]
+          - row "INOVIE SOLUCOES EM TECNOLOGIA D A INFORM ACAO —" [ref=e823]:
+            - cell "INOVIE SOLUCOES EM TECNOLOGIA D A INFORM ACAO" [ref=e824]
+            - cell "—" [ref=e825]
+            - cell [ref=e826]
+            - cell [ref=e828]
+            - cell [ref=e830]
+            - cell [ref=e832]
+            - cell [ref=e834]
+            - cell [ref=e836]
+          - row "JA Serviços Gustavo Ribeiro" [ref=e838]:
+            - cell "JA Serviços" [ref=e839]
+            - cell "Gustavo Ribeiro" [ref=e840]
+            - cell [ref=e841]
+            - cell [ref=e843]
+            - cell [ref=e845]
+            - cell [ref=e847]
+            - cell [ref=e849]
+            - cell [ref=e851]
+          - row "K2 Audiovisual Victor Santos ? ?" [ref=e853]:
+            - cell "K2 Audiovisual" [ref=e854]
+            - cell "Victor Santos" [ref=e855]
+            - cell "?" [ref=e856]:
+              - generic [ref=e857] [cursor=pointer]: "?"
+            - cell "?" [ref=e858]:
+              - generic [ref=e859] [cursor=pointer]: "?"
+            - cell [ref=e860]
+            - cell [ref=e862]
+            - cell [ref=e864]
+            - cell [ref=e866]
+          - row "kanastra real Gustavo Ribeiro" [ref=e868]:
+            - cell "kanastra real" [ref=e869]
+            - cell "Gustavo Ribeiro" [ref=e870]
+            - cell [ref=e871]
+            - cell [ref=e873]
+            - cell [ref=e875]
+            - cell [ref=e877]
+            - cell [ref=e879]
+            - cell [ref=e881]
+          - row "Kombusiness Gustavo Ribeiro-" [ref=e883]:
+            - cell "Kombusiness" [ref=e884]
+            - cell "Gustavo Ribeiro-" [ref=e885]
+            - cell [ref=e886]
+            - cell [ref=e888]
+            - cell [ref=e890]
+            - cell [ref=e892]
+            - cell [ref=e894]
+            - cell [ref=e896]
+          - row "L2P Engenharia —" [ref=e898]:
+            - cell "L2P Engenharia" [ref=e899]
+            - cell "—" [ref=e900]
+            - cell [ref=e901]
+            - cell [ref=e903]
+            - cell [ref=e905]
+            - cell [ref=e907]
+            - cell [ref=e909]
+            - cell [ref=e911]
+          - row "Madeira Guaranta —" [ref=e913]:
+            - cell "Madeira Guaranta" [ref=e914]
+            - cell "—" [ref=e915]
+            - cell [ref=e916]
+            - cell [ref=e918]
+            - cell [ref=e920]
+            - cell [ref=e922]
+            - cell [ref=e924]
+            - cell [ref=e926]
+          - row "Matekdata Telecom —" [ref=e928]:
+            - cell "Matekdata Telecom" [ref=e929]
+            - cell "—" [ref=e930]
+            - cell [ref=e931]
+            - cell [ref=e933]
+            - cell [ref=e935]
+            - cell [ref=e937]
+            - cell [ref=e939]
+            - cell [ref=e941]
+          - row "Megiro boteco Viviane" [ref=e943]:
+            - cell "Megiro boteco" [ref=e944]
+            - cell "Viviane" [ref=e945]
+            - cell [ref=e946]
+            - cell [ref=e948]
+            - cell [ref=e950]
+            - cell [ref=e952]
+            - cell [ref=e954]
+            - cell [ref=e956]
+          - row "Millkys —" [ref=e958]:
+            - cell "Millkys" [ref=e959]
+            - cell "—" [ref=e960]
+            - cell [ref=e961]
+            - cell [ref=e963]
+            - cell [ref=e965]
+            - cell [ref=e967]
+            - cell [ref=e969]
+            - cell [ref=e971]
+          - row "MUNDIAL MILHAS Gabriel" [ref=e973]:
+            - cell "MUNDIAL MILHAS" [ref=e974]
+            - cell "Gabriel" [ref=e975]
+            - cell [ref=e976]
+            - cell [ref=e978]
+            - cell [ref=e980]
+            - cell [ref=e982]
+            - cell [ref=e984]
+            - cell [ref=e986]
+          - row "Nivee Robótica —" [ref=e988]:
+            - cell "Nivee Robótica" [ref=e989]
+            - cell "—" [ref=e990]
+            - cell [ref=e991]
+            - cell [ref=e993]
+            - cell [ref=e995]
+            - cell [ref=e997]
+            - cell [ref=e999]
+            - cell [ref=e1001]
+          - row "Nivee USA Lucas" [ref=e1003]:
+            - cell "Nivee USA" [ref=e1004]
+            - cell "Lucas" [ref=e1005]
+            - cell [ref=e1006]
+            - cell [ref=e1008]
+            - cell [ref=e1010]
+            - cell [ref=e1012]
+            - cell [ref=e1014]
+            - cell [ref=e1016]
+          - row "Pedro Shark Gustavo Ribeiro" [ref=e1018]:
+            - cell "Pedro Shark" [ref=e1019]
+            - cell "Gustavo Ribeiro" [ref=e1020]
+            - cell [ref=e1021]
+            - cell [ref=e1023]
+            - cell [ref=e1025]
+            - cell [ref=e1027]
+            - cell [ref=e1029]
+            - cell [ref=e1031]
+          - row "PENSE REDE NETWORK Lucas Gabriel" [ref=e1033]:
+            - cell "PENSE REDE NETWORK" [ref=e1034]
+            - cell "Lucas Gabriel" [ref=e1035]
+            - cell [ref=e1036]
+            - cell [ref=e1038]
+            - cell [ref=e1040]
+            - cell [ref=e1042]
+            - cell [ref=e1044]
+            - cell [ref=e1046]
+          - row "Plasbox gustavo.ribeiro@v4company.com ?" [ref=e1048]:
+            - cell "Plasbox" [ref=e1049]
+            - cell "gustavo.ribeiro@v4company.com" [ref=e1050]
+            - cell "?" [ref=e1051]:
+              - generic [ref=e1052] [cursor=pointer]: "?"
+            - cell [ref=e1053]
+            - cell [ref=e1055]
+            - cell [ref=e1057]
+            - cell [ref=e1059]
+            - cell [ref=e1061]
+          - row "Pompei Tecidos Gustavo Ribeiro" [ref=e1063]:
+            - cell "Pompei Tecidos" [ref=e1064]
+            - cell "Gustavo Ribeiro" [ref=e1065]
+            - cell [ref=e1066]
+            - cell [ref=e1068]
+            - cell [ref=e1070]
+            - cell [ref=e1072]
+            - cell [ref=e1074]
+            - cell [ref=e1076]
+          - row "RBA Indústria e Aço —" [ref=e1078]:
+            - cell "RBA Indústria e Aço" [ref=e1079]
+            - cell "—" [ref=e1080]
+            - cell [ref=e1081]
+            - cell [ref=e1083]
+            - cell [ref=e1085]
+            - cell [ref=e1087]
+            - cell [ref=e1089]
+            - cell [ref=e1091]
+          - row "RBA Indústria e Aço —" [ref=e1093]:
+            - cell "RBA Indústria e Aço" [ref=e1094]
+            - cell "—" [ref=e1095]
+            - cell [ref=e1096]
+            - cell [ref=e1098]
+            - cell [ref=e1100]
+            - cell [ref=e1102]
+            - cell [ref=e1104]
+            - cell [ref=e1106]
+          - row "RBR Solar —" [ref=e1108]:
+            - cell "RBR Solar" [ref=e1109]
+            - cell "—" [ref=e1110]
+            - cell [ref=e1111]
+            - cell [ref=e1113]
+            - cell [ref=e1115]
+            - cell [ref=e1117]
+            - cell [ref=e1119]
+            - cell [ref=e1121]
+          - row "RDS —" [ref=e1123]:
+            - cell "RDS" [ref=e1124]
+            - cell "—" [ref=e1125]
+            - cell [ref=e1126]
+            - cell [ref=e1128]
+            - cell [ref=e1130]
+            - cell [ref=e1132]
+            - cell [ref=e1134]
+            - cell [ref=e1136]
+          - row "Rio Sul Securitizadora —" [ref=e1138]:
+            - cell "Rio Sul Securitizadora" [ref=e1139]
+            - cell "—" [ref=e1140]
+            - cell [ref=e1141]
+            - cell [ref=e1143]
+            - cell [ref=e1145]
+            - cell [ref=e1147]
+            - cell [ref=e1149]
+            - cell [ref=e1151]
+          - row "SA ALimentos Lucas Gabriel" [ref=e1153]:
+            - cell "SA ALimentos" [ref=e1154]
+            - cell "Lucas Gabriel" [ref=e1155]
+            - cell [ref=e1156]
+            - cell [ref=e1158]
+            - cell [ref=e1160]
+            - cell [ref=e1162]
+            - cell [ref=e1164]
+            - cell [ref=e1166]
+          - row "SANTA JOANA Pedro Mariano" [ref=e1168]:
+            - cell "SANTA JOANA" [ref=e1169]
+            - cell "Pedro Mariano" [ref=e1170]
+            - cell [ref=e1171]
+            - cell [ref=e1173]
+            - cell [ref=e1175]
+            - cell [ref=e1177]
+            - cell [ref=e1179]
+            - cell [ref=e1181]
+          - row "Success Corretora Lucas Gabriel" [ref=e1183]:
+            - cell "Success Corretora" [ref=e1184]
+            - cell "Lucas Gabriel" [ref=e1185]
+            - cell [ref=e1186]
+            - cell [ref=e1188]
+            - cell [ref=e1190]
+            - cell [ref=e1192]
+            - cell [ref=e1194]
+            - cell [ref=e1196]
+          - row "SULJETT DO BRASIL —" [ref=e1198]:
+            - cell "SULJETT DO BRASIL" [ref=e1199]
+            - cell "—" [ref=e1200]
+            - cell [ref=e1201]
+            - cell [ref=e1203]
+            - cell [ref=e1205]
+            - cell [ref=e1207]
+            - cell [ref=e1209]
+            - cell [ref=e1211]
+          - row "TECNODIESEL BOMBAS INJETORAS LTDA —" [ref=e1213]:
+            - cell "TECNODIESEL BOMBAS INJETORAS LTDA" [ref=e1214]
+            - cell "—" [ref=e1215]
+            - cell [ref=e1216]
+            - cell [ref=e1218]
+            - cell [ref=e1220]
+            - cell [ref=e1222]
+            - cell [ref=e1224]
+            - cell [ref=e1226]
+          - row "\"The fast pizzaria \" —" [ref=e1228]:
+            - cell "\"The fast pizzaria \"" [ref=e1229]
+            - cell "—" [ref=e1230]
+            - cell [ref=e1231]
+            - cell [ref=e1233]
+            - cell [ref=e1235]
+            - cell [ref=e1237]
+            - cell [ref=e1239]
+            - cell [ref=e1241]
+          - row "Torteria Adriana —" [ref=e1243]:
+            - cell "Torteria Adriana" [ref=e1244]
+            - cell "—" [ref=e1245]
+            - cell [ref=e1246]
+            - cell [ref=e1248]
+            - cell [ref=e1250]
+            - cell [ref=e1252]
+            - cell [ref=e1254]
+            - cell [ref=e1256]
+          - row "Ultra Popular Lucas Gabriel" [ref=e1258]:
+            - cell "Ultra Popular" [ref=e1259]
+            - cell "Lucas Gabriel" [ref=e1260]
+            - cell [ref=e1261]
+            - cell [ref=e1263]
+            - cell [ref=e1265]
+            - cell [ref=e1267]
+            - cell [ref=e1269]
+            - cell [ref=e1271]
+          - row "Wysia —" [ref=e1273]:
+            - cell "Wysia" [ref=e1274]
+            - cell "—" [ref=e1275]
+            - cell [ref=e1276]
+            - cell [ref=e1278]
+            - cell [ref=e1280]
+            - cell [ref=e1282]
+            - cell [ref=e1284]
+            - cell [ref=e1286]
+          - row "YIWU COMISSARIA DE DESPACHOS LTDA Lucas Gabriel" [ref=e1288]:
+            - cell "YIWU COMISSARIA DE DESPACHOS LTDA" [ref=e1289]
+            - cell "Lucas Gabriel" [ref=e1290]
+            - cell [ref=e1291]
+            - cell [ref=e1293]
+            - cell [ref=e1295]
+            - cell [ref=e1297]
+            - cell [ref=e1299]
+            - cell [ref=e1301]
+          - row "Zacharias Solução de Engenharia em Obras Ltda Lucas Gabriel" [ref=e1303]:
+            - cell "Zacharias Solução de Engenharia em Obras Ltda" [ref=e1304]
+            - cell "Lucas Gabriel" [ref=e1305]
+            - cell [ref=e1306]
+            - cell [ref=e1308]
+            - cell [ref=e1310]
+            - cell [ref=e1312]
+            - cell [ref=e1314]
+            - cell [ref=e1316]
+          - row "Chronos Gabriel" [ref=e1318]:
+            - cell "Chronos" [ref=e1319]
+            - cell "Gabriel" [ref=e1320]
+            - cell [ref=e1321]
+            - cell [ref=e1323]
+            - cell [ref=e1325]
+            - cell [ref=e1327]
+            - cell [ref=e1329]
+            - cell [ref=e1331]
+    - dialog [ref=e1978]:
+      - generic [ref=e1979]:
+        - generic [ref=e1980]:
+          - generic [ref=e1981]:
+            - heading "Atual Labs" [level=1] [ref=e1982]
+            - generic [ref=e1983]: "• Gabriela Campos• Score: 5.9"
+            - generic [ref=e1985]: "Squad: Gabriela Campos"
+          - generic [ref=e1986]:
+            - button "Fontes" [ref=e1988] [cursor=pointer]:
+              - img [ref=e1989]
+              - generic [ref=e1993]: Fontes
+            - button "Fechar" [ref=e1994] [cursor=pointer]: ×
+        - generic [ref=e1996]:
+          - generic "Fase auditavel — clique para ver" [ref=e1997] [cursor=pointer]:
+            - generic [ref=e1999]: "7.4"
+            - generic [ref=e2000]: Fase 1
+          - generic [ref=e2001] [cursor=pointer]:
+            - generic [ref=e2003]: "5.9"
+            - generic [ref=e2004]: Fase 2
+          - generic "Fase auditavel — clique para ver" [ref=e2005] [cursor=pointer]:
+            - generic [ref=e2007]: "6.8"
+            - generic [ref=e2008]: Fase 3
+          - generic "Analise marcada como incompleta — materiais insuficientes" [ref=e2009] [cursor=pointer]:
+            - generic [ref=e2010]: "?"
+            - generic [ref=e2011]: Fase 4
+          - generic [ref=e2012] [cursor=pointer]:
+            - generic [ref=e2014]: "5.7"
+            - generic [ref=e2015]: Fase 5
+          - generic "Projeto concluido — abrir Analise Consolidada" [ref=e2016] [cursor=pointer]:
+            - generic [ref=e2018]: Projeto Concluido
+      - generic [ref=e2019]:
+        - generic [ref=e2020]:
+          - generic [ref=e2021]:
+            - generic [ref=e2023]:
+              - img [ref=e2024]
+              - heading "Percepção do Cliente" [level=3] [ref=e2027]
+              - generic [ref=e2028]:
+                - generic [ref=e2029]: Detalhamento
+                - combobox "Detalhamento" [ref=e2030] [cursor=pointer]:
+                  - option "Básico" [selected]
+                  - option "Avançado"
+            - generic [ref=e2031]:
+              - generic [ref=e2032]:
+                - generic [ref=e2033]: Média
+                - generic [ref=e2034]: "7.8"
+              - generic [ref=e2035]:
+                - generic [ref=e2036]: Confiança média
+                - generic [ref=e2037]: "8.3"
+              - generic [ref=e2038]:
+                - generic [ref=e2039]: Dimensões
+                - generic [ref=e2040]: "4"
+            - button "Mostrando as 4 dimensões principais — ver mais 4 dimensões" [ref=e2041] [cursor=pointer]:
+              - img [ref=e2042]
+              - generic [ref=e2044]:
+                - text: Mostrando as
+                - strong [ref=e2045]: "4"
+                - text: dimensões principais — ver mais 4 dimensões
+            - generic [ref=e2046]:
+              - generic [ref=e2047]:
+                - generic [ref=e2048]:
+                  - generic [ref=e2049]:
+                    - generic [ref=e2050]: Tom
+                    - generic [ref=e2051]: "Confiança: 8/10"
+                  - generic [ref=e2052]: 8.0/10
+                - button "Ver justificativa" [ref=e2053] [cursor=pointer]:
+                  - img [ref=e2054]
+                  - generic [ref=e2056]: Ver justificativa
+              - generic [ref=e2057]:
+                - generic [ref=e2058]:
+                  - generic [ref=e2059]:
+                    - generic [ref=e2060]: Engajamento
+                    - generic [ref=e2061]: "Confiança: 9/10"
+                  - generic [ref=e2062]: 9.0/10
+                - button "Ver justificativa" [ref=e2063] [cursor=pointer]:
+                  - img [ref=e2064]
+                  - generic [ref=e2066]: Ver justificativa
+              - generic [ref=e2067]:
+                - generic [ref=e2068]:
+                  - generic [ref=e2069]:
+                    - generic [ref=e2070]: Confiança
+                    - generic [ref=e2071]: "Confiança: 8/10"
+                  - generic [ref=e2072]: 6.0/10
+                - button "Ver justificativa" [ref=e2073] [cursor=pointer]:
+                  - img [ref=e2074]
+                  - generic [ref=e2076]: Ver justificativa
+              - generic [ref=e2077]:
+                - generic [ref=e2078]:
+                  - generic [ref=e2079]:
+                    - generic [ref=e2080]: Clareza de objetivos
+                    - generic [ref=e2081]: "Confiança: 8/10"
+                  - generic [ref=e2082]: 8.0/10
+                - button "Ver justificativa" [ref=e2083] [cursor=pointer]:
+                  - img [ref=e2084]
+                  - generic [ref=e2086]: Ver justificativa
+          - generic [ref=e2087]:
+            - generic [ref=e2088]:
+              - generic [ref=e2089]:
+                - img [ref=e2090]
+                - heading "Avaliação da Equipe V4" [level=3] [ref=e2095]
+                - generic [ref=e2096]:
+                  - generic [ref=e2097]: Detalhamento
+                  - combobox "Detalhamento" [ref=e2098] [cursor=pointer]:
+                    - option "Básico" [selected]
+                    - option "Avançado"
+              - 'generic "inferido pela transcrição · Cliente: Pedro Guimarães Bueno" [ref=e2100]':
+                - img [ref=e2101]
+                - generic [ref=e2105]: Gabriel Oliveira Luqueci
+            - generic [ref=e2106]:
+              - generic [ref=e2107]:
+                - generic [ref=e2108]: Média
+                - generic [ref=e2109]: "8.3"
+              - generic [ref=e2110]:
+                - generic [ref=e2111]: Confiança média
+                - generic [ref=e2112]: "8.3"
+              - generic [ref=e2113]:
+                - generic [ref=e2114]: Dimensões
+                - generic [ref=e2115]: "3"
+            - button "Mostrando as 3 dimensões principais — ver mais 2 dimensões" [ref=e2116] [cursor=pointer]:
+              - img [ref=e2117]
+              - generic [ref=e2119]:
+                - text: Mostrando as
+                - strong [ref=e2120]: "3"
+                - text: dimensões principais — ver mais 2 dimensões
+            - generic [ref=e2121]:
+              - generic [ref=e2122]:
+                - generic [ref=e2123]:
+                  - generic [ref=e2124]:
+                    - generic [ref=e2125]: Condução da reunião
+                    - generic [ref=e2126]: "Confiança: 8/10"
+                  - generic [ref=e2127]: 8.0/10
+                - button "Ver justificativa" [ref=e2128] [cursor=pointer]:
+                  - img [ref=e2129]
+                  - generic [ref=e2131]: Ver justificativa
+              - generic [ref=e2132]:
+                - generic [ref=e2133]:
+                  - generic [ref=e2134]:
+                    - generic [ref=e2135]: Escuta ativa
+                    - generic [ref=e2136]: "Confiança: 8/10"
+                  - generic [ref=e2137]: 8.0/10
+                - button "Ver justificativa" [ref=e2138] [cursor=pointer]:
+                  - img [ref=e2139]
+                  - generic [ref=e2141]: Ver justificativa
+              - generic [ref=e2142]:
+                - generic [ref=e2143]:
+                  - generic [ref=e2144]:
+                    - generic [ref=e2145]: Clareza de próximos passos
+                    - generic [ref=e2146]: "Confiança: 9/10"
+                  - generic [ref=e2147]: 9.0/10
+                - button "Ver justificativa" [ref=e2148] [cursor=pointer]:
+                  - img [ref=e2149]
+                  - generic [ref=e2151]: Ver justificativa
+        - generic [ref=e2152]:
+          - generic [ref=e2153]:
+            - generic [ref=e2154]:
+              - generic [ref=e2155]:
+                - img [ref=e2156]
+                - heading "Resumo Executivo" [level=2] [ref=e2159]
+              - generic [ref=e2160]:
+                - generic [ref=e2161]:
+                  - generic "2 positivo" [ref=e2162]:
+                    - img [ref=e2163]
+                    - strong [ref=e2166]: "2"
+                  - generic "0 neutro" [ref=e2167]:
+                    - img [ref=e2168]
+                    - strong [ref=e2170]: "0"
+                  - generic "3 atenção" [ref=e2171]:
+                    - img [ref=e2172]
+                    - strong [ref=e2174]: "3"
+                  - generic "0 negativo" [ref=e2175]:
+                    - img [ref=e2176]
+                    - strong [ref=e2178]: "0"
+                - generic [ref=e2179]: Cliente colaborativo e respeitoso, mas ainda em postura de validação cautelosa sobre o valor entregue pela V4.
+                - button "Expandir todos os blocos" [ref=e2180] [cursor=pointer]:
+                  - img [ref=e2181]
+                - button "Recolher todos" [ref=e2186] [cursor=pointer]:
+                  - img [ref=e2187]
+                - button [expanded] [ref=e2192] [cursor=pointer]:
+                  - img [ref=e2193]
+            - generic [ref=e2196]:
+              - button "Momento do cliente Atenção Atenção Cliente engajado, mas ainda quer validar a primeira entrega antes de avançar." [ref=e2197] [cursor=pointer]:
+                - generic [ref=e2198]:
+                  - generic [ref=e2199]:
+                    - img [ref=e2200]
+                    - generic [ref=e2203]: Momento do cliente
+                  - generic [ref=e2204]:
+                    - generic "Atenção" [ref=e2205]
+                    - generic [ref=e2206]: Atenção
+                    - img [ref=e2207]
+                - paragraph [ref=e2209]: Cliente engajado, mas ainda quer validar a primeira entrega antes de avançar.
+              - button "Dinâmica entre V4 e cliente Positivo Positivo Relação colaborativa, com boa escuta, mas cliente vigia escopo e aderência." [ref=e2210] [cursor=pointer]:
+                - generic [ref=e2211]:
+                  - generic [ref=e2212]:
+                    - img [ref=e2213]
+                    - generic [ref=e2218]: Dinâmica entre V4 e cliente
+                  - generic [ref=e2219]:
+                    - generic "Positivo" [ref=e2220]
+                    - generic [ref=e2221]: Positivo
+                    - img [ref=e2222]
+                - paragraph [ref=e2224]: Relação colaborativa, com boa escuta, mas cliente vigia escopo e aderência.
+              - button "Qualidade das entregas V4 Atenção Atenção Entrega parece organizada, mas o cliente ainda não demonstrou convicção plena." [ref=e2225] [cursor=pointer]:
+                - generic [ref=e2226]:
+                  - generic [ref=e2227]:
+                    - img [ref=e2228]
+                    - generic [ref=e2233]: Qualidade das entregas V4
+                  - generic [ref=e2234]:
+                    - generic "Atenção" [ref=e2235]
+                    - generic [ref=e2236]: Atenção
+                    - img [ref=e2237]
+                - paragraph [ref=e2239]: Entrega parece organizada, mas o cliente ainda não demonstrou convicção plena.
+              - button "Sinais de satisfação Positivo Positivo Há colaboração e continuidade, mas satisfação ainda é mais implícita do que verbal." [ref=e2240] [cursor=pointer]:
+                - generic [ref=e2241]:
+                  - generic [ref=e2242]:
+                    - img [ref=e2243]
+                    - generic [ref=e2245]: Sinais de satisfação
+                  - generic [ref=e2246]:
+                    - generic "Positivo" [ref=e2247]
+                    - generic [ref=e2248]: Positivo
+                    - img [ref=e2249]
+                - paragraph [ref=e2251]: Há colaboração e continuidade, mas satisfação ainda é mais implícita do que verbal.
+              - button "Pontos de atenção Atenção Atenção Cliente observa valor, escopo e aderência ao combinado com atenção real." [ref=e2252] [cursor=pointer]:
+                - generic [ref=e2253]:
+                  - generic [ref=e2254]:
+                    - img [ref=e2255]
+                    - generic [ref=e2257]: Pontos de atenção
+                  - generic [ref=e2258]:
+                    - generic "Atenção" [ref=e2259]
+                    - generic [ref=e2260]: Atenção
+                    - img [ref=e2261]
+                - paragraph [ref=e2263]: Cliente observa valor, escopo e aderência ao combinado com atenção real.
+          - generic [ref=e2264]:
+            - generic [ref=e2265]:
+              - generic [ref=e2266]:
+                - img [ref=e2267]
+                - heading "Análise dos Materiais" [level=2] [ref=e2272]
+              - generic [ref=e2273]:
+                - generic [ref=e2274]:
+                  - generic "2 positivo" [ref=e2275]:
+                    - img [ref=e2276]
+                    - strong [ref=e2279]: "2"
+                  - generic "1 neutro" [ref=e2280]:
+                    - img [ref=e2281]
+                    - strong [ref=e2283]: "1"
+                  - generic "0 atenção" [ref=e2284]:
+                    - img [ref=e2285]
+                    - strong [ref=e2287]: "0"
+                  - generic "1 negativo" [ref=e2288]:
+                    - img [ref=e2289]
+                    - strong [ref=e2291]: "1"
+                - button "Expandir todos" [ref=e2292] [cursor=pointer]:
+                  - img [ref=e2293]
+                - button "Recolher todos" [ref=e2298] [cursor=pointer]:
+                  - img [ref=e2299]
+                - button [expanded] [ref=e2304] [cursor=pointer]:
+                  - img [ref=e2305]
+            - generic [ref=e2308]:
+              - button "Cobertura do escopo Negativo Negativo Cobertura da fase ficou baixa frente aos tópicos esperados de imersão." [ref=e2309] [cursor=pointer]:
+                - generic [ref=e2310]:
+                  - generic [ref=e2311]:
+                    - img [ref=e2312]
+                    - generic [ref=e2316]: Cobertura do escopo
+                  - generic [ref=e2317]:
+                    - generic "Negativo" [ref=e2318]
+                    - generic [ref=e2319]: Negativo
+                    - img [ref=e2320]
+                - paragraph [ref=e2322]: Cobertura da fase ficou baixa frente aos tópicos esperados de imersão.
+              - button "Profundidade do conteúdo Positivo Positivo Conteúdo é denso em vendas e operação, embora menos aderente ao escopo da fase." [ref=e2323] [cursor=pointer]:
+                - generic [ref=e2324]:
+                  - generic [ref=e2325]:
+                    - img [ref=e2326]
+                    - generic [ref=e2330]: Profundidade do conteúdo
+                  - generic [ref=e2331]:
+                    - generic "Positivo" [ref=e2332]
+                    - generic [ref=e2333]: Positivo
+                    - img [ref=e2334]
+                - paragraph [ref=e2336]: Conteúdo é denso em vendas e operação, embora menos aderente ao escopo da fase.
+              - button "Clareza visual e didática Neutro Neutro Sem material visual nesta fase para avaliar." [ref=e2337] [cursor=pointer]:
+                - generic [ref=e2338]:
+                  - generic [ref=e2339]:
+                    - img [ref=e2340]
+                    - generic [ref=e2343]: Clareza visual e didática
+                  - generic [ref=e2344]:
+                    - generic "Neutro" [ref=e2345]
+                    - generic [ref=e2346]: Neutro
+                    - img [ref=e2347]
+                - paragraph [ref=e2349]: Sem material visual nesta fase para avaliar.
+              - button "Alinhamento com o cliente Positivo Positivo Conteúdo aderente ao contexto do cliente, com boa conexão à operação real." [ref=e2350] [cursor=pointer]:
+                - generic [ref=e2351]:
+                  - generic [ref=e2352]:
+                    - img [ref=e2353]
+                    - generic [ref=e2358]: Alinhamento com o cliente
+                  - generic [ref=e2359]:
+                    - generic "Positivo" [ref=e2360]
+                    - generic [ref=e2361]: Positivo
+                    - img [ref=e2362]
+                - paragraph [ref=e2364]: Conteúdo aderente ao contexto do cliente, com boa conexão à operação real.
+          - generic [ref=e2365]:
+            - button "Checklist de Auditoria Cobertura da lista esperada da fase Expandir" [ref=e2366] [cursor=pointer]:
+              - heading "Checklist de Auditoria" [level=2] [ref=e2367]:
+                - img [ref=e2368]
+                - text: Checklist de Auditoria
+              - generic [ref=e2371]:
+                - generic [ref=e2372]: Cobertura da lista esperada da fase
+                - button "Expandir" [ref=e2373]:
+                  - img [ref=e2374]
+            - generic [ref=e2376]:
+              - generic [ref=e2377]:
+                - img [ref=e2378]
+                - strong [ref=e2380]: "1"
+                - text: entregue
+              - generic [ref=e2381]:
+                - img [ref=e2382]
+                - strong [ref=e2385]: "7"
+                - text: ausentes
+              - generic [ref=e2386]:
+                - img [ref=e2387]
+                - strong [ref=e2389]: "0"
+                - text: n/a
+              - generic [ref=e2390]:
+                - img [ref=e2391]
+                - strong [ref=e2394]: "2"
+                - text: extras
+          - generic [ref=e2395]:
+            - button "Revisão de Português Não aplicável Recolher" [expanded] [ref=e2396] [cursor=pointer]:
+              - heading "Revisão de Português" [level=2] [ref=e2397]:
+                - img [ref=e2398]
+                - text: Revisão de Português
+              - generic [ref=e2401]:
+                - generic [ref=e2402]:
+                  - img [ref=e2403]
+                  - generic [ref=e2405]: Não aplicável
+                - button "Recolher" [ref=e2406]:
+                  - img [ref=e2407]
+            - paragraph [ref=e2410]: Nao ha material textual autoral auditavel da equipe nesta fase para revisar a escrita; o conteúdo disponível é predominantemente registro de reunião.
+          - generic [ref=e2411]:
+            - heading "Insatisfações do Cliente" [level=2] [ref=e2412]
+            - list [ref=e2413]:
+              - listitem [ref=e2414]:
+                - generic [ref=e2415]: MÉDIA
+                - text: O cliente sinaliza que ainda não está pronto para avançar para uma assessoria mensal porque quer primeiro validar a qualidade e os resultados da entrega inicial da V4.
+                - generic [ref=e2416]: “Pedro Guimarães Bueno pediu para finalizar a primeira entrega para avaliar os resultados antes.”
+              - listitem [ref=e2417]:
+                - generic [ref=e2418]: BAIXA
+                - text: Há uma cobrança implícita por maior clareza e delimitação de escopo, especialmente sobre a possível inclusão de uma estratégia de LinkedIn nos entregáveis.
+                - generic [ref=e2419]: “Pedro Guimarães Bueno sugeriu que a estratégia deveria ser delimitada dentro dos entregáveis.”
+              - listitem [ref=e2420]:
+                - generic [ref=e2421]: BAIXA
+                - text: O cliente demonstra atenção à alteração de entregáveis originalmente previstos, relembrando a substituição de itens por **LP** e **folders/criativos**, o que indica sensibilidade a mudanças no combinado.
+                - generic [ref=e2422]: “Pedro Guimarães Bueno lembrou sobre a substituição de alguns entregáveis, como a parametrização do site, por Landing Page e folders/criativos.”
+        - generic [ref=e2423]:
+          - generic [ref=e2424]:
+            - generic [ref=e2425]:
+              - heading "Oportunidades" [level=2] [ref=e2426]:
+                - img [ref=e2427]
+                - text: Oportunidades
+              - generic [ref=e2432]: 1 produto sugerido
+            - generic [ref=e2433]:
+              - generic [ref=e2434]:
+                - generic [ref=e2435]: Produtos sugeridos
+                - strong [ref=e2436]: "1"
+              - generic [ref=e2437]:
+                - generic [ref=e2438]:
+                  - strong [ref=e2439]: "0"
+                  - text: alta
+                - generic [ref=e2440]:
+                  - strong [ref=e2441]: "1"
+                  - text: média
+                - generic [ref=e2442]:
+                  - strong [ref=e2443]: "0"
+                  - text: baixa
+              - button "Ver produtos" [ref=e2444] [cursor=pointer]:
+                - img [ref=e2445]
+                - text: Ver produtos
+            - generic [ref=e2447]:
+              - generic [ref=e2448]: Selecione ate 4 produtos na proxima etapa
+              - button "Criar oportunidade no Kommo" [ref=e2449] [cursor=pointer]:
+                - img [ref=e2450]
+                - text: Criar oportunidade no Kommo
+          - generic [ref=e2451]:
+            - heading "Recomendações de como lidar com o Cliente" [level=2] [ref=e2452]
+            - paragraph [ref=e2453]: Foco em comunicação, engajamento e pontos que o cliente valoriza — não em ações estratégicas do negócio.
+            - list [ref=e2454]:
+              - listitem [ref=e2455]:
+                - generic [ref=e2456]: alta
+                - generic [ref=e2457]: Comunicacao
+                - text: Reforçar sempre o vínculo entre entrega e resultado esperado, porque este cliente explicitamente quer **avaliar a primeira entrega** antes de ampliar a relação.
+              - listitem [ref=e2458]:
+                - generic [ref=e2459]: alta
+                - generic [ref=e2460]: Processo
+                - text: Manter combinados de escopo muito claros, registrando o que entra, o que não entra e o que depende de validação interna, especialmente em temas como **LinkedIn**.
+              - listitem [ref=e2461]:
+                - generic [ref=e2462]: media
+                - generic [ref=e2463]: Tom
+                - text: Usar linguagem objetiva, com números, cadências e critérios concretos, porque o cliente responde bem a conversas estruturadas e operacionais.
+              - listitem [ref=e2464]:
+                - generic [ref=e2465]: media
+                - generic [ref=e2466]: Engajamento
+                - text: Valorizar a colaboração do cliente pedindo e devolvendo materiais de forma organizada, já que ele demonstra alta disposição para compartilhar informações quando percebe método.
+              - listitem [ref=e2467]:
+                - generic [ref=e2468]: media
+                - generic [ref=e2469]: Ponto Forte A Reforcar
+                - text: Reforçar a boa condução e a clareza de próximos passos nas reuniões, pois isso sustenta a confiança operacional já existente na relação.
+      - generic [ref=e2470]:
+        - generic [ref=e2471]: Versao 1
+        - generic [ref=e2472]:
+          - button "Editar materiais" [ref=e2473] [cursor=pointer]:
+            - img [ref=e2474]
+            - text: Editar materiais
+          - button "Re-analisar fase atual" [ref=e2476] [cursor=pointer]:
+            - img [ref=e2477]
+            - text: Re-analisar fase atual

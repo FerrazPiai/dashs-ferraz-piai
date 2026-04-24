@@ -1,12 +1,13 @@
 import { Router } from 'express'
 import bcrypt from 'bcryptjs'
 import pool from '../lib/db.js'
-import { requireRole, requireAdminOwner } from '../middleware/requireRole.js'
+import { requireRole, requireAdminOwner, ADMIN_OWNER_EMAIL } from '../middleware/requireRole.js'
 import {
   getActiveProviderConfig,
   invalidateProviderCache,
   pingProvider,
-  PROVIDER_DEFAULTS
+  PROVIDER_DEFAULTS,
+  PROVIDER_CATALOG
 } from '../services/ai-client.js'
 
 const router = Router()
@@ -29,12 +30,43 @@ function canAssignRole(session, targetRole, previousRole = null) {
   return true
 }
 
+// Helper: usuarios protegidos (admin-owner ou qualquer admin) so podem ser
+// desativados/deletados pelo proprio admin-owner. Evita que um admin nao-owner
+// derrube o owner ou outros admins abusando das rotas de deactivate/delete.
+function isProtectedTarget(user) {
+  if (!user) return false
+  if (user.role === 'admin') return true
+  if (String(user.email || '').toLowerCase() === ADMIN_OWNER_EMAIL) return true
+  return false
+}
+
 // ── GET /api/admin/users — Listar usuarios ──
 
 router.get('/users', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, email, name, role, oauth_provider, active, created_at, updated_at FROM users ORDER BY created_at DESC'
+      `SELECT u.id,
+              u.email,
+              u.name,
+              u.role,
+              u.oauth_provider,
+              u.active,
+              u.created_at,
+              u.updated_at,
+              (
+                SELECT MAX(l.created_at)
+                  FROM dashboards_hub.user_activity_log l
+                 WHERE l.user_id = u.id
+                   AND l.event_type = 'login'
+              ) AS last_login,
+              (
+                SELECT MAX(l.created_at)
+                  FROM dashboards_hub.user_activity_log l
+                 WHERE l.user_id = u.id
+                   AND l.event_type IN ('login', 'page_view')
+              ) AS last_activity
+         FROM users u
+        ORDER BY u.created_at DESC`
     )
     res.json({ users: result.rows })
   } catch (err) {
@@ -95,15 +127,26 @@ router.put('/users/:id', async (req, res) => {
   }
 
   try {
+    // Carrega alvo uma unica vez — usado tanto para gate de role quanto de active/password.
+    const { rows: [existing] } = await pool.query('SELECT role, email FROM users WHERE id = $1', [id])
+    if (!existing) return res.status(404).json({ error: 'Usuario nao encontrado' })
+
     // Checa role atual do alvo para saber se e promocao/rebaixamento de admin
-    let previousRole = null
-    if (role !== undefined) {
-      const { rows: [existing] } = await pool.query('SELECT role, email FROM users WHERE id = $1', [id])
-      if (!existing) return res.status(404).json({ error: 'Usuario nao encontrado' })
-      previousRole = existing.role
-      if (!canAssignRole(req.session, role, previousRole)) {
+    const previousRole = existing.role
+    if (role !== undefined && !canAssignRole(req.session, role, previousRole)) {
+      return res.status(403).json({
+        error: 'Somente o admin-owner pode conceder ou remover o perfil Administrador'
+      })
+    }
+
+    // Desativar (active=false) ou alterar senha de admin/owner exige ser o owner.
+    // Sem isso, um admin nao-owner poderia derrubar o owner ou sequestrar outro admin.
+    const tryingToDeactivate = active === false
+    const tryingToChangePassword = !!password
+    if ((tryingToDeactivate || tryingToChangePassword) && isProtectedTarget(existing)) {
+      if (!requireAdminOwner(req.session)) {
         return res.status(403).json({
-          error: 'Somente o admin-owner pode conceder ou remover o perfil Administrador'
+          error: 'Somente o admin-owner pode desativar ou alterar senha de administradores'
         })
       }
     }
@@ -151,14 +194,23 @@ router.delete('/users/:id', async (req, res) => {
   const { id } = req.params
 
   try {
+    const { rows: [existing] } = await pool.query(
+      'SELECT id, role, email FROM users WHERE id = $1',
+      [id]
+    )
+    if (!existing) return res.status(404).json({ error: 'Usuario nao encontrado' })
+
+    // Admin-owner ou outro admin so pode ser desativado pelo proprio owner.
+    if (isProtectedTarget(existing) && !requireAdminOwner(req.session)) {
+      return res.status(403).json({
+        error: 'Somente o admin-owner pode desativar administradores'
+      })
+    }
+
     const result = await pool.query(
       'UPDATE users SET active = false, updated_at = NOW() WHERE id = $1 RETURNING id, email, name',
       [id]
     )
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Usuario nao encontrado' })
-    }
 
     res.json({ message: 'Usuario desativado', user: result.rows[0] })
   } catch (err) {
@@ -182,7 +234,7 @@ router.get('/profiles', async (req, res) => {
 
 // POST /api/admin/profiles — Criar perfil
 router.post('/profiles', async (req, res) => {
-  const { name, label, allowed_dashboards } = req.body
+  const { name, label, allowed_dashboards, allowed_features } = req.body
   if (!name || !label) {
     return res.status(400).json({ error: 'Nome e label obrigatorios' })
   }
@@ -191,9 +243,13 @@ router.post('/profiles', async (req, res) => {
   }
   try {
     const result = await pool.query(
-      'INSERT INTO profiles (name, label, allowed_dashboards) VALUES ($1, $2, $3) RETURNING *',
-      [name, label, allowed_dashboards || []]
+      'INSERT INTO profiles (name, label, allowed_dashboards, allowed_features) VALUES ($1, $2, $3, $4::jsonb) RETURNING *',
+      [name, label, allowed_dashboards || [], JSON.stringify(allowed_features || [])]
     )
+    try {
+      const { invalidateFeaturesCache } = await import('./torre-controle.js')
+      if (typeof invalidateFeaturesCache === 'function') invalidateFeaturesCache()
+    } catch { /* opcional */ }
     res.status(201).json({ profile: result.rows[0] })
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'Perfil ja existe' })
@@ -205,13 +261,25 @@ router.post('/profiles', async (req, res) => {
 // PUT /api/admin/profiles/:name — Editar perfil
 router.put('/profiles/:name', async (req, res) => {
   const { name } = req.params
-  const { label, allowed_dashboards } = req.body
+  const { label, allowed_dashboards, allowed_features } = req.body
+  // Perfis padrao (admin/board/operacao) nao podem ter name/label/permissoes alteradas
+  // via PUT — so por migration. DELETE ja tem a mesma protecao (linha ~303).
+  if (['admin', 'board', 'operacao'].includes(name)) {
+    return res.status(403).json({ error: 'Perfis padrao nao podem ser editados' })
+  }
+  if (label !== undefined && !String(label).trim()) {
+    return res.status(400).json({ error: 'Label nao pode ser vazio' })
+  }
   try {
     const sets = []
     const values = []
     let idx = 1
     if (label !== undefined) { sets.push(`label = $${idx++}`); values.push(label) }
     if (allowed_dashboards !== undefined) { sets.push(`allowed_dashboards = $${idx++}`); values.push(allowed_dashboards) }
+    if (allowed_features !== undefined) {
+      sets.push(`allowed_features = $${idx++}::jsonb`)
+      values.push(JSON.stringify(allowed_features))
+    }
     if (sets.length === 0) return res.status(400).json({ error: 'Nenhum campo para atualizar' })
     sets.push('updated_at = NOW()')
     values.push(name)
@@ -220,11 +288,33 @@ router.put('/profiles/:name', async (req, res) => {
       values
     )
     if (result.rows.length === 0) return res.status(404).json({ error: 'Perfil nao encontrado' })
+    // Invalida cache de features em torre-controle.js para refletir mudanca imediatamente
+    try {
+      const { invalidateFeaturesCache } = await import('./torre-controle.js')
+      if (typeof invalidateFeaturesCache === 'function') invalidateFeaturesCache()
+    } catch { /* opcional: se nao existir, segue */ }
     res.json({ profile: result.rows[0] })
   } catch (err) {
     console.error(`[${new Date().toISOString()}] Admin update profile error:`, err.message)
-    res.status(500).json({ error: 'Erro ao atualizar perfil' })
+    // Expoe detalhe do DB quando e erro de constraint/coluna — ajuda a diagnosticar
+    // migrations faltantes (ex: 019_profiles_allowed_features) sem precisar de logs.
+    const detail = err.code ? ` (${err.code}: ${err.message})` : ''
+    res.status(500).json({ error: 'Erro ao atualizar perfil' + detail })
   }
+})
+
+// GET /api/admin/features-list — Catalogo de feature flags que podem ser liberadas por perfil.
+// Fonte unica da verdade: adicionar nova feature aqui e referenciar pelo id no frontend.
+router.get('/features-list', (req, res) => {
+  res.json({
+    features: [
+      {
+        id: 'tc_painel_geral',
+        label: 'Painel Geral — Torre de Controle',
+        description: 'Libera a visao agregada (KPIs, tabs Distribuicao/Churn/Oportunidades/Accounts) no dashboard Torre de Controle.'
+      }
+    ]
+  })
 })
 
 // DELETE /api/admin/profiles/:name — Deletar perfil
@@ -241,6 +331,10 @@ router.delete('/profiles/:name', async (req, res) => {
     }
     const result = await pool.query('DELETE FROM profiles WHERE name = $1 RETURNING name', [name])
     if (result.rows.length === 0) return res.status(404).json({ error: 'Perfil nao encontrado' })
+    try {
+      const { invalidateFeaturesCache } = await import('./torre-controle.js')
+      if (typeof invalidateFeaturesCache === 'function') invalidateFeaturesCache()
+    } catch { /* opcional */ }
     res.json({ message: 'Perfil deletado', name })
   } catch (err) {
     console.error(`[${new Date().toISOString()}] Admin delete profile error:`, err.message)
@@ -257,6 +351,22 @@ router.post('/users/bulk', async (req, res) => {
     return res.status(400).json({ error: 'Acao e lista de IDs obrigatorios' })
   }
   try {
+    // Gate comum para deactivate/delete: se algum dos alvos e protegido (admin ou
+    // admin-owner pelo email), somente o owner pode executar. Mesma logica aplicada
+    // a set-role, so que espelhada para acoes destrutivas.
+    if (action === 'deactivate' || action === 'delete') {
+      const { rows: protectedRows } = await pool.query(
+        `SELECT id FROM users WHERE id = ANY($1)
+          AND (role = 'admin' OR LOWER(email) = $2)`,
+        [userIds, ADMIN_OWNER_EMAIL]
+      )
+      if (protectedRows.length > 0 && !requireAdminOwner(req.session)) {
+        return res.status(403).json({
+          error: 'Alguns usuarios selecionados sao administradores — somente o admin-owner pode desativar/deletar'
+        })
+      }
+    }
+
     let result
     switch (action) {
       case 'activate':
@@ -327,6 +437,7 @@ router.get('/ai-provider', async (req, res) => {
       },
       providers: Object.keys(PROVIDER_DEFAULTS),
       defaults: PROVIDER_DEFAULTS,
+      catalog: PROVIDER_CATALOG,
       is_owner: requireAdminOwner(req.session)
     })
   } catch (err) {
@@ -380,8 +491,25 @@ router.put('/ai-provider', async (req, res) => {
       values
     )
     invalidateProviderCache()
+    // Retorna o MESMO shape do GET (inclui notes, updated_at, updated_by_name/email) —
+    // sem isso, o front ficava "travado" pos-save esperando campos que nunca vinham
+    // e so atualizava ao sair/voltar da pagina. Ver bug reportado em 2026-04-20.
     const updated = await getActiveProviderConfig()
-    res.json({ config: updated })
+    const { rows: [meta] } = await pool.query(
+      `SELECT c.notes, c.updated_at, u.name AS updated_by_name, u.email AS updated_by_email
+       FROM tc_ai_provider_config c
+       LEFT JOIN users u ON u.id = c.updated_by
+       WHERE c.id = 1`
+    ).catch(() => ({ rows: [] }))
+    res.json({
+      config: {
+        ...updated,
+        notes: meta?.notes || null,
+        updated_at: meta?.updated_at || null,
+        updated_by_name: meta?.updated_by_name || null,
+        updated_by_email: meta?.updated_by_email || null
+      }
+    })
   } catch (err) {
     console.error(`[${new Date().toISOString()}] Admin update ai-provider error:`, err.message)
     res.status(500).json({ error: 'Erro ao atualizar configuracao de IA' })

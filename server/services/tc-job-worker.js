@@ -114,13 +114,29 @@ async function processJob(job) {
       [proxima, JSON.stringify({ ultimo_erro: err.message }), job.id]
     )
 
-    // Persiste ultima_falha na fase para banner inline no SuperPainel
+    // Persiste ultima_falha na fase para banner inline no SuperPainel.
+    // Sanitiza a mensagem: nunca expor API keys, stack traces, constraints SQL ou vars de ambiente.
     if (projetoFaseId && (job.tipo === 'analyze_phase' || job.tipo === 'analyze_final')) {
+      const rawMsg = String(err?.message || err || '').toLowerCase()
+      let friendlyMsg = 'Falha na análise — tente novamente'
+      if (rawMsg.includes('api_key') || rawMsg.includes('openrouter') || rawMsg.includes('not configured')) {
+        friendlyMsg = 'Serviço de IA indisponível no momento'
+      } else if (rawMsg.includes('null value') || rawMsg.includes('constraint') || rawMsg.includes('violates')) {
+        friendlyMsg = 'A IA retornou dados incompletos — nova tentativa costuma resolver'
+      } else if (rawMsg.includes('timeout') || rawMsg.includes('timed out')) {
+        friendlyMsg = 'Tempo esgotado na análise — tente novamente'
+      } else if (rawMsg.includes('403') || rawMsg.includes('forbidden') || rawMsg.includes('permission')) {
+        friendlyMsg = 'Sem permissão para acessar algum arquivo dos materiais'
+      } else if (rawMsg.includes('404') || rawMsg.includes('not found')) {
+        friendlyMsg = 'Algum material não foi encontrado no link informado'
+      } else if (/50[0-9]/.test(rawMsg)) {
+        friendlyMsg = 'Falha temporária ao ler os materiais'
+      }
       await pool.query(
         `UPDATE dashboards_hub.tc_projeto_fases
          SET ultima_falha_em = NOW(), ultima_falha_msg = $1
          WHERE id = $2`,
-        [String(err.message || err).slice(0, 1000), projetoFaseId]
+        [friendlyMsg, projetoFaseId]
       ).catch(() => {})
     }
   }

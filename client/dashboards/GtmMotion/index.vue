@@ -170,35 +170,39 @@
 
     <!-- Filters + KPI Layout Toggle -->
     <div class="filters-bar">
-      <div class="filter-group">
-        <label class="filter-label">Canal</label>
-        <select class="filter-select" v-model="selectedChannel">
-          <option value="consolidado">Consolidado</option>
-          <option v-for="canal in channelOptions" :key="canal.id" :value="canal.id">
-            {{ canal.label }}
-          </option>
-        </select>
+      <VSelect
+        label="Canal"
+        :options="channelSelectOptions"
+        v-model="selectedChannel"
+        all-value="consolidado"
+        placeholder="Consolidado"
+      />
+      <div :class="{ 'filter-hide': tableDrilldown === 'closer' }">
+        <VSelect
+          label="Closer"
+          :options="closerSelectOptions"
+          v-model="selectedCloser"
+          all-value="todos"
+          placeholder="Todos"
+        />
       </div>
-      <div class="filter-group" :class="{ 'filter-hide': tableDrilldown === 'closer' }">
-        <label class="filter-label">Closer</label>
-        <select class="filter-select" v-model="selectedCloser">
-          <option value="todos">Todos</option>
-          <option v-for="c in closerOptions" :key="c" :value="c">{{ c }}</option>
-        </select>
+      <div :class="{ 'filter-hide': tableDrilldown === 'sdr' }">
+        <VSelect
+          label="SDR"
+          :options="sdrSelectOptions"
+          v-model="selectedSdr"
+          all-value="todos"
+          placeholder="Todos"
+        />
       </div>
-      <div class="filter-group" :class="{ 'filter-hide': tableDrilldown === 'sdr' }">
-        <label class="filter-label">SDR</label>
-        <select class="filter-select" v-model="selectedSdr">
-          <option value="todos">Todos</option>
-          <option v-for="s in sdrOptions" :key="s" :value="s">{{ s }}</option>
-        </select>
-      </div>
-      <div class="filter-group" :class="{ 'filter-hide': tableDrilldown === 'step' }">
-        <label class="filter-label">Step</label>
-        <select class="filter-select" v-model="selectedStep">
-          <option value="todos">Todos</option>
-          <option v-for="s in stepOptions" :key="s" :value="s">{{ s }}</option>
-        </select>
+      <div :class="{ 'filter-hide': tableDrilldown === 'step' }">
+        <VSelect
+          label="Step"
+          :options="stepSelectOptions"
+          v-model="selectedStep"
+          all-value="todos"
+          placeholder="Todos"
+        />
       </div>
     </div>
 
@@ -206,6 +210,16 @@
     <div v-if="error && !resolvedData" class="error-message">
       <i data-lucide="alert-circle"></i>
       <span>{{ error }}</span>
+    </div>
+
+    <!-- Staleness banner: workflow n8n parado ha 3+ dias -->
+    <div v-if="isDataStale" class="staleness-banner">
+      <i data-lucide="alert-triangle" class="staleness-icon"></i>
+      <div class="staleness-content">
+        <strong>Dados desatualizados.</strong>
+        Ultima execucao do workflow n8n: {{ sourceLastUpdatedLabel }} ({{ dataStalenessDays }} dia{{ dataStalenessDays === 1 ? '' : 's' }} atras).
+        Clique em <em>Atualizar</em> ou verifique o workflow GTM Motion no n8n.
+      </div>
     </div>
 
     <!-- BowTie Model (oculto em produção) -->
@@ -495,6 +509,7 @@ import { useDashboardData } from '../../composables/useDashboardData.js'
 import { formatNumber, formatCurrency, formatCurrencyAbbrev, formatDateTime } from '../../composables/useFormatters.js'
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
 import VConfirmModal from '../../components/ui/VConfirmModal.vue'
+import VSelect from '../../components/ui/VSelect.vue'
 import GtmScorecard from './components/GtmScorecard.vue'
 import GtmFunnelTable from './components/GtmFunnelTable.vue'
 import VToggleGroup from '../../components/ui/VToggleGroup.vue'
@@ -1607,6 +1622,25 @@ const resolvedData = computed(() => {
   return null
 })
 
+// Data freshness — le last_updated do payload e calcula quantos dias atras foi a ultima atualizacao do workflow n8n.
+const sourceLastUpdated = computed(() => {
+  const raw = Array.isArray(data.value) ? data.value[0]?.data?.last_updated : null
+  return raw ? new Date(raw) : null
+})
+
+const dataStalenessDays = computed(() => {
+  if (!sourceLastUpdated.value) return null
+  const ms = Date.now() - sourceLastUpdated.value.getTime()
+  return Math.floor(ms / (1000 * 60 * 60 * 24))
+})
+
+const isDataStale = computed(() => dataStalenessDays.value !== null && dataStalenessDays.value >= 3)
+
+const sourceLastUpdatedLabel = computed(() => {
+  if (!sourceLastUpdated.value) return ''
+  return formatDateTime(sourceLastUpdated.value.toISOString())
+})
+
 // Comparison period data
 const comparisonData = computed(() => {
   if (!data.value) return null
@@ -1622,6 +1656,24 @@ const channelOptions = computed(() => {
   if (!source?.channels) return []
   return Object.keys(source.channels).map(id => ({ id, label: id }))
 })
+
+// VSelect-friendly options (com "Consolidado"/"Todos" no topo)
+const channelSelectOptions = computed(() => [
+  { value: 'consolidado', label: 'Consolidado' },
+  ...channelOptions.value.map(c => ({ value: c.id, label: c.label }))
+])
+const closerSelectOptions = computed(() => [
+  { value: 'todos', label: 'Todos' },
+  ...closerOptions.value.map(v => ({ value: v, label: v }))
+])
+const sdrSelectOptions = computed(() => [
+  { value: 'todos', label: 'Todos' },
+  ...sdrOptions.value.map(v => ({ value: v, label: v }))
+])
+const stepSelectOptions = computed(() => [
+  { value: 'todos', label: 'Todos' },
+  ...stepOptions.value.map(v => ({ value: v, label: v }))
+])
 
 const activeChannelIds = computed(() => {
   if (!isConsolidado.value) return [selectedChannel.value]
@@ -2308,6 +2360,40 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Staleness banner — workflow n8n parado ha 3+ dias */
+.staleness-banner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 16px;
+  margin: 12px 0;
+  background: rgba(250, 204, 21, 0.08);
+  border: 1px solid rgba(250, 204, 21, 0.4);
+  border-left: 3px solid #facc15;
+  border-radius: 6px;
+  color: #facc15;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.staleness-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+}
+.staleness-content {
+  color: #e5c100;
+}
+.staleness-content strong {
+  color: #facc15;
+  margin-right: 4px;
+}
+.staleness-content em {
+  font-style: normal;
+  font-weight: 500;
+  color: #fff;
+}
+
 .header-title {
   display: flex;
   align-items: center;

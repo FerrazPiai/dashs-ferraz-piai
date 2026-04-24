@@ -204,22 +204,25 @@ Cada dashboard em `config/dashboards.json` pode ter:
 
 A API retorna `[{ data: [...rows] }]` com uma linha por cliente/mês. O frontend agrega em métricas por squad.
 
-**Formato atual dos campos (API via N8N → banco de dados):**
+**Formato atual dos campos (API via N8N — verificado em 2026-04-24):**
 
 | Campo | Tipo | Observação |
 |---|---|---|
-| `Mes` | ISO date string (`2026-01-01T00:00:00.000Z`) | Sem acento, sem hora local |
-| `Squad` | string | Normalizado via `SQUAD_ALIASES` |
+| `Mês` | string `dd/mm/yyyy` (ex: `"01/04/2026"`) | Com acento, dia sempre `01` |
+| `Squad` | string | Normalizado via `SQUAD_ALIASES` (case-insensitive). Pode vir vazio. |
 | `Coordenador` | string | |
 | `Status` | string | Ex: `"Recorrência Ativa"` |
-| `Receita_Recorrente` | `"R$ 0,00"` | MRR do cliente |
-| `Revenue_Churn` | `"R$ 0,00"` | Churn direto (0 se ativo) |
-| `Isencao` | `"R$ 0,00"` | Sem acento |
-| `Monetizacao_Recorrente` | `"R$ 0,00"` | Sem acento |
-| `Atribuicao_One_Time__Bookado` | `"R$ 0,00"` | Duplo underscore |
-| `Monetizacao_Variavel` | `"R$ 0,00"` | Sem acento |
+| `Receita Recorrente` | number (ex: `6634.23`) | MRR do cliente |
+| `Revenue Churn` | number | Churn direto (0 se ativo) |
+| `Isenção` | number | Com acento |
+| `Monetização Recorrente` | number | Com acento |
+| `Monetização One Time` | number | Com acento |
+| `Atribuição One Time / Bookado` | number | Com acento, espaço e `/` |
+| `Monetização Variável` | number | Com acento |
 
-**Atenção:** O `parseMonth` e `rawRows` em `FechamentoMensal/index.vue` suportam tanto o formato ISO quanto o legado `dd/mm/yyyy` para retrocompatibilidade. Dados históricos de 2025 são hardcoded em `historico-2025.js` (não vêm da API).
+**Atenção:** O `parseMonth` e `parseCurrency` em `FechamentoMensal/index.vue` são defensivos — aceitam o formato atual (com espaços/acentos, valores numéricos) e também variações legadas (ISO, underscores, `"R$ 0,00"`). Se a fonte mudar de novo, o dashboard não quebra. Dados históricos de 2025 são hardcoded em `historico-2025.js` (não vêm da API).
+
+**Observação de dados:** A API pode retornar Squad como `"V4X"` e `"V4x"` em linhas diferentes — `SQUAD_ALIASES` normaliza via regex `/v4\s*x/i`. Linhas com Squad vazio (`""`) são descartadas por `normalizeSquad`.
 
 ## GTM Motion — Estrutura de Dados
 

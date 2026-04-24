@@ -12,8 +12,56 @@
 
     <nav class="sidebar-nav">
       <ul class="sidebar-nav-list">
+        <li class="sidebar-nav-item">
+          <router-link
+            to="/"
+            class="sidebar-nav-link sidebar-nav-link--home"
+            active-class="active"
+            :title="collapsed ? 'Início' : undefined"
+          >
+            <i data-lucide="home" class="sidebar-nav-icon"></i>
+            <span class="sidebar-label">Início</span>
+          </router-link>
+        </li>
+      </ul>
+
+      <div
+        v-for="cat in visibleCategories"
+        :key="cat.id"
+        class="sidebar-section"
+      >
+        <div class="sidebar-section-label">
+          <span class="sidebar-label">{{ cat.label }}</span>
+          <span class="sidebar-section-divider" aria-hidden="true"></span>
+        </div>
+        <ul class="sidebar-nav-list">
+          <li
+            v-for="dashboard in groupedDashboards[cat.id]"
+            :key="dashboard.id"
+            class="sidebar-nav-item"
+          >
+            <router-link
+              :to="`/${dashboard.id}`"
+              class="sidebar-nav-link"
+              active-class="active"
+              :title="collapsed ? dashboard.title : undefined"
+            >
+              <i :data-lucide="dashboard.icon" class="sidebar-nav-icon"></i>
+              <span class="sidebar-label">{{ dashboard.title }}</span>
+              <span
+                v-if="dashboard.status"
+                class="status-dot"
+                :class="`status-dot--${dashboard.status}`"
+                :title="statusLabel(dashboard.status)"
+              ></span>
+            </router-link>
+          </li>
+        </ul>
+      </div>
+
+      <ul v-if="uncategorizedDashboards.length > 0" class="sidebar-nav-list sidebar-nav-list--uncategorized">
         <li
-          v-for="dashboard in dashboards"
+          v-for="dashboard in uncategorizedDashboards"
           :key="dashboard.id"
           class="sidebar-nav-item"
         >
@@ -72,7 +120,7 @@ import { computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth.js'
 
-defineProps({
+const props = defineProps({
   dashboards: {
     type: Array,
     required: true
@@ -88,6 +136,30 @@ defineEmits(['toggle'])
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+
+const CATEGORIES = [
+  { id: 'revenue', label: 'Revenue' },
+  { id: 'financeiro', label: 'Financeiro' },
+  { id: 'operacao', label: 'Operação' }
+]
+
+const groupedDashboards = computed(() => {
+  const groups = Object.fromEntries(CATEGORIES.map((c) => [c.id, []]))
+  for (const d of props.dashboards) {
+    if (d.category && groups[d.category]) {
+      groups[d.category].push(d)
+    }
+  }
+  return groups
+})
+
+const visibleCategories = computed(() =>
+  CATEGORIES.filter((c) => groupedDashboards.value[c.id].length > 0)
+)
+
+const uncategorizedDashboards = computed(() =>
+  props.dashboards.filter((d) => !d.category || !CATEGORIES.some((c) => c.id === d.category))
+)
 
 const isAdmin = computed(() => auth.isAdmin)
 const userName = computed(() => auth.user?.name || 'Usuário')
@@ -193,6 +265,63 @@ watch(
   box-shadow: 0 0 6px rgba(239, 68, 68, 0.6);
 }
 
+/* === Categorias e polimento visual === */
+
+.sidebar-section {
+  margin-top: 18px;
+}
+
+.sidebar-section-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 var(--spacing-lg, 20px);
+  margin-bottom: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-lowest, #666);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar-section-divider {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.08), transparent);
+}
+
+.sidebar.collapsed .sidebar-section {
+  margin-top: 12px;
+  position: relative;
+}
+
+.sidebar.collapsed .sidebar-section-label {
+  padding: 0;
+  height: 1px;
+  margin: 0 10px 6px;
+}
+
+.sidebar.collapsed .sidebar-section-label .sidebar-label {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-section-divider {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sidebar-nav-list--uncategorized {
+  margin-top: 18px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Home link — destaque sutil com icone em primary */
+.sidebar-nav-link--home.active .sidebar-nav-icon {
+  color: var(--color-primary, #ff0000);
+}
+
 /* === Sidebar Footer === */
 
 .sidebar-footer {
@@ -217,7 +346,10 @@ watch(
 
 .sidebar.collapsed .sidebar-admin-link {
   justify-content: center;
-  padding: 9px 0;
+  padding: var(--spacing-sm) 0;
+  gap: 0;
+  border-radius: 0;
+  margin: 0 -8px 6px;
 }
 
 .sidebar-admin-link:hover {

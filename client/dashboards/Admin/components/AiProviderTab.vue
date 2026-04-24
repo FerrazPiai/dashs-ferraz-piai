@@ -27,7 +27,16 @@
 
     <div v-if="loading" class="loading">Carregando configuracao...</div>
 
-    <div v-else class="grid">
+    <template v-else>
+      <div v-if="catalogEmpty" class="warn-banner">
+        <i data-lucide="refresh-cw" class="wb-icon"></i>
+        <div>
+          <strong>Catalogo de modelos nao carregou.</strong>
+          <p>Reinicie o servidor Express (<code>npm run dev</code>) para que a API exponha os modelos curados. Ate la, a lista fica vazia e so o modo "Outro" funciona.</p>
+        </div>
+      </div>
+
+      <div class="grid">
       <section class="panel">
         <h3 class="ph">Provedor</h3>
         <div class="fg">
@@ -48,19 +57,71 @@
 
         <div class="fg">
           <label class="fl">Modelo — Analise (principal)</label>
-          <input v-model="form.model_analysis" class="fi" :disabled="!isOwner" placeholder="ex: deepseek/deepseek-v3.2-exp" />
-          <small class="fh">Modelo pesado — le materiais + RAG + produz JSON estruturado.</small>
+          <select
+            :value="selectValueFor('analysis')"
+            @change="onModelSelectChange('analysis', $event.target.value)"
+            class="fi"
+            :disabled="!isOwner"
+          >
+            <option v-for="(m, i) in catalogFor('analysis')" :key="m.id" :value="m.id">
+              {{ i + 1 }}. {{ m.label }} {{ m.free ? '· GRATIS' : `— $${m.price_in}/$${m.price_out}` }} · {{ m.hint }}
+            </option>
+            <option value="__custom__">Outro (digitar manualmente)...</option>
+          </select>
+          <input
+            v-if="isCustomModel('analysis')"
+            v-model="form.model_analysis"
+            class="fi fi-mt"
+            :disabled="!isOwner"
+            placeholder="ex: provider/nome-do-modelo"
+          />
+          <small class="fh">Modelo pesado — le materiais + RAG + produz JSON estruturado. Selecionar aqui preenche os precos automaticamente.</small>
         </div>
 
         <div class="fg">
           <label class="fl">Modelo — Nota Kommo (curta)</label>
-          <input v-model="form.model_note" class="fi" :disabled="!isOwner" placeholder="ex: deepseek/deepseek-v3.2-exp" />
-          <small class="fh">Modelo barato para geracao da nota breve postada no Kommo.</small>
+          <select
+            :value="selectValueFor('note')"
+            @change="onModelSelectChange('note', $event.target.value)"
+            class="fi"
+            :disabled="!isOwner"
+          >
+            <option v-for="(m, i) in catalogFor('note')" :key="m.id" :value="m.id">
+              {{ i + 1 }}. {{ m.label }} {{ m.free ? '· GRATIS' : `— $${m.price_in}/$${m.price_out}` }} · {{ m.hint }}
+            </option>
+            <option value="__custom__">Outro (digitar manualmente)...</option>
+          </select>
+          <input
+            v-if="isCustomModel('note')"
+            v-model="form.model_note"
+            class="fi fi-mt"
+            :disabled="!isOwner"
+            placeholder="ex: provider/nome-do-modelo"
+          />
+          <small class="fh">Modelo para geracao da nota breve postada no Kommo.</small>
         </div>
 
         <div class="fg">
           <label class="fl">Modelo — Coordenador (opcional)</label>
-          <input v-model="form.model_coordinator" class="fi" :disabled="!isOwner" placeholder="Vazio = usa modelo de analise" />
+          <select
+            :value="selectValueFor('coordinator')"
+            @change="onModelSelectChange('coordinator', $event.target.value)"
+            class="fi"
+            :disabled="!isOwner"
+          >
+            <option value="__none__">— Usar modelo de analise —</option>
+            <option v-for="(m, i) in catalogFor('coordinator')" :key="m.id" :value="m.id">
+              {{ i + 1 }}. {{ m.label }} {{ m.free ? '· GRATIS' : `— $${m.price_in}/$${m.price_out}` }} · {{ m.hint }}
+            </option>
+            <option value="__custom__">Outro (digitar manualmente)...</option>
+          </select>
+          <input
+            v-if="isCustomModel('coordinator')"
+            v-model="form.model_coordinator"
+            class="fi fi-mt"
+            :disabled="!isOwner"
+            placeholder="ex: provider/nome-do-modelo"
+          />
           <small class="fh">Usado para analise semanal de colaboradores e tarefas de orquestracao.</small>
         </div>
       </section>
@@ -129,7 +190,8 @@
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </template>
 
     <p v-if="saveError" class="err-msg">{{ saveError }}</p>
   </div>
@@ -147,6 +209,7 @@ const isOwner = computed(() => String(auth.user?.email || '').toLowerCase() === 
 const current = ref(null)
 const providers = ref([])
 const defaults = ref({})
+const catalog = ref({})
 const loading = ref(true)
 const saving = ref(false)
 const testing = ref(false)
@@ -172,6 +235,66 @@ function labelProvider(p) {
   return p
 }
 
+// Catalogo curado por provider/campo — populado via GET /api/admin/ai-provider
+// Shape: catalog[provider][field] = [{ id, label, price_in, price_out, hint, free? }]
+function catalogFor(fieldKey) {
+  const perProvider = catalog.value?.[form.provider]
+  if (!perProvider || Array.isArray(perProvider)) return [] // shape antiga => forca restart
+  return perProvider[fieldKey] || []
+}
+
+// Flag para exibir aviso quando o catalogo nao chegou (servidor nao reiniciou apos update).
+const catalogEmpty = computed(() => catalogFor('analysis').length === 0)
+
+function getFormField(fieldKey) {
+  return fieldKey === 'analysis'    ? form.model_analysis
+       : fieldKey === 'note'        ? form.model_note
+       : fieldKey === 'coordinator' ? form.model_coordinator
+       : ''
+}
+
+// Valor atual a ser exibido no <select>. Considera sentinela __none__ (coordenador vazio)
+// e __custom__ (modelo fora do catalogo).
+function selectValueFor(fieldKey) {
+  const val = getFormField(fieldKey)
+  if (!val) return fieldKey === 'coordinator' ? '__none__' : ''
+  const inCatalog = catalogFor(fieldKey).some(m => m.id === val)
+  return inCatalog ? val : '__custom__'
+}
+
+// True quando valor atual nao esta no catalogo do campo → input manual aparece
+function isCustomModel(fieldKey) {
+  const val = getFormField(fieldKey)
+  if (!val) return false
+  return !catalogFor(fieldKey).some(m => m.id === val)
+}
+
+// Handler unico para os 3 selects (analysis/note/coordinator).
+// Auto-preenche precos quando o modelo selecionado e o de analise (cost-preview reage).
+function onModelSelectChange(fieldKey, value) {
+  const target =
+    fieldKey === 'analysis'    ? 'model_analysis' :
+    fieldKey === 'note'        ? 'model_note'     :
+    fieldKey === 'coordinator' ? 'model_coordinator' : null
+  if (!target) return
+
+  if (value === '__none__' || value === '__custom__') {
+    form[target] = '' // __custom__: limpa pra user digitar no input que aparece
+    return
+  }
+
+  form[target] = value
+
+  // Preco no DB reflete o modelo de analise (calculo em tc-analyzer.js)
+  if (fieldKey === 'analysis') {
+    const m = catalogFor('analysis').find(x => x.id === value)
+    if (m) {
+      form.price_in_per_mtok  = Number(m.price_in)  || 0
+      form.price_out_per_mtok = Number(m.price_out) || 0
+    }
+  }
+}
+
 function syncForm(cfg) {
   form.provider           = cfg.provider || 'openai'
   form.model_analysis     = cfg.model_analysis || ''
@@ -192,6 +315,7 @@ async function load() {
     current.value = data.config
     providers.value = data.providers || []
     defaults.value = data.defaults || {}
+    catalog.value = data.catalog || {}
     syncForm(data.config)
   } catch (err) {
     saveError.value = 'Erro carregando config: ' + err.message
@@ -203,13 +327,25 @@ async function load() {
 }
 
 function onProviderChange() {
-  const d = defaults.value[form.provider]
-  if (!d) return
-  // Auto-preenche modelos/precos com defaults do provider escolhido (mas so sugere — user pode sobrepor)
-  form.model_analysis     = d.model_analysis || ''
-  form.model_note         = d.model_note || ''
-  form.price_in_per_mtok  = Number(d.price_in_per_mtok) || 0
-  form.price_out_per_mtok = Number(d.price_out_per_mtok) || 0
+  // Ao trocar provider, auto-seleciona o melhor modelo (posicao 1 do catalogo) em cada campo,
+  // sincroniza precos com o modelo de analise. User pode sobrepor em seguida.
+  const analysis = catalogFor('analysis')[0]
+  const note     = catalogFor('note')[0]
+  const coord    = catalogFor('coordinator')[0]
+  form.model_analysis     = analysis?.id || ''
+  form.model_note         = note?.id || ''
+  form.model_coordinator  = coord?.id || ''
+  if (analysis) {
+    form.price_in_per_mtok  = Number(analysis.price_in)  || 0
+    form.price_out_per_mtok = Number(analysis.price_out) || 0
+  } else {
+    // Fallback: usa defaults antigos se catalogo nao carregou
+    const d = defaults.value[form.provider]
+    if (d) {
+      form.price_in_per_mtok  = Number(d.price_in_per_mtok) || 0
+      form.price_out_per_mtok = Number(d.price_out_per_mtok) || 0
+    }
+  }
 }
 
 function estimateCost(tokensIn, tokensOut) {
@@ -308,6 +444,19 @@ onMounted(load)
   padding: 20px;
 }
 .panel-wide { grid-column: 1 / -1; }
+
+.warn-banner {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 16px; margin-bottom: 20px;
+  background: rgba(255,200,0,0.06);
+  border: 1px solid rgba(255,200,0,0.2);
+  border-left: 3px solid #ffcc00;
+  border-radius: 4px;
+}
+.wb-icon { width: 20px; height: 20px; color: #ffcc00; flex-shrink: 0; margin-top: 2px; }
+.warn-banner strong { color: #fff; font-size: 14px; display: block; }
+.warn-banner p { color: #aaa; font-size: 12px; margin: 2px 0 0; line-height: 1.5; }
+.warn-banner code { background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 2px; color: #ffcc00; font-family: ui-monospace, monospace; }
 .ph { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 14px; }
 .ph.mt { margin-top: 20px; }
 
@@ -318,6 +467,7 @@ onMounted(load)
 .fi:disabled { opacity: 0.5; cursor: not-allowed; }
 .fi option { background: #1a1a1a; color: #fff; }
 .fi-ta { resize: vertical; min-height: 70px; font-family: inherit; }
+.fi-mt { margin-top: 6px; }
 .fh { font-size: 11px; color: #777; line-height: 1.4; }
 .fh code { background: rgba(255,255,255,0.06); padding: 1px 5px; border-radius: 2px; color: #ff8888; font-size: 10px; }
 

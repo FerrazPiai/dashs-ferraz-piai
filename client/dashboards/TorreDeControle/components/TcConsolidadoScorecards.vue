@@ -112,28 +112,28 @@ watch(() => [avanco.value, qt.value, props.oportunidades.length], () => {
 }
 
 .sc-card {
-  background: var(--bg-card, #141414);
-  border: 1px solid var(--border-card, rgba(255, 255, 255, 0.06));
-  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
   padding: 16px 18px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   min-height: 124px;
-  transition: transform 160ms, border-color 160ms;
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
 }
 .sc-card:hover {
-  border-color: rgba(255, 255, 255, 0.12);
+  border-color: var(--border-input);
 }
 
 /* Tinge levemente o card de Avanco conforme tendencia */
 .sc-card--ascendente {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.06), transparent 60%);
-  border-color: rgba(34, 197, 94, 0.25);
+  background: linear-gradient(135deg, rgba(var(--color-safe-rgb), 0.06), transparent 60%);
+  border-color: rgba(var(--color-safe-rgb), 0.25);
 }
 .sc-card--descendente {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.06), transparent 60%);
-  border-color: rgba(239, 68, 68, 0.25);
+  background: linear-gradient(135deg, rgba(var(--color-danger-rgb), 0.06), transparent 60%);
+  border-color: rgba(var(--color-danger-rgb), 0.25);
 }
 
 .sc-head {
@@ -142,19 +142,19 @@ watch(() => [avanco.value, qt.value, props.oportunidades.length], () => {
   align-items: center;
 }
 .sc-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #888;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
 .sc-icon {
   width: 16px;
   height: 16px;
-  color: #666;
+  color: var(--text-lowest);
 }
-.sc-card--ascendente .sc-icon { color: #22c55e; }
-.sc-card--descendente .sc-icon { color: #ef4444; }
+.sc-card--ascendente .sc-icon { color: var(--color-safe); }
+.sc-card--descendente .sc-icon { color: var(--color-danger); }
 
 .sc-body {
   display: flex;
@@ -163,15 +163,15 @@ watch(() => [avanco.value, qt.value, props.oportunidades.length], () => {
 }
 .sc-value {
   font-size: 34px;
-  font-weight: 700;
-  color: #fff;
+  font-weight: var(--font-weight-bold);
+  color: var(--text-high);
   line-height: 1;
   letter-spacing: -0.5px;
 }
 .sc-value-sfx {
-  font-size: 13px;
-  color: #666;
-  font-weight: 400;
+  font-size: var(--font-size-md);
+  color: var(--text-lowest);
+  font-weight: var(--font-weight-normal);
 }
 
 .sc-foot {
@@ -182,32 +182,32 @@ watch(() => [avanco.value, qt.value, props.oportunidades.length], () => {
   min-height: 20px;
 }
 .sc-foot-muted {
-  font-size: 12px;
-  color: #888;
+  font-size: var(--font-size-base);
+  color: var(--text-muted);
 }
 .sc-delta {
-  font-size: 12px;
-  color: #888;
-  font-weight: 500;
+  font-size: var(--font-size-base);
+  color: var(--text-muted);
+  font-weight: var(--font-weight-medium);
 }
-.sc-delta--pos { color: #22c55e; }
-.sc-delta--neg { color: #ef4444; }
+.sc-delta--pos { color: var(--color-safe); }
+.sc-delta--neg { color: var(--color-danger); }
 
 .sc-chip {
-  font-size: 10.5px;
-  font-weight: 600;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   padding: 2px 8px;
   border-radius: 10px;
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
 .sc-chip--safe {
-  background: rgba(34, 197, 94, 0.15);
-  color: #22c55e;
+  background: rgba(var(--color-safe-rgb), 0.15);
+  color: var(--color-safe);
 }
 .sc-chip--heat {
-  background: rgba(255, 0, 0, 0.15);
-  color: #ff4444;
+  background: rgba(var(--color-primary-rgb), 0.15);
+  color: var(--color-primary);
 }
 
 @media (max-width: 900px) {

@@ -1,0 +1,123 @@
+- generic [ref=e48]:
+  - button "A" [ref=e50] [cursor=pointer]
+  - main [ref=e51]:
+    - generic [ref=e52]:
+      - heading "Central de Dashboards" [level=1] [ref=e53]
+      - paragraph [ref=e54]: 7 dashboards ativos · quinta, 23 abr
+    - generic [ref=e55]:
+      - heading "Revenue" [level=2] [ref=e57]
+      - generic [ref=e59]:
+        - article [ref=e60]:
+          - generic [ref=e61]:
+            - generic [ref=e62]:
+              - img [ref=e63]
+              - generic "Disponível" [ref=e66]
+            - generic [ref=e67]:
+              - heading "Conversão Saber → Ter/Executar" [level=3] [ref=e68]
+              - paragraph [ref=e69]: Taxa de conversão de Saber para Monetização
+          - generic:
+            - button "Abrir":
+              - generic: Abrir
+              - img
+            - button "Ver documentação":
+              - img
+              - generic: Ver documentação
+        - article [ref=e70]:
+          - generic [ref=e71]:
+            - generic [ref=e72]:
+              - img [ref=e73]
+              - generic "Disponível" [ref=e75]
+            - generic [ref=e76]:
+              - heading "GTM Motion" [level=3] [ref=e77]
+              - paragraph [ref=e78]: Funil de vendas por canal e tier
+          - generic:
+            - button "Abrir":
+              - generic: Abrir
+              - img
+            - button "Ver documentação":
+              - img
+              - generic: Ver documentação
+    - generic [ref=e79]:
+      - heading "Financeiro" [level=2] [ref=e81]
+      - generic [ref=e83]:
+        - article [ref=e84]:
+          - generic [ref=e85]:
+            - generic [ref=e86]:
+              - img [ref=e87]
+              - generic "Disponível" [ref=e91]
+            - generic [ref=e92]:
+              - heading "Raio-X Financeiro" [level=3] [ref=e93]
+              - paragraph [ref=e94]: Fluxo de caixa e indicadores executivos
+          - generic:
+            - button "Abrir":
+              - generic: Abrir
+              - img
+            - button "Ver documentação":
+              - img
+              - generic: Ver documentação
+        - article [ref=e95]:
+          - generic [ref=e96]:
+            - generic [ref=e97]:
+              - img [ref=e98]
+              - generic "Em desenvolvimento" [ref=e101]
+            - generic [ref=e102]:
+              - heading "Fechamento Financeiro — Squads" [level=3] [ref=e103]
+              - paragraph [ref=e104]: Fechamento financeiro mensal por squad
+          - generic:
+            - button "Abrir":
+              - generic: Abrir
+              - img
+            - button "Ver documentação":
+              - img
+              - generic: Ver documentação
+    - generic [ref=e105]:
+      - heading "Operação" [level=2] [ref=e107]
+      - generic [ref=e108]:
+        - generic [ref=e109]:
+          - article [ref=e110]:
+            - generic [ref=e111]:
+              - generic [ref=e112]:
+                - img [ref=e113]
+                - generic "Disponível" [ref=e116]
+              - generic [ref=e117]:
+                - heading "NPS Satisfação" [level=3] [ref=e118]
+                - paragraph [ref=e119]: Índice NPS e satisfação de clientes
+            - generic:
+              - button "Abrir":
+                - generic: Abrir
+                - img
+              - button "Ver documentação":
+                - img
+                - generic: Ver documentação
+          - article [ref=e120]:
+            - generic [ref=e121]:
+              - generic [ref=e122]:
+                - img [ref=e123]
+                - generic "Disponível" [ref=e127]
+              - generic [ref=e128]:
+                - heading "Torre de Controle" [level=3] [ref=e129]
+                - paragraph [ref=e130]: Saúde operacional e oportunidades por cliente
+            - generic:
+              - button "Abrir":
+                - generic: Abrir
+                - img
+              - button "Ver documentação":
+                - img
+                - generic: Ver documentação
+          - article [ref=e131]:
+            - generic [ref=e132]:
+              - generic [ref=e133]:
+                - img [ref=e134]
+                - generic "Disponível" [ref=e139]
+              - generic [ref=e140]:
+                - heading "Comparativo Squads" [level=3] [ref=e141]
+                - paragraph [ref=e142]: Comparativo financeiro e operacional entre squads
+            - generic:
+              - button "Abrir":
+                - generic: Abrir
+                - img
+              - button "Ver documentação":
+                - img
+                - generic: Ver documentação
+        - button "Rolar para a direita" [ref=e143] [cursor=pointer]:
+          - img [ref=e144]

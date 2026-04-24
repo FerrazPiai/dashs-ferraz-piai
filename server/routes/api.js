@@ -137,9 +137,17 @@ router.get('/data/:dashboardId', async (req, res, next) => {
       })
     }
 
-    // Check if API endpoint is configured
-    const apiEndpoint = process.env[dashboard.apiEndpoint]
+    // Dashboard pode não usar a rota genérica /api/data/:id (ex: Torre de Controle usa /api/tc/*)
+    if (!dashboard.apiEndpoint) {
+      return res.status(404).json({
+        error: {
+          message: `Dashboard '${dashboardId}' não usa a rota de dados genérica`,
+          status: 404
+        }
+      })
+    }
 
+    const apiEndpoint = process.env[dashboard.apiEndpoint]
     if (!apiEndpoint) {
       return res.status(500).json({
         error: {
@@ -418,7 +426,16 @@ router.get('/dashboards', async (req, res, next) => {
     const filtered = []
     for (const d of dashboards) {
       if (!d.hidden && (await canAccessDashboard(d, userRole))) {
-        filtered.push({ id: d.id, title: d.title, icon: d.icon, status: d.status, statusMessage: d.statusMessage })
+        filtered.push({
+          id: d.id,
+          title: d.title,
+          icon: d.icon,
+          status: d.status,
+          statusMessage: d.statusMessage,
+          category: d.category || null,
+          shortDescription: d.shortDescription || '',
+          docs: d.docs || null
+        })
       }
     }
 
