@@ -57,7 +57,8 @@ const editProfile = ref(null)
 const dashboards = ref([])
 const userCounts = ref({})
 
-function isDefault(name) { return ['admin', 'board', 'operacao'].includes(name) }
+// Apenas 'admin' e imutavel. board/operacao vem pre-configurados mas sao editaveis/deletaveis.
+function isDefault(name) { return name === 'admin' }
 
 function dashLabel(id) {
   const d = dashboards.value.find(x => x.id === id)
