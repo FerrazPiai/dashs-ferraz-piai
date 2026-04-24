@@ -119,7 +119,9 @@
     "workflowId": "k13lPwqDqCfQoD8p",
     "cacheTTL": 300000,
     "status": "available",
-    "allowedRoles": ["board", "operacao"]
+    "allowedRoles": ["board", "operacao"],
+    "category": "financeiro",
+    "shortDescription": "Comparativo financeiro e operacional entre squads"
   },
   {
     "id": "fechamento-financeiro-squads",
@@ -130,6 +132,8 @@
     "cacheTTL": 300000,
     "status": "development",
     "statusMessage": "Este dashboard está em desenvolvimento. Os dados serão integrados com o ERP em breve.",
-    "allowedRoles": ["board"]
+    "allowedRoles": ["board"],
+    "category": "financeiro",
+    "shortDescription": "Fechamento financeiro mensal por squad"
   }
 ]
