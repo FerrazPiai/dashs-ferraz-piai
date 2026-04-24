@@ -119,14 +119,7 @@
     "workflowId": "k13lPwqDqCfQoD8p",
     "cacheTTL": 300000,
     "status": "available",
-    "allowedRoles": ["board", "operacao"],
-    "category": "operacao",
-    "shortDescription": "Comparativo financeiro e operacional entre squads",
-    "docs": {
-      "whatItShows": "Agregação por squad com métricas de receita recorrente, churn, isenção, monetização recorrente e variável. Comparação mensal entre squads e coordenadores.",
-      "keyMetrics": ["Receita Recorrente", "Revenue Churn", "Monetização Recorrente", "Monetização Variável", "Isenção"],
-      "whenToUse": "Comparar performance entre squads, identificar outliers de churn e tendências por coordenador."
-    }
+    "allowedRoles": ["board", "operacao"]
   },
   {
     "id": "fechamento-financeiro-squads",
@@ -137,13 +130,6 @@
     "cacheTTL": 300000,
     "status": "development",
     "statusMessage": "Este dashboard está em desenvolvimento. Os dados serão integrados com o ERP em breve.",
-    "allowedRoles": ["board"],
-    "category": "financeiro",
-    "shortDescription": "Fechamento financeiro mensal por squad",
-    "docs": {
-      "whatItShows": "Em desenvolvimento. Integrará dados do ERP com breakdown financeiro por squad — receita, custos e margem por time.",
-      "keyMetrics": ["Em definição durante a integração com ERP"],
-      "whenToUse": "Acompanhar a rentabilidade por squad no fechamento mensal (disponível após integração com ERP)."
-    }
+    "allowedRoles": ["board"]
   }
 ]

@@ -28,15 +28,59 @@
       </div>
     </div>
 
-    <!-- Filtros + Toggles de KPI em uma unica linha -->
+    <!-- Scorecards: Resumo Executivo -->
+    <div v-if="hasData" class="scorecards-grid">
+      <div class="scorecards scorecards--positive">
+        <VScorecard
+          label="Receita Total"
+          :value="totalReceita"
+          :formatter="fmtBRL"
+          icon="wallet"
+        />
+        <VScorecard
+          label="NRR %"
+          :value="nrrPctScorecard"
+          :formatter="v => v === null ? '—' : `${v.toFixed(1).replace('.', ',')}%`"
+          icon="activity"
+        />
+        <VScorecard
+          label="Expansão"
+          :value="totalExpansao"
+          :formatter="fmtBRL"
+          icon="trending-up"
+        />
+      </div>
+      <div class="scorecards scorecards--negative">
+        <VScorecard
+          label="Revenue Churn"
+          :value="totalRevenueChurn"
+          :formatter="fmtBRL"
+          icon="trending-down"
+        />
+        <VScorecard
+          label="Churn Rate"
+          :value="churnRate"
+          :formatter="v => v === 0 ? '—' : `${v.toFixed(1).replace('.', ',')}%`"
+          icon="percent"
+        />
+        <VScorecard
+          label="Isenções"
+          :value="totalIsencoes"
+          :formatter="fmtBRL"
+          icon="pause-circle"
+        />
+      </div>
+    </div>
+
+    <!-- Filtro de Squad + Toggles de variação -->
     <div class="filters-bar">
-      <VSelect
-        label="Squad"
-        :options="squadOptions"
-        v-model="selectedSquad"
-        all-value="__all__"
-        placeholder="Consolidado"
-      />
+      <div class="filter-group">
+        <label class="filter-label">Squad</label>
+        <select class="filter-select" v-model="selectedSquad">
+          <option value="__all__">Consolidado</option>
+          <option v-for="s in squadsDisponiveis" :key="s" :value="s">{{ s }}</option>
+        </select>
+      </div>
       <label class="filter-checkbox">
         <input type="checkbox" v-model="showVarMM" />
         <span>Var M/M</span>
@@ -45,174 +89,6 @@
         <input type="checkbox" v-model="showPctTotal" />
         <span>% do Total</span>
       </label>
-
-      <!-- Toggles de KPI (alinhados a direita) -->
-      <div v-if="hasData" class="kpi-toggles-group">
-        <div class="kpi-value-toggle">
-          <button
-            class="toggle-btn"
-            :class="{ active: kpiValueMode === 'abbrev' }"
-            @click="kpiValueMode = 'abbrev'"
-            title="Valores abreviados (ex: R$ 1,0M)"
-            aria-label="Valores abreviados"
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <text x="1" y="12" font-size="13" font-weight="700" fill="currentColor">K</text>
-            </svg>
-          </button>
-          <button
-            class="toggle-btn"
-            :class="{ active: kpiValueMode === 'full' }"
-            @click="kpiValueMode = 'full'"
-            title="Valores completos (ex: R$ 1.045.904,01)"
-            aria-label="Valores completos"
-          >
-            <svg width="22" height="14" viewBox="0 0 22 14" fill="none">
-              <text x="1" y="12" font-size="13" font-weight="700" fill="currentColor">0,0</text>
-            </svg>
-          </button>
-        </div>
-        <div class="kpi-layout-toggle">
-          <button
-            class="toggle-btn"
-            :class="{ active: kpiLayout === 'compact' }"
-            @click="kpiLayout = 'compact'"
-            title="1 linha"
-            aria-label="1 linha"
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <rect x="0" y="5" width="14" height="4" rx="1" fill="currentColor"/>
-            </svg>
-          </button>
-          <button
-            class="toggle-btn"
-            :class="{ active: kpiLayout === 'expanded' }"
-            @click="kpiLayout = 'expanded'"
-            title="2 linhas"
-            aria-label="2 linhas"
-          >
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <rect x="0" y="1" width="14" height="4" rx="1" fill="currentColor"/>
-              <rect x="0" y="9" width="14" height="4" rx="1" fill="currentColor"/>
-            </svg>
-          </button>
-        </div>
-        <div class="legend-wrapper" @click.stop="legendOpen = !legendOpen">
-          <button class="legend-btn" :class="{ active: legendOpen }" aria-label="Legenda de cores">
-            <i data-lucide="info"></i>
-          </button>
-          <div v-if="!legendOpen" class="legend-tooltip">
-            <div class="legend-title">Legenda de Cores</div>
-            <div class="legend-item"><span class="legend-dot legend-dot--green"></span>Crescimento de receita</div>
-            <div class="legend-item"><span class="legend-dot legend-dot--red"></span>Perda de receita</div>
-            <div class="legend-item"><span class="legend-dot legend-dot--yellow"></span>Isenção (pausa)</div>
-            <div class="legend-item"><span class="legend-dot legend-dot--orange"></span>Expansão outras origens</div>
-          </div>
-          <div v-if="legendOpen" class="legend-popup" @click.stop>
-            <button class="legend-popup-close" @click="legendOpen = false" aria-label="Fechar">×</button>
-            <div class="legend-section">
-              <div class="legend-section-title">Cores nos KPIs</div>
-              <div class="legend-item"><span class="legend-dot legend-dot--white"></span><span><strong>Branco</strong> — Receita total (referência)</span></div>
-              <div class="legend-item"><span class="legend-dot legend-dot--green"></span><span><strong>Verde</strong> — NRR e Expansão (crescimento sobre base)</span></div>
-              <div class="legend-item"><span class="legend-dot legend-dot--red"></span><span><strong>Vermelho</strong> — Revenue Churn e Churn Rate (perda efetiva)</span></div>
-              <div class="legend-item"><span class="legend-dot legend-dot--yellow"></span><span><strong>Amarelo</strong> — Isenções (pausa contratual, não é churn)</span></div>
-            </div>
-            <div class="legend-divider"></div>
-            <div class="legend-section">
-              <div class="legend-section-title">Cores na Tabela Consolidado</div>
-              <div class="legend-item"><span class="legend-dot legend-dot--green"></span><span><strong>Verde</strong> — Expansão</span></div>
-              <div class="legend-item"><span class="legend-dot legend-dot--orange"></span><span><strong>Laranja</strong> — Expansão outras origens</span></div>
-              <div class="legend-item"><span class="legend-dot legend-dot--red"></span><span><strong>Vermelho</strong> — Revenue Churn</span></div>
-              <div class="legend-item"><span class="legend-dot legend-dot--yellow"></span><span><strong>Amarelo</strong> — Isenções</span></div>
-            </div>
-            <div class="legend-divider"></div>
-            <div class="legend-section">
-              <div class="legend-section-title">Variação M/M (Δ M/M)</div>
-              <div class="legend-section-desc">Δ M/M compara o período selecionado com o período imediatamente anterior (mesma duração). Ative o toggle "Var M/M" no filtro para exibir nos cards.</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Scorecards: Resumo Executivo -->
-    <div v-if="hasData" class="kpi-grid" :class="{ 'kpi-grid--compact': kpiLayout === 'compact' }">
-      <FfsScorecard
-        label="Receita Total"
-        icon="wallet"
-        iconColor="#fff"
-        valueColor="#fff"
-        borderColor="white"
-        :value="totalReceita"
-        :formatter="fmtBRLKpi"
-        :fullFormatter="formatCurrency"
-        :delta="deltaReceita"
-        :showDelta="showVarMM"
-        :loading="loading"
-      />
-      <FfsScorecard
-        label="NRR %"
-        icon="activity"
-        iconColor="#4ade80"
-        valueColor="#4ade80"
-        borderColor="green"
-        :value="nrrPctScorecard"
-        :formatter="v => v === null ? '—' : fmtPctKpi(v)"
-        :delta="deltaNrr"
-        :showDelta="showVarMM"
-        :loading="loading"
-      />
-      <FfsScorecard
-        label="Expansão"
-        icon="trending-up"
-        iconColor="#22c55e"
-        valueColor="#22c55e"
-        borderColor="green"
-        :value="totalExpansao"
-        :formatter="fmtBRLKpi"
-        :fullFormatter="formatCurrency"
-        :delta="deltaExpansao"
-        :showDelta="showVarMM"
-        :loading="loading"
-      />
-      <FfsScorecard
-        label="Revenue Churn"
-        icon="trending-down"
-        iconColor="#f87171"
-        valueColor="#f87171"
-        borderColor="red"
-        :value="totalRevenueChurn"
-        :formatter="fmtBRLKpi"
-        :fullFormatter="formatCurrency"
-        :delta="deltaChurn"
-        :showDelta="showVarMM"
-        :loading="loading"
-      />
-      <FfsScorecard
-        label="Churn Rate"
-        icon="percent"
-        iconColor="#f87171"
-        valueColor="#f87171"
-        borderColor="red"
-        :value="churnRate"
-        :formatter="fmtPctKpiOrDash"
-        :delta="deltaChurnRate"
-        :showDelta="showVarMM"
-        :loading="loading"
-      />
-      <FfsScorecard
-        label="Isenções"
-        icon="pause-circle"
-        iconColor="#fbbf24"
-        valueColor="#fbbf24"
-        borderColor="yellow"
-        :value="totalIsencoes"
-        :formatter="fmtBRLKpi"
-        :fullFormatter="formatCurrency"
-        :delta="deltaIsencoes"
-        :showDelta="showVarMM"
-        :loading="loading"
-      />
     </div>
 
     <!-- Error State -->
@@ -290,9 +166,7 @@
                       :key="mes"
                       class="col-value col-value--client"
                     >
-                      <template v-for="(c, j) in getClientRows(mes, field.key)" :key="j">
-                        <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                      </template>
+                      {{ getClientTotal(mes, field.key, client.cliente) ? fmtBRL(getClientTotal(mes, field.key, client.cliente)) : '' }}
                     </td>
                   </tr>
                 </template>
@@ -347,9 +221,7 @@
                       :key="mes"
                       class="col-value col-value--client"
                     >
-                      <template v-for="(c, j) in getClientRows(mes, field.key)" :key="j">
-                        <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                      </template>
+                      {{ getClientTotal(mes, field.key, client.cliente) ? fmtBRL(getClientTotal(mes, field.key, client.cliente)) : '' }}
                     </td>
                   </tr>
                 </template>
@@ -404,9 +276,7 @@
                       :key="mes"
                       class="col-value col-value--client"
                     >
-                      <template v-for="(c, j) in getClientRows(mes, field.key)" :key="j">
-                        <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                      </template>
+                      {{ getClientTotal(mes, field.key, client.cliente) ? fmtBRL(getClientTotal(mes, field.key, client.cliente)) : '' }}
                     </td>
                   </tr>
                 </template>
@@ -518,9 +388,7 @@
                       :key="mes"
                       class="col-value col-value--client"
                     >
-                      <template v-for="(c, j) in getClientRows(mes, field.key)" :key="j">
-                        <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                      </template>
+                      {{ getClientTotal(mes, field.key, client.cliente) ? fmtBRL(getClientTotal(mes, field.key, client.cliente)) : '' }}
                     </td>
                   </tr>
                 </template>
@@ -593,9 +461,7 @@
                         class="col-value col-value--client"
                         :class="isChurnLossField(field.key) ? 'val-churn-loss' : 'val-churn-exempt'"
                       >
-                        <template v-for="(c, j) in getClientRowsByChurnCategory(mes, field.key, 'saber')" :key="j">
-                          <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                        </template>
+                        {{ getClientTotalByChurnCategory(mes, field.key, 'saber', client.cliente) ? fmtBRL(getClientTotalByChurnCategory(mes, field.key, 'saber', client.cliente)) : '' }}
                       </td>
                     </tr>
                   </template>
@@ -631,9 +497,7 @@
                         class="col-value col-value--client"
                         :class="isChurnLossField(field.key) ? 'val-churn-loss' : 'val-churn-exempt'"
                       >
-                        <template v-for="(c, j) in getClientRowsByChurnCategory(mes, field.key, 'ter')" :key="j">
-                          <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                        </template>
+                        {{ getClientTotalByChurnCategory(mes, field.key, 'ter', client.cliente) ? fmtBRL(getClientTotalByChurnCategory(mes, field.key, 'ter', client.cliente)) : '' }}
                       </td>
                     </tr>
                   </template>
@@ -669,9 +533,7 @@
                         class="col-value col-value--client"
                         :class="isChurnLossField(field.key) ? 'val-churn-loss' : 'val-churn-exempt'"
                       >
-                        <template v-for="(c, j) in getClientRowsByChurnCategory(mes, field.key, 'executar')" :key="j">
-                          <span v-if="c.cliente === client.cliente">{{ fmtBRL(c.valor) }}</span>
-                        </template>
+                        {{ getClientTotalByChurnCategory(mes, field.key, 'executar', client.cliente) ? fmtBRL(getClientTotalByChurnCategory(mes, field.key, 'executar', client.cliente)) : '' }}
                       </td>
                     </tr>
                   </template>
@@ -951,13 +813,11 @@ import { useRoute } from 'vue-router'
 import VRefreshButton from '../../components/ui/VRefreshButton.vue'
 import VConfirmModal from '../../components/ui/VConfirmModal.vue'
 import VToggleGroup from '../../components/ui/VToggleGroup.vue'
-import VSelect from '../../components/ui/VSelect.vue'
+import VScorecard from '../../components/ui/VScorecard.vue'
 import VChartCard from '../../components/charts/VChartCard.vue'
 import VBarChart from '../../components/charts/VBarChart.vue'
 import NrrEvolutionChart from './components/NrrEvolutionChart.vue'
-import FfsScorecard from './components/FfsScorecard.vue'
 import { useDashboardData } from '../../composables/useDashboardData.js'
-import { formatCurrency, formatCurrencyAbbrev } from '../../composables/useFormatters.js'
 import { MOCK_DATA } from './mock-data.js'
 import { processChurnData, aggregateByMonth as aggregateChurnByMonth } from './churn-engine.js'
 
@@ -1054,9 +914,6 @@ const expandedGroups = ref(new Set())
 const expandedDetails = ref(new Set())
 const showVarMM = ref(false)
 const showPctTotal = ref(false)
-const kpiLayout = ref('expanded')
-const kpiValueMode = ref('full')
-const legendOpen = ref(false)
 
 // ---------------------------------------------------------------------------
 // Formatters
@@ -1070,22 +927,6 @@ function fmtBRL(v) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   }).format(v)
-}
-
-/** Formatter dinamico para KPIs — alterna abreviado/completo conforme kpiValueMode */
-const fmtBRLKpi = computed(() =>
-  kpiValueMode.value === 'abbrev' ? formatCurrencyAbbrev : formatCurrency
-)
-
-/** Formatter de percentual para KPIs (sempre 1 casa decimal) */
-function fmtPctKpi(v) {
-  if (v === null || v === undefined || isNaN(v)) return '—'
-  return `${v.toFixed(1).replace('.', ',')}%`
-}
-
-function fmtPctKpiOrDash(v) {
-  if (v === null || v === undefined || isNaN(v) || v === 0) return '—'
-  return `${v.toFixed(1).replace('.', ',')}%`
 }
 
 // ---------------------------------------------------------------------------
@@ -1345,119 +1186,6 @@ function round2(v) {
 }
 
 // ---------------------------------------------------------------------------
-// Meses do periodo ANTERIOR (para delta Var M/M dos KPIs)
-// ---------------------------------------------------------------------------
-
-/**
- * Retorna a lista de meses imediatamente anteriores a `mesesVisiveis`,
- * com a mesma quantidade de meses. Usado para comparar KPIs periodo atual
- * vs periodo anterior.
- */
-const mesesAnteriores = computed(() => {
-  const atuais = mesesVisiveis.value
-  if (!atuais.length) return []
-  const first = parseMonthStr(atuais[0])
-  if (!first.month || !first.year) return []
-  const n = atuais.length
-  const result = []
-  let m = first.month
-  let y = first.year
-  for (let i = 0; i < n; i++) {
-    // Retrocede 1 mes
-    if (m === 1) { m = 12; y -= 1 } else { m -= 1 }
-  }
-  // Agora (m, y) e o primeiro mes do periodo anterior; avanca N vezes
-  for (let i = 0; i < n; i++) {
-    result.push(monthLabel(m, y))
-    if (m === 12) { m = 1; y += 1 } else { m += 1 }
-  }
-  return result
-})
-
-/** Utilitario: calcula delta % entre current e previous */
-function calcDeltaPct(current, previous) {
-  if (previous === null || previous === undefined || !isFinite(previous)) return null
-  if (Math.abs(previous) < 0.01) return null
-  return ((current - previous) / Math.abs(previous)) * 100
-}
-
-// Totais do periodo ANTERIOR
-const totalReceitaPrev = computed(() => {
-  let total = 0
-  for (const mes of mesesAnteriores.value) {
-    const val = getVal(mes, 'total')
-    if (typeof val === 'number') total += val
-  }
-  return round2(total)
-})
-
-const totalExpansaoPrev = computed(() => {
-  let total = 0
-  for (const mes of mesesAnteriores.value) {
-    total += getGroupTotal(mes, FIELDS_EXPANSAO)
-  }
-  return round2(total)
-})
-
-const totalRevenueChurnPrev = computed(() => {
-  let total = 0
-  for (const mes of mesesAnteriores.value) {
-    const entry = churnByMonth.value.get(mes)
-    if (entry) total += entry.churn + entry.downsell
-  }
-  return round2(total)
-})
-
-const totalIsencoesPrev = computed(() => {
-  let total = 0
-  for (const mes of mesesAnteriores.value) {
-    const entry = churnByMonth.value.get(mes)
-    if (entry) total += entry.isencao_total + entry.isencao_parcial
-  }
-  return round2(total)
-})
-
-const churnRatePrev = computed(() => {
-  let renovacaoBase = 0
-  for (const mes of mesesAnteriores.value) {
-    renovacaoBase += getRenovacaoBase(mes)
-  }
-  if (renovacaoBase === 0) return 0
-  return round2((totalRevenueChurnPrev.value / renovacaoBase) * 100)
-})
-
-const nrrPctScorecardPrev = computed(() => {
-  let sumNrr = 0
-  let sumBase = 0
-  for (const mes of mesesAnteriores.value) {
-    const base = getRenovacaoBase(mes)
-    const nrr = getNrrValue(mes)
-    if (base > 0 && nrr !== null) {
-      sumNrr += nrr
-      sumBase += base
-    }
-  }
-  if (sumBase === 0) return null
-  return round2((sumNrr / sumBase) * 100)
-})
-
-// Deltas (%) expostos ao template
-const deltaReceita = computed(() => calcDeltaPct(totalReceita.value, totalReceitaPrev.value))
-const deltaNrr = computed(() => {
-  if (nrrPctScorecard.value === null || nrrPctScorecardPrev.value === null) return null
-  // Para NRR (que ja e %), usamos diferenca em pontos percentuais,
-  // mas mostramos como "delta do valor" — ainda via calcDeltaPct para consistencia
-  return calcDeltaPct(nrrPctScorecard.value, nrrPctScorecardPrev.value)
-})
-const deltaExpansao = computed(() => calcDeltaPct(totalExpansao.value, totalExpansaoPrev.value))
-const deltaChurn = computed(() => calcDeltaPct(totalRevenueChurn.value, totalRevenueChurnPrev.value))
-const deltaChurnRate = computed(() => {
-  if (!churnRatePrev.value) return null
-  return calcDeltaPct(churnRate.value, churnRatePrev.value)
-})
-const deltaIsencoes = computed(() => calcDeltaPct(totalIsencoes.value, totalIsencoesPrev.value))
-
-// ---------------------------------------------------------------------------
 // Formatadores de percentual
 // ---------------------------------------------------------------------------
 
@@ -1568,10 +1296,8 @@ function getChurnCountByCategory(mes) {
   if (!churnClients.length) return { saber: 0, ter: 0, executar: 0 }
 
   const churnNames = new Set(churnClients.map(c => c.cliente))
-  const prev = getMonthBefore(mes)
-  if (!prev) return { saber: churnClients.length, ter: 0, executar: 0 }
-
-  let rows = rawData.value.filter(r => r['Mes/Ano'] === prev)
+  // Para churn, mes já é o último mês com valor — usar direto
+  let rows = rawData.value.filter(r => r['Mes/Ano'] === mes)
   if (selectedSquad.value !== '__all__') {
     rows = rows.filter(r => r.Squad === selectedSquad.value)
   }
@@ -1610,8 +1336,9 @@ function getChurnValueByCategory(mes, fieldKey) {
   if (!clients.length) return { saber: 0, ter: 0, executar: 0 }
 
   const clientNames = new Set(clients.map(c => c.cliente))
-  const prev = getMonthBefore(mes)
-  const lookupMonth = prev || mes
+  // Para churn, o mes do evento já é o último mês com valor — usar direto
+  // Para downsell/isenção, o mes é quando caiu — precisamos do mês anterior
+  const lookupMonth = fieldKey === '__churn' ? mes : (getMonthBefore(mes) || mes)
 
   let rows = rawData.value.filter(r => r['Mes/Ano'] === lookupMonth)
   if (selectedSquad.value !== '__all__') {
@@ -1642,15 +1369,9 @@ function getChurnValueByCategory(mes, fieldKey) {
   const result = { saber: 0, ter: 0, executar: 0 }
   for (const [nome, valor] of clientValMap) {
     const cats = clientCats.get(nome)
-    if (!cats || cats.size === 0) {
-      result.saber += valor
-    } else if (cats.has('saber')) {
-      result.saber += valor
-    } else if (cats.has('executar')) {
-      result.executar += valor
-    } else {
-      result.saber += valor
-    }
+    if (!cats || cats.size === 0) continue
+    if (cats.has('saber')) result.saber += valor
+    else if (cats.has('executar')) result.executar += valor
   }
 
   return {
@@ -1667,9 +1388,9 @@ function fmtChurnCategory(mes, fieldKey, category) {
 }
 
 /** Retorna a categoria de renovação de um cliente no mês (saber/executar) */
-function getClientChurnCategory(clientName, mes) {
-  const prev = getMonthBefore(mes)
-  const lookupMonth = prev || mes
+function getClientChurnCategory(clientName, mes, fieldKey) {
+  // Para churn, mes já é o último mês com valor; para downsell/isenção, precisa do mês anterior
+  const lookupMonth = fieldKey === '__churn' ? mes : (getMonthBefore(mes) || mes)
 
   let rows = rawData.value.filter(r => r['Mes/Ano'] === lookupMonth && r['Nome do cliente'] === clientName)
   if (selectedSquad.value !== '__all__') {
@@ -1683,12 +1404,22 @@ function getClientChurnCategory(clientName, mes) {
   for (const r of rows) {
     if (typeof r['1.2.01 Renovação | [Saber] BR'] === 'number' && r['1.2.01 Renovação | [Saber] BR'] > 0) return 'saber'
   }
-  return 'saber'
+  return null
 }
 
 /** Filtra client rows do churn por categoria (saber/ter/executar) */
 function getClientRowsByChurnCategory(mes, fieldKey, category) {
-  return getClientRows(mes, fieldKey).filter(c => getClientChurnCategory(c.cliente, mes) === category)
+  return getClientRows(mes, fieldKey).filter(c => getClientChurnCategory(c.cliente, mes, fieldKey) === category)
+}
+
+/** Soma valor de todas as transações de um cliente em um mês/field/categoria de churn */
+function getClientTotalByChurnCategory(mes, fieldKey, category, clientName) {
+  const rows = getClientRowsByChurnCategory(mes, fieldKey, category)
+  let sum = 0
+  for (const c of rows) {
+    if (c.cliente === clientName) sum += c.valor
+  }
+  return sum
 }
 
 /** Lista única de clientes por categoria em todos os meses visíveis */
@@ -1832,12 +1563,6 @@ const squadsDisponiveis = computed(() => {
   })
   return Array.from(set).sort((a, b) => a.localeCompare(b, 'pt-BR'))
 })
-
-/** Options para VSelect (Consolidado + squads) */
-const squadOptions = computed(() => [
-  { value: '__all__', label: 'Consolidado' },
-  ...squadsDisponiveis.value.map(s => ({ value: s, label: s }))
-])
 
 // ---------------------------------------------------------------------------
 // Todos os meses disponíveis (parsed)
@@ -2170,6 +1895,16 @@ function getAllClients(fieldKey) {
   })
 }
 
+/** Soma o valor de todas as transações de um cliente em um mês/field */
+function getClientTotal(mes, fieldKey, clientName) {
+  const rows = getClientRows(mes, fieldKey)
+  let sum = 0
+  for (const c of rows) {
+    if (c.cliente === clientName) sum += c.valor
+  }
+  return sum
+}
+
 const loading = computed(() => apiLoading.value)
 const hasData = computed(() => rawData.value.length > 0)
 
@@ -2393,24 +2128,6 @@ watch([selectedSquad, periodMode], async () => {
   if (window.lucide) window.lucide.createIcons()
 })
 
-// Re-render Lucide quando o popup de legenda fecha (icone info some/volta)
-watch(legendOpen, async () => {
-  await nextTick()
-  if (window.lucide) window.lucide.createIcons()
-})
-
-// Click-outside fecha popup de legenda
-function handleLegendOutsideClick(event) {
-  if (!legendOpen.value) return
-  const target = event.target
-  if (target && target.closest && target.closest('.legend-wrapper')) return
-  legendOpen.value = false
-}
-
-onMounted(() => {
-  document.addEventListener('click', handleLegendOutsideClick)
-})
-
 // ---------------------------------------------------------------------------
 // Update confirmation modal
 // ---------------------------------------------------------------------------
@@ -2581,264 +2298,60 @@ async function confirmRefresh() {
   padding: 8px 12px;
 }
 
-/* ---- KPI Toggles Group (embutido na filters-bar, alinhado a direita) ---- */
-.kpi-toggles-group {
+/* ---- Scorecards Grid ---- */
+.scorecards-grid {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-  position: relative;
-}
-
-.kpi-value-toggle,
-.kpi-layout-toggle {
-  display: inline-flex;
-  gap: 0;
-  background: #1a1a1a;
-  border-radius: 4px;
-  padding: 3px;
-}
-
-.toggle-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 28px;
-  height: 28px;
-  padding: 0 6px;
-  border: 1px solid transparent;
-  background: transparent;
-  border-radius: 3px;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.15s;
-  font-size: 0;
-}
-
-.toggle-btn:hover {
-  color: #999;
-  border-color: #333;
-}
-
-.toggle-btn.active {
-  color: #ddd;
-  background: #252525;
-}
-
-/* ---- Legend (icon + tooltip + popup) ---- */
-.legend-wrapper {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-}
-
-.legend-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: #1a1a1a;
-  border: 1px solid #222;
-  border-radius: 4px;
-  color: #888;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-
-.legend-btn:hover {
-  color: #ccc;
-  border-color: #333;
-}
-
-.legend-btn.active {
-  color: #fff;
-  background: #252525;
-  border-color: #444;
-}
-
-.legend-btn i {
-  width: 16px;
-  height: 16px;
-}
-
-.legend-tooltip {
-  display: none;
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 6px;
-  padding: 12px 14px;
-  min-width: 240px;
-  z-index: 100;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
-
-.legend-wrapper:hover .legend-tooltip {
-  display: block;
-}
-
-.legend-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: #fff;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-}
-
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #ccc;
-  padding: 3px 0;
-  line-height: 1.4;
-}
-
-.legend-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
-.legend-dot--green  { background: #22c55e; box-shadow: 0 0 6px rgba(34, 197, 94, 0.4); }
-.legend-dot--red    { background: #f87171; box-shadow: 0 0 6px rgba(248, 113, 113, 0.4); }
-.legend-dot--yellow { background: #fbbf24; box-shadow: 0 0 6px rgba(251, 191, 36, 0.4); }
-.legend-dot--orange { background: #b45309; box-shadow: 0 0 6px rgba(180, 83, 9, 0.4); }
-.legend-dot--white  { background: #fff;    box-shadow: 0 0 6px rgba(255, 255, 255, 0.3); }
-
-.legend-popup {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background: #141414;
-  border: 1px solid #333;
-  border-radius: 8px;
-  padding: 20px 22px 16px;
-  min-width: 420px;
-  max-width: 520px;
-  z-index: 200;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
-  cursor: default;
-}
-
-.legend-popup-close {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  background: none;
-  border: none;
-  color: #666;
-  font-size: 22px;
-  line-height: 1;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: all 0.15s;
-}
-
-.legend-popup-close:hover {
-  color: #fff;
-  background: #222;
-}
-
-.legend-section {
-  margin-bottom: 4px;
-}
-
-.legend-section-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: #fff;
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.legend-section-desc {
-  font-size: 12px;
-  color: #888;
-  line-height: 1.5;
-  margin-top: 4px;
-}
-
-.legend-divider {
-  height: 1px;
-  background: #222;
-  margin: 14px 0;
-}
-
-/* ---- KPI Grid (substitui .scorecards-grid) ---- */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  flex-direction: column;
   gap: 12px;
   margin-bottom: 16px;
-  width: 100%;
 }
 
-.kpi-grid--compact {
-  grid-template-columns: repeat(6, 1fr);
-  gap: 8px;
+.scorecards-grid .scorecards {
+  display: flex;
+  gap: 16px;
 }
 
-/* Overrides do FfsScorecard em modo compacto (via :deep pois filho e scoped) */
-.kpi-grid--compact :deep(.ffs-scorecard) {
-  padding: 10px 10px;
-  gap: 4px;
+.scorecards-grid :deep(.scorecard) {
+  flex: 1;
+  min-width: 0;
 }
 
-.kpi-grid--compact :deep(.ffs-scorecard-label) {
-  font-size: 10px;
-  letter-spacing: 0.3px;
+/* Linha positiva */
+.scorecards--positive :deep(.scorecard:nth-child(1) .scorecard-value),
+.scorecards--positive :deep(.scorecard:nth-child(1) .scorecard-icon) {
+  color: #fff;
 }
 
-.kpi-grid--compact :deep(.ffs-scorecard-icon) {
-  width: 13px;
-  height: 13px;
+.scorecards--positive :deep(.scorecard:nth-child(2) .scorecard-value),
+.scorecards--positive :deep(.scorecard:nth-child(2) .scorecard-icon) {
+  color: #4ade80;
 }
 
-.kpi-grid--compact :deep(.ffs-scorecard-value) {
-  font-size: 16px;
-  min-height: 20px;
+.scorecards--positive :deep(.scorecard:nth-child(3) .scorecard-value),
+.scorecards--positive :deep(.scorecard:nth-child(3) .scorecard-icon) {
+  color: #22c55e;
 }
 
-.kpi-grid--compact :deep(.delta-key) {
-  font-size: 9px;
+/* Linha negativa */
+.scorecards--negative :deep(.scorecard:nth-child(1) .scorecard-value),
+.scorecards--negative :deep(.scorecard:nth-child(1) .scorecard-icon),
+.scorecards--negative :deep(.scorecard:nth-child(2) .scorecard-value),
+.scorecards--negative :deep(.scorecard:nth-child(2) .scorecard-icon) {
+  color: #f87171;
 }
 
-.kpi-grid--compact :deep(.delta-val) {
-  font-size: 10px;
+.scorecards--negative :deep(.scorecard:nth-child(3) .scorecard-value),
+.scorecards--negative :deep(.scorecard:nth-child(3) .scorecard-icon) {
+  color: #fbbf24;
 }
 
-@media (max-width: 1400px) {
-  .kpi-grid--compact {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-@media (max-width: 900px) {
-  .kpi-grid,
-  .kpi-grid--compact {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 560px) {
-  .kpi-grid,
-  .kpi-grid--compact {
-    grid-template-columns: 1fr;
+@media (max-width: 768px) {
+  .scorecards-grid .scorecards {
+    flex-wrap: wrap;
   }
 
-  .legend-popup {
-    min-width: calc(100vw - 32px);
-    right: -8px;
+  .scorecards-grid :deep(.scorecard) {
+    flex: 1 1 calc(50% - 8px);
   }
 }
 
