@@ -8,12 +8,16 @@ import pool from './lib/db.js'
 import apiRoutes from './routes/api.js'
 import authRoutes from './routes/auth.js'
 import adminRoutes from './routes/admin.js'
+import adminAlertasRoutes from './routes/admin-alertas.js'
+import adminActivityRoutes from './routes/admin-activity.js'
+import activityRoutes from './routes/activity.js'
 import torreControleRoutes from './routes/torre-controle.js'
-import googleRouter from './routes/google.js'
 import { requireAuth } from './middleware/requireAuth.js'
 import { startJobWorker, stopJobWorker } from './services/tc-job-worker.js'
 import { startCollaboratorCron } from './jobs/collaborator-analysis-cron.js'
 import { startSyncCron, rodarSync } from './services/kommo-sync.js'
+import { startAlertDispatcher } from './services/alert-dispatcher.js'
+import { startAutoAnalyzer } from './services/auto-analyzer.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -77,12 +81,19 @@ app.use('/api/data', requireAuth)
 app.use('/api/cache', requireAuth)
 app.use('/api/update-status', requireAuth)
 app.use('/api/admin', requireAuth)
+app.use('/api/activity', requireAuth)
+
+// Beacon endpoint: navigator.sendBeacon envia como text/plain por padrao.
+// Aceita text/plain E application/json (este ultimo ja coberto pelo express.json acima).
+app.use('/api/activity', express.text({ type: 'text/plain', limit: '10kb' }))
 
 // API routes
 app.use('/api', apiRoutes)
+app.use('/api/admin/alertas', adminAlertasRoutes)
+app.use('/api/admin/activity', adminActivityRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/activity', activityRoutes)
 app.use('/api/tc', torreControleRoutes)
-app.use('/api/google', googleRouter)
 
 // Serve static files in production
 if (NODE_ENV === 'production') {
@@ -117,6 +128,8 @@ app.listen(PORT, async () => {
   startJobWorker()
   startCollaboratorCron()
   startSyncCron()
+  startAlertDispatcher()
+  startAutoAnalyzer()
 
   // Sync inicial se DB estiver vazio
   try {

@@ -8,8 +8,24 @@ import {
   getCompaniesByIds,
   PIPELINE_SABER
 } from './kommo-client.js'
+import bus from './event-bus.js'
+import { compareStages, faseInfo } from './stage-detector.js'
 
-const LOCK_TTL_MS = 10 * 60 * 1000 // 10min
+// TTL reduzido para 5 min: sync real roda em 30s-2min. 10 min era folga demais
+// e travava a UI por 10 min quando o container morria no meio de uma sync.
+const LOCK_TTL_MS = 5 * 60 * 1000
+
+// Limpa lock marcando-o como concluido. Usado por rodarSync({ force: true }) para
+// liberar locks orfaos (ex: crash de container no meio da sync).
+async function limparLock() {
+  await pool.query(`
+    UPDATE dashboards_hub.tc_sync_state
+    SET ultima_sync_concluida = NOW(),
+        ultima_sync_erro = 'lock limpo por force=true'
+    WHERE id = 1
+      AND (ultima_sync_concluida IS NULL OR ultima_sync_concluida < ultima_sync_iniciada)
+  `)
+}
 
 // Tenta adquirir lock atomicamente — retorna true se conseguiu
 async function adquirirLock() {
@@ -72,6 +88,8 @@ export async function rodarSync({ force = false } = {}) {
     err.code = 'SYNC_ACTIVE'
     throw err
   }
+  // force=true limpa lock preso (crash, deploy travado) antes de tentar adquirir
+  if (force) await limparLock()
   if (!(await adquirirLock())) {
     const err = new Error('nao foi possivel adquirir lock — outra sync ativa')
     err.code = 'LOCK_BUSY'
@@ -131,13 +149,17 @@ export async function rodarSync({ force = false } = {}) {
       }
 
       // Leads — conta novos vs atualizados via SELECT prévio
+      // stageTransitions: coletadas durante o loop, emitidas APOS o COMMIT
+      // (se rollback, nao disparam alertas indevidos)
+      const stageTransitions = []
       for (const l of leads) {
         const companyId = l._embedded?.companies?.[0]?.id || null
         const exist = await client.query(
-          `SELECT 1 FROM dashboards_hub.tc_kommo_leads WHERE id = $1`,
+          `SELECT status_id FROM dashboards_hub.tc_kommo_leads WHERE id = $1`,
           [l.id]
         )
         const isNovo = exist.rows.length === 0
+        const oldStatusId = exist.rows[0]?.status_id ?? null
 
         await client.query(`
           INSERT INTO dashboards_hub.tc_kommo_leads
@@ -168,6 +190,17 @@ export async function rodarSync({ force = false } = {}) {
 
         if (isNovo) stats.novos++
         else stats.atualizados++
+
+        // Detecta mudanca de fase. Sempre compara via 'ordem' (nunca status_id direto).
+        const cmp = compareStages(oldStatusId, l.status_id)
+        if (cmp === 'advanced' || cmp === 'regressed' || cmp === 'entered') {
+          stageTransitions.push({
+            leadId: l.id,
+            oldStatusId,
+            newStatusId: l.status_id,
+            transition: cmp
+          })
+        }
       }
 
       // Soft-delete: marca leads sumidos do Kommo como removed
@@ -183,6 +216,30 @@ export async function rodarSync({ force = false } = {}) {
       }
 
       await client.query('COMMIT')
+
+      // Emite eventos DEPOIS do COMMIT — se rollback, transicoes ficam no array mas
+      // nunca sao emitidas (scope local). stageTransitions soh e lido aqui.
+      for (const t of stageTransitions) {
+        const fi = faseInfo(t.newStatusId)
+        const base = {
+          leadId: t.leadId,
+          oldStatusId: t.oldStatusId,
+          newStatusId: t.newStatusId,
+          faseSlug: fi?.slug || null,
+          faseNome: fi?.nome || null
+        }
+        if (t.transition === 'advanced' || t.transition === 'entered') {
+          bus.emitSafe('lead.stage_advanced', base)
+          stats.avancos = (stats.avancos || 0) + 1
+        } else if (t.transition === 'regressed') {
+          bus.emitSafe('lead.stage_regressed', {
+            ...base,
+            faseAnterior: faseInfo(t.oldStatusId)?.nome || null,
+            faseNova: fi?.nome || null
+          })
+          stats.regressoes = (stats.regressoes || 0) + 1
+        }
+      }
     } catch (err) {
       await client.query('ROLLBACK')
       throw err

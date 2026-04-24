@@ -97,7 +97,6 @@
     "title": "Torre de Controle",
     "icon": "tower-control",
     "componentPath": "TorreDeControle",
-    "apiEndpoint": "API_ENDPOINT_TORRE_DE_CONTROLE",
     "cacheTTL": 300000,
     "status": "available",
     "statusMessage": "",

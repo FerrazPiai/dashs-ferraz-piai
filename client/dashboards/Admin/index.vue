@@ -11,16 +11,20 @@
         <button class="tab" :class="{ active: tab === 'ai' }" @click="tab = 'ai'">
           <i data-lucide="sparkles" class="tab-icon"></i> IA
         </button>
+        <button class="tab" :class="{ active: tab === 'alertas' }" @click="tab = 'alertas'">
+          <i data-lucide="bell" class="tab-icon"></i> Alertas
+        </button>
+        <button class="tab" :class="{ active: tab === 'activity' }" @click="tab = 'activity'">
+          <i data-lucide="activity" class="tab-icon"></i> Atividade
+        </button>
       </div>
-      <button class="mode-toggle" @click="advanced = !advanced" :title="advanced ? 'Modo Básico' : 'Modo Avançado'">
-        <i :data-lucide="advanced ? 'eye-off' : 'eye'" class="mode-icon"></i>
-        <span>{{ advanced ? 'Básico' : 'Avançado' }}</span>
-      </button>
     </div>
 
-    <UsersTab v-if="tab === 'users'" :advanced="advanced" :profiles="profiles" @refresh-profiles="fetchProfiles" />
-    <ProfilesTab v-else-if="tab === 'profiles'" :advanced="advanced" :profiles="profiles" @saved="fetchProfiles" />
+    <UsersTab v-if="tab === 'users'" :advanced="true" :profiles="profiles" @refresh-profiles="fetchProfiles" />
+    <ProfilesTab v-else-if="tab === 'profiles'" :advanced="true" :profiles="profiles" @saved="fetchProfiles" />
     <AiProviderTab v-else-if="tab === 'ai'" />
+    <AlertasTab v-else-if="tab === 'alertas'" />
+    <UserActivityTab v-else-if="tab === 'activity'" />
   </div>
 </template>
 
@@ -29,9 +33,10 @@ import { ref, onMounted, nextTick } from 'vue'
 import UsersTab from './components/UsersTab.vue'
 import ProfilesTab from './components/ProfilesTab.vue'
 import AiProviderTab from './components/AiProviderTab.vue'
+import AlertasTab from './components/AlertasTab.vue'
+import UserActivityTab from './components/UserActivityTab.vue'
 
 const tab = ref('users')
-const advanced = ref(false)
 const profiles = ref([])
 
 async function fetchProfiles() {
@@ -69,14 +74,4 @@ onMounted(async () => {
 .tab:hover { color: #ccc; background: rgba(255,255,255,0.06); }
 .tab.active { color: #fff; background: rgba(255,0,0,0.08); border-color: rgba(255,0,0,0.2); }
 .tab-icon { width: 15px; height: 15px; }
-
-.mode-toggle {
-  display: flex; align-items: center; gap: 6px;
-  padding: 7px 12px; background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06); border-radius: 4px;
-  color: #666; font-size: 12px; font-family: inherit; cursor: pointer;
-  transition: all 0.15s;
-}
-.mode-toggle:hover { color: #999; background: rgba(255,255,255,0.06); }
-.mode-icon { width: 14px; height: 14px; }
 </style>

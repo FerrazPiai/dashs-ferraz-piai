@@ -32,11 +32,49 @@ function isPrivileged(role) {
   return role === 'admin' || role === 'board'
 }
 
-// Ownership check — alinha com o filtro aplicado em /matriz (responsible_user_id
-// do lead deve bater com o kommo_user_id do user logado). admin/board passam direto.
-async function canAccessLead(req, leadId) {
+// Cache in-memory das features por perfil (TTL 60s) — evita hit no DB a cada request.
+// Invalidado automaticamente apos TTL; admin.js chama invalidateFeaturesCache() apos
+// mutar profiles para que mudancas reflitam imediatamente.
+const FEATURES_CACHE_TTL = 60_000
+let _featuresCache = null
+let _featuresCacheTime = 0
+
+export function invalidateFeaturesCache() {
+  _featuresCache = null
+  _featuresCacheTime = 0
+}
+
+async function getProfileFeatures(role) {
+  if (!role) return []
+  if (_featuresCache && Date.now() - _featuresCacheTime < FEATURES_CACHE_TTL) {
+    return _featuresCache[role] || []
+  }
+  try {
+    const { rows } = await pool.query('SELECT name, allowed_features FROM profiles')
+    const map = {}
+    for (const r of rows) {
+      const raw = r.allowed_features
+      map[r.name] = Array.isArray(raw) ? raw : (raw ? JSON.parse(raw) : [])
+    }
+    _featuresCache = map
+    _featuresCacheTime = Date.now()
+    return map[role] || []
+  } catch { return [] }
+}
+
+// Perfis com 'tc_painel_geral' tem acesso agregado completo — sem filtro por responsible_user_id.
+// Admin/board sempre passam por isPrivileged. Essa funcao trata perfis customizados.
+async function hasPainelGeralAccess(req) {
   const role = sessionRole(req)
   if (isPrivileged(role)) return true
+  const features = await getProfileFeatures(role)
+  return features.includes('tc_painel_geral')
+}
+
+// Ownership check — alinha com o filtro aplicado em /matriz. admin/board + perfis
+// com feature 'tc_painel_geral' passam direto (visao completa). Demais: so leads proprios.
+async function canAccessLead(req, leadId) {
+  if (await hasPainelGeralAccess(req)) return true
   const userId = sessionUserId(req)
   const leadIdNum = parseInt(leadId, 10)
   if (!userId || !Number.isFinite(leadIdNum)) return false
@@ -143,7 +181,7 @@ router.get('/matriz', async (req, res, next) => {
       ? await pool.query(`
           SELECT DISTINCT ON (a.projeto_fase_id)
             a.projeto_fase_id, a.score, a.id AS analise_id, pf.id AS pf_id,
-            a.status_avaliacao,
+            a.status_avaliacao, a.consolidado,
             c.id_externo AS lead_id, fc.ordem AS fase_ordem
           FROM dashboards_hub.tc_analises_ia a
           JOIN dashboards_hub.tc_projeto_fases pf ON pf.id = a.projeto_fase_id
@@ -175,6 +213,11 @@ router.get('/matriz', async (req, res, next) => {
       const coordenador = getCustomFieldValue(cf, CUSTOM_FIELD_IDS.COORDENADOR) || ''
       const tier = getCustomFieldValue(cf, 1989461) || ''
       const flag = getCustomFieldValue(cf, 1989972) || ''
+      // Kommo devolve date como unix timestamp (segundos). Converte pra ISO pro frontend.
+      const inicioProjetoRaw = getCustomFieldValue(cf, CUSTOM_FIELD_IDS.INICIO_PROJETO)
+      const inicioProjetoIso = inicioProjetoRaw
+        ? new Date(Number(inicioProjetoRaw) * 1000).toISOString()
+        : null
 
       const analisesLead = analisePorLead.get(String(lead.id)) || {}
       const fasesDados = {}
@@ -189,10 +232,19 @@ router.get('/matriz', async (req, res, next) => {
           // Escala: 9-10 = verde, 7-8 = amarelo, <=6 = vermelho
           else statusCor = score >= 9 ? 'verde' : score >= 7 ? 'amarelo' : 'vermelho'
         }
+        // score_composicao extraido do consolidado (JSONB) — usado pelo tooltip da timeline
+        let scoreComposicao = null
+        if (a?.consolidado) {
+          try {
+            const cons = typeof a.consolidado === 'string' ? JSON.parse(a.consolidado) : a.consolidado
+            if (cons?.score_composicao) scoreComposicao = cons.score_composicao
+          } catch { /* ignora JSON invalido */ }
+        }
         fasesDados[f.id] = {
           status_cor: statusCor,
           status_avaliacao: a?.status_avaliacao || null,
           score: incompleta ? null : score,
+          score_composicao: scoreComposicao,
           analise_id: a?.analise_id || null,
           is_fase_atual: parseInt(lead.status_id, 10) === f.id
         }
@@ -209,6 +261,7 @@ router.get('/matriz', async (req, res, next) => {
         coordenador,
         tier,
         flag,
+        inicio_projeto: inicioProjetoIso,
         responsible_user_id: lead.responsible_user_id ? Number(lead.responsible_user_id) : null,
         responsavel_kommo: lead.account_user_name || null,
         status_id: Number(lead.status_id),
@@ -222,8 +275,10 @@ router.get('/matriz', async (req, res, next) => {
       }
     })
 
+    // admin/board e perfis com feature 'tc_painel_geral' ganham visao completa.
+    // Demais (ex: operacao) veem apenas leads atribuidos ao seu kommo_user_id.
     let visibles = clientes
-    if (role !== 'admin' && role !== 'board') {
+    if (!(await hasPainelGeralAccess(req))) {
       if (!userId) {
         visibles = []
       } else {
@@ -717,6 +772,7 @@ router.get('/painel-geral', async (req, res, next) => {
   try {
     const role = sessionRole(req)
     const userId = sessionUserId(req)
+    const temVisaoCompleta = await hasPainelGeralAccess(req)
 
     // Le leads ATIVOS do DB — exclui pre-projeto, perdidos (143) e projeto-concluido
     const { rows: kommoLeads } = await pool.query(`
@@ -730,9 +786,10 @@ router.get('/painel-geral', async (req, res, next) => {
     const financeiro = agregarFinanceiro(kommoLeads)
     const distribuicao = agregarDistribuicao(kommoLeads)
 
-    // Visibilidade de tc_clientes (DB local)
+    // Visibilidade de tc_clientes (DB local). Admin/board e perfis com 'tc_painel_geral'
+    // veem todos os clientes ativos. Demais: apenas os atribuidos via tc_usuario_clientes.
     let ids = []
-    if (role === 'admin' || role === 'board') {
+    if (temVisaoCompleta) {
       const r = await pool.query('SELECT id FROM dashboards_hub.tc_clientes WHERE ativo = true')
       ids = r.rows.map(x => x.id)
     } else if (userId) {
@@ -1034,9 +1091,9 @@ router.delete('/lead/:leadId/notes/:noteId', async (req, res, next) => {
 // entradas com status='skipped' (quando alerta esta desabilitado mas log e mantido).
 router.get('/painel-geral/regressoes', async (req, res, next) => {
   try {
-    const role = req.session.user?.role
-    if (role !== 'admin' && role !== 'board') {
-      return res.status(403).json({ error: 'acesso restrito a admin/board' })
+    // Acesso: admin/board ou perfis com feature 'tc_painel_geral' (visao agregada completa)
+    if (!(await hasPainelGeralAccess(req))) {
+      return res.status(403).json({ error: 'acesso restrito ao Painel Geral' })
     }
     const limit = Math.min(parseInt(req.query.limit || '30', 10) || 30, 200)
     const { rows } = await pool.query(

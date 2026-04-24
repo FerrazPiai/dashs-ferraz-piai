@@ -37,9 +37,9 @@ const emit = defineEmits(['abrir-cliente'])
 .item {
   display: flex; justify-content: space-between; align-items: center;
   padding: var(--spacing-sm); border-radius: var(--radius-sm);
-  cursor: pointer; transition: background 150ms;
+  cursor: pointer; transition: background var(--transition-fast);
 }
-.item:hover { background: rgba(255, 255, 255, 0.03); }
+.item:hover { background: var(--bg-hover); }
 .meta { display: flex; flex-direction: column; }
 .veredicto { color: var(--text-low); font-size: var(--font-size-sm); }
 .indicadores { display: flex; align-items: center; gap: var(--spacing-md); }
@@ -47,7 +47,7 @@ const emit = defineEmits(['abrir-cliente'])
   font-weight: 700; font-size: var(--font-size-lg);
   padding: 2px 8px; border-radius: var(--radius-sm);
 }
-.critico { background: var(--color-danger); color: #fff; }
+.critico { background: var(--color-danger); color: var(--text-high); }
 .alto    { background: var(--color-care); color: #000; }
 .medio   { background: var(--bg-inner); color: var(--text-high); }
 .dores { color: var(--color-danger); font-size: var(--font-size-sm); }

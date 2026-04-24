@@ -9,11 +9,12 @@ const fases = computed(() => Array.isArray(props.avanco?.fases) ? props.avanco.f
 const tendencia = computed(() => props.avanco?.tendencia || null)
 const evolucao = computed(() => props.avanco?.evolucao || '')
 
+// Escala unica: 9-10 = verde, 7-8 = amarelo, <=6 = vermelho
 function corDoScore(score) {
   const s = Number(score)
   if (!isFinite(s)) return 'bar--empty'
-  if (s >= 7) return 'bar--verde'
-  if (s >= 5) return 'bar--amarelo'
+  if (s >= 9) return 'bar--verde'
+  if (s >= 7) return 'bar--amarelo'
   return 'bar--vermelho'
 }
 
@@ -70,9 +71,9 @@ watch(() => fases.value, () => nextTick(() => window.lucide && window.lucide.cre
 
 <style scoped>
 .av-card {
-  background: var(--bg-card, #141414);
-  border: 1px solid var(--border-card, rgba(255, 255, 255, 0.06));
-  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
   padding: 18px 20px;
   display: flex;
   flex-direction: column;
@@ -86,31 +87,31 @@ watch(() => fases.value, () => nextTick(() => window.lucide && window.lucide.cre
 }
 .av-head h2 {
   font-size: 15px;
-  color: #fff;
+  color: var(--text-high);
   margin: 0;
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   display: flex;
   align-items: center;
   gap: 8px;
 }
-.av-head-icon { width: 16px; height: 16px; color: #888; }
+.av-head-icon { width: 16px; height: 16px; color: var(--text-muted); }
 
 .av-tendencia {
-  font-size: 11px;
+  font-size: var(--font-size-sm);
   padding: 3px 9px;
   border-radius: 10px;
   text-transform: uppercase;
   letter-spacing: 0.4px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
 }
 .av-tendencia--ascendente {
-  background: rgba(34, 197, 94, 0.15); color: #22c55e;
+  background: rgba(var(--color-safe-rgb), 0.15); color: var(--color-safe);
 }
 .av-tendencia--descendente {
-  background: rgba(239, 68, 68, 0.15); color: #ef4444;
+  background: rgba(var(--color-danger-rgb), 0.15); color: var(--color-danger);
 }
 .av-tendencia--estavel {
-  background: rgba(255, 255, 255, 0.06); color: #aaa;
+  background: var(--bg-inner); color: var(--text-low);
 }
 
 .av-chart {
@@ -121,8 +122,8 @@ watch(() => fases.value, () => nextTick(() => window.lucide && window.lucide.cre
   align-items: end;
   min-height: 150px;
   padding: 10px 0;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px solid var(--border-row);
+  border-bottom: 1px solid var(--border-row);
 }
 
 .av-col {
@@ -144,19 +145,19 @@ watch(() => fases.value, () => nextTick(() => window.lucide && window.lucide.cre
   position: relative;
 }
 .bar-score {
-  font-size: 11px;
-  color: #aaa;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  color: var(--text-low);
+  font-weight: var(--font-weight-semibold);
 }
 .bar {
   width: 100%;
   border-radius: 3px 3px 0 0;
-  transition: height 240ms ease-out;
+  transition: height var(--transition-normal) ease-out;
 }
-.bar--verde    { background: linear-gradient(to top, #16a34a, #22c55e); }
-.bar--amarelo  { background: linear-gradient(to top, #d97706, #f59e0b); }
-.bar--vermelho { background: linear-gradient(to top, #b91c1c, #ef4444); }
-.bar--empty    { background: #2a2a2a; }
+.bar--verde    { background: linear-gradient(to top, #16a34a, var(--color-safe)); }
+.bar--amarelo  { background: linear-gradient(to top, #d97706, var(--color-care)); }
+.bar--vermelho { background: linear-gradient(to top, #b91c1c, var(--color-danger)); }
+.bar--empty    { background: var(--bg-toggle-active); }
 
 .av-delta {
   font-size: 10.5px;
@@ -165,20 +166,20 @@ watch(() => fases.value, () => nextTick(() => window.lucide && window.lucide.cre
   font-weight: 600;
   line-height: 1.3;
 }
-.chip--pos    { background: rgba(34, 197, 94, 0.15);  color: #22c55e; }
-.chip--neg    { background: rgba(239, 68, 68, 0.15);  color: #ef4444; }
-.chip--neutro { background: rgba(255, 255, 255, 0.05); color: #888; }
+.chip--pos    { background: rgba(var(--color-safe-rgb), 0.15);   color: var(--color-safe); }
+.chip--neg    { background: rgba(var(--color-danger-rgb), 0.15); color: var(--color-danger); }
+.chip--neutro { background: var(--bg-inner); color: var(--text-muted); }
 .av-delta-spacer { height: 16px; }
 
 .av-nome {
-  font-size: 11px;
-  color: #aaa;
+  font-size: var(--font-size-sm);
+  color: var(--text-low);
   text-align: center;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
 }
 .av-veredicto {
-  font-size: 10.5px;
-  color: #666;
+  font-size: var(--font-size-xs);
+  color: var(--text-lowest);
   text-align: center;
   line-height: 1.35;
   max-height: 3em;
@@ -189,17 +190,17 @@ watch(() => fases.value, () => nextTick(() => window.lucide && window.lucide.cre
 }
 
 .av-empty {
-  padding: 24px 12px;
+  padding: var(--spacing-xl) var(--spacing-md);
   text-align: center;
-  color: #666;
-  font-size: 13px;
-  background: rgba(255, 255, 255, 0.02);
-  border-radius: 4px;
+  color: var(--text-lowest);
+  font-size: var(--font-size-md);
+  background: var(--bg-inner);
+  border-radius: var(--radius-sm);
 }
 
 .av-narrativa {
-  color: #ccc;
-  font-size: 13.5px;
+  color: var(--text-medium);
+  font-size: var(--font-size-md);
   line-height: 1.6;
   margin: 0;
   white-space: pre-wrap;

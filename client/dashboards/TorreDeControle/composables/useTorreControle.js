@@ -38,24 +38,28 @@ async function apiFetch(path, options = {}) {
 // mas a do index nao, exigindo F5 depois de cada analise concluida.
 const matriz = shallowRef({ clientes: [], fases: [] })
 const painelGeral = shallowRef(null)
-const loading = ref(false)
+// Loading geral (retrocompat) + loadings especificos para evitar que matriz finalizando
+// apague o spinner do painel-geral quando ambos sao chamados em paralelo.
+const loadingMatriz = ref(false)
+const loadingPainel = ref(false)
+const loading = computed(() => loadingMatriz.value || loadingPainel.value)
 const error = ref(null)
 const activeJobs = ref(new Map())
 
 export function useTorreControle() {
 
   async function carregarMatriz() {
-    loading.value = true; error.value = null
+    loadingMatriz.value = true; error.value = null
     try { matriz.value = await apiFetch('/matriz') }
     catch (err) { error.value = err.message }
-    finally { loading.value = false }
+    finally { loadingMatriz.value = false }
   }
 
   async function carregarPainelGeral() {
-    loading.value = true; error.value = null
+    loadingPainel.value = true; error.value = null
     try { painelGeral.value = await apiFetch('/painel-geral') }
     catch (err) { error.value = err.message }
-    finally { loading.value = false }
+    finally { loadingPainel.value = false }
   }
 
   async function carregarDetalheFase(clienteId, faseId) {
@@ -139,9 +143,15 @@ export function useTorreControle() {
       progresso: {},
       created_at: createdAt
     })
+    // Antes: catch removia o job em qualquer erro, deixando a matriz sem recarregar
+    // quando o poll falhava por 1 hiccup de rede. Agora: ate 5 falhas seguidas com
+    // backoff linear (3s, 6s, 9s...), so desiste de vez se o backend estiver fora.
+    let consecutiveErrors = 0
+    const MAX_ERRORS = 5
     const tick = async () => {
       try {
         const job = await apiFetch(`/job/${jobId}`)
+        consecutiveErrors = 0
         activeJobs.value.set(jobId, {
           id: jobId,
           status: job.status,
@@ -156,8 +166,16 @@ export function useTorreControle() {
           return
         }
         setTimeout(tick, POLL_MS)
-      } catch {
-        activeJobs.value.delete(jobId)
+      } catch (err) {
+        consecutiveErrors += 1
+        console.warn(`[pollJob ${jobId}] falha ${consecutiveErrors}/${MAX_ERRORS}:`, err?.message || err)
+        if (consecutiveErrors >= MAX_ERRORS) {
+          activeJobs.value.delete(jobId)
+          // Forca reload para o caso do job ter completado mas o poll estar morto
+          carregarMatriz().catch(() => {})
+          return
+        }
+        setTimeout(tick, POLL_MS * consecutiveErrors)
       }
     }
     tick()
@@ -222,7 +240,7 @@ export function useTorreControle() {
   }
 
   return {
-    matriz, painelGeral, loading, error,
+    matriz, painelGeral, loading, loadingMatriz, loadingPainel, error,
     activeJobs, jobsEmAndamento, pollJob,
     carregarMatriz, carregarPainelGeral, carregarDetalheFase,
     analisar, analisarFinal, analisarMassa,

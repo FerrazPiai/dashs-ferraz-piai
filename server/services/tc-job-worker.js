@@ -52,45 +52,10 @@ async function updateProgress(jobId, progresso) {
   )
 }
 
-// D-01/D-02: resolve o user_id responsavel pela analise.
-// Ordem: (1) job.triggered_by_user_id (trigger owner), (2) fallback Kommo via lead.responsible_user_id.
-// Se nenhum resolver, retorna { userId: null, source: 'missing' }.
-async function resolveOwnershipUserId(job) {
-  if (job.triggered_by_user_id) {
-    return { userId: job.triggered_by_user_id, source: 'trigger_owner' }
-  }
-  if (!job.lead_id) return { userId: null, source: 'missing' }
-  // tc_leads.responsible_user_id guarda o id Kommo; users.kommo_user_id tambem.
-  const { rows } = await pool.query(
-    `SELECT u.id AS user_id
-       FROM dashboards_hub.users u
-      WHERE u.kommo_user_id = (
-         SELECT responsible_user_id FROM dashboards_hub.tc_leads WHERE id = $1
-      )
-      LIMIT 1`,
-    [job.lead_id]
-  )
-  if (rows[0]?.user_id) return { userId: Number(rows[0].user_id), source: 'kommo_fallback' }
-  return { userId: null, source: 'missing' }
-}
-
 async function processJob(job) {
   const onProgress = (data) => updateProgress(job.id, data).catch(() => {})
   const projetoFaseId = job.progresso?.payload?.projetoFaseId || null
   try {
-    // D-01/D-02: resolve ownership antes de chamar runAnalysis/runFinalReport.
-    // Jobs que exigem token Google (analyze_phase/analyze_final) falham limpo se sem user_id.
-    const needsUser = job.tipo === 'analyze_phase' || job.tipo === 'analyze_final'
-    const { userId, source } = needsUser
-      ? await resolveOwnershipUserId(job)
-      : { userId: null, source: 'not_required' }
-    if (needsUser) {
-      console.log(`[${new Date().toISOString()}] [TC-WORKER] job ${job.id} ownership=${source} user=${userId || 'null'}`)
-      if (!userId) {
-        throw new Error('sem user_id para autenticar Google (trigger owner ausente + fallback Kommo sem mapping)')
-      }
-    }
-
     let resultado
     if (job.tipo === 'analyze_phase') {
       const payload = job.progresso?.payload || {}
@@ -98,28 +63,24 @@ async function processJob(job) {
         projetoFaseId: payload.projetoFaseId,
         leadId: job.lead_id,
         fase: payload.fase,
-        onProgress,
-        userId
+        onProgress
       })
     } else if (job.tipo === 'analyze_final') {
       const payload = job.progresso?.payload || {}
       resultado = await runFinalReport({
         projetoFaseId: payload.projetoFaseId,
         leadId: job.lead_id,
-        onProgress,
-        userId
+        onProgress
       })
     } else if (job.tipo === 'analyze_bulk') {
       const items = job.progresso?.payload?.items || []
-      // Propaga triggered_by_user_id do bulk para sub-jobs. Se o bulk job nao tem
-      // (ex: scheduled), sub-jobs caem no fallback Kommo por lead (D-02).
       for (const it of items) {
         const lockKey = `analyze:${it.leadId}:${it.fase}`
         await pool.query(`
-          INSERT INTO dashboards_hub.tc_jobs (tipo, lead_id, lock_key, progresso, triggered_by_user_id)
-          VALUES ('analyze_phase', $1, $2, $3, $4)
+          INSERT INTO dashboards_hub.tc_jobs (tipo, lead_id, lock_key, progresso)
+          VALUES ('analyze_phase', $1, $2, $3)
           ON CONFLICT DO NOTHING
-        `, [it.leadId, lockKey, JSON.stringify({ payload: it }), job.triggered_by_user_id || null])
+        `, [it.leadId, lockKey, JSON.stringify({ payload: it })])
       }
       resultado = { fanout: items.length }
     } else {
@@ -153,13 +114,29 @@ async function processJob(job) {
       [proxima, JSON.stringify({ ultimo_erro: err.message }), job.id]
     )
 
-    // Persiste ultima_falha na fase para banner inline no SuperPainel
+    // Persiste ultima_falha na fase para banner inline no SuperPainel.
+    // Sanitiza a mensagem: nunca expor API keys, stack traces, constraints SQL ou vars de ambiente.
     if (projetoFaseId && (job.tipo === 'analyze_phase' || job.tipo === 'analyze_final')) {
+      const rawMsg = String(err?.message || err || '').toLowerCase()
+      let friendlyMsg = 'Falha na análise — tente novamente'
+      if (rawMsg.includes('api_key') || rawMsg.includes('openrouter') || rawMsg.includes('not configured')) {
+        friendlyMsg = 'Serviço de IA indisponível no momento'
+      } else if (rawMsg.includes('null value') || rawMsg.includes('constraint') || rawMsg.includes('violates')) {
+        friendlyMsg = 'A IA retornou dados incompletos — nova tentativa costuma resolver'
+      } else if (rawMsg.includes('timeout') || rawMsg.includes('timed out')) {
+        friendlyMsg = 'Tempo esgotado na análise — tente novamente'
+      } else if (rawMsg.includes('403') || rawMsg.includes('forbidden') || rawMsg.includes('permission')) {
+        friendlyMsg = 'Sem permissão para acessar algum arquivo dos materiais'
+      } else if (rawMsg.includes('404') || rawMsg.includes('not found')) {
+        friendlyMsg = 'Algum material não foi encontrado no link informado'
+      } else if (/50[0-9]/.test(rawMsg)) {
+        friendlyMsg = 'Falha temporária ao ler os materiais'
+      }
       await pool.query(
         `UPDATE dashboards_hub.tc_projeto_fases
          SET ultima_falha_em = NOW(), ultima_falha_msg = $1
          WHERE id = $2`,
-        [String(err.message || err).slice(0, 1000), projetoFaseId]
+        [friendlyMsg, projetoFaseId]
       ).catch(() => {})
     }
   }
@@ -197,13 +174,13 @@ export function stopJobWorker() {
   stopRequested = true
 }
 
-export async function enqueueJob({ tipo, leadId, lockKey, payload, triggeredByUserId }) {
+export async function enqueueJob({ tipo, leadId, lockKey, payload }) {
   const { rows } = await pool.query(`
-    INSERT INTO dashboards_hub.tc_jobs (tipo, lead_id, lock_key, progresso, triggered_by_user_id)
-    VALUES ($1, $2, $3, $4, $5)
+    INSERT INTO dashboards_hub.tc_jobs (tipo, lead_id, lock_key, progresso)
+    VALUES ($1, $2, $3, $4)
     ON CONFLICT DO NOTHING
     RETURNING id, status
-  `, [tipo, leadId || null, lockKey || null, JSON.stringify({ payload }), triggeredByUserId || null])
+  `, [tipo, leadId || null, lockKey || null, JSON.stringify({ payload })])
 
   if (rows[0]) return rows[0]
 

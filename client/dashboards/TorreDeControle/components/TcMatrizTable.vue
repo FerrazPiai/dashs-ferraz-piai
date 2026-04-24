@@ -1,13 +1,14 @@
 <template>
   <div class="matriz-wrap">
-    <table class="matriz-table">
-      <thead>
+    <div class="matriz-scroll">
+      <table class="matriz-table">
+        <thead>
         <tr>
           <th class="col-cliente">Cliente</th>
           <th class="col-account">Account</th>
           <th
             v-for="fase in fases"
-            :key="fase.id || fase.nome || fase"
+            :key="fase.id ?? fase.nome"
             class="col-fase"
           >
             {{ fase.nome || fase }}
@@ -15,12 +16,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="cliente in clientes" :key="cliente.id || cliente.lead_id">
+        <tr v-for="cliente in clientes" :key="cliente.id ?? cliente.lead_id">
           <td class="col-cliente cell-nome">{{ cliente.nome }}</td>
           <td class="col-account cell-meta">{{ cliente.account || '—' }}</td>
           <td
             v-for="fase in fases"
-            :key="fase.id || fase.nome || fase"
+            :key="fase.id ?? fase.nome"
             class="col-fase cell-fase"
           >
             <span
@@ -30,7 +31,9 @@
                 isFaseAtual(cliente, fase) ? 'dot--atual' : '',
                 isAuditavel(cliente, fase) ? 'dot--clicavel' : 'dot--bloqueado'
               ]"
-              :title="dotLabel(cliente, fase, getFaseDado(cliente, fase))"
+              @mouseenter="onDotEnter($event, cliente, fase)"
+              @mousemove="onDotMove"
+              @mouseleave="onDotLeave"
               @click="isAuditavel(cliente, fase) && $emit('click-dot', { cliente, fase: fase.nome || fase, faseId: fase.id })"
             ></span>
           </td>
@@ -42,10 +45,35 @@
         </tr>
       </tbody>
     </table>
+    </div>
+
+    <!-- KPI tooltip — Teleport no body pra escapar do overflow do scroll -->
+    <Teleport to="body">
+      <div
+        v-if="tooltip.visible"
+        class="matriz-tooltip"
+        :style="{ left: tooltip.x + 'px', top: tooltip.y + 'px' }"
+        role="tooltip"
+      >
+        <div class="tt-head">
+          <span class="tt-dot" :class="tooltip.dotClass"></span>
+          <span class="tt-fase">{{ tooltip.faseNome }}</span>
+        </div>
+        <div v-if="tooltip.score != null" class="tt-kpi">
+          <span class="tt-score" :class="tooltip.scoreClass">{{ Number(tooltip.score).toFixed(1) }}</span>
+          <span class="tt-score-max">/ 10</span>
+          <span class="tt-status" :class="tooltip.scoreClass">{{ tooltip.statusLabel }}</span>
+        </div>
+        <div v-else class="tt-sem-score">{{ tooltip.semScoreLabel }}</div>
+        <div v-if="tooltip.hint" class="tt-hint">{{ tooltip.hint }}</div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup>
+import { reactive } from 'vue'
+
 defineEmits(['click-dot'])
 
 defineProps({
@@ -58,6 +86,80 @@ defineProps({
     default: () => []
   }
 })
+
+// Tooltip KPI — segue o mouse, sai do overflow via Teleport
+const tooltip = reactive({
+  visible: false, x: 0, y: 0,
+  faseNome: '', dotClass: '',
+  score: null, scoreClass: '', statusLabel: '',
+  semScoreLabel: '', hint: ''
+})
+
+function scoreClassFrom(cor) {
+  if (cor === 'verde') return 'is-safe'
+  if (cor === 'amarelo') return 'is-care'
+  if (cor === 'vermelho') return 'is-danger'
+  return 'is-muted'
+}
+function statusLabelFrom(cor) {
+  if (cor === 'verde') return 'Bom'
+  if (cor === 'amarelo') return 'Mediano'
+  if (cor === 'vermelho') return 'Ruim'
+  return ''
+}
+
+function positionTooltip(ev) {
+  const pad = 14
+  const maxX = window.innerWidth - 260      // largura aproximada do tooltip
+  const maxY = window.innerHeight - 120
+  tooltip.x = Math.min(ev.clientX + pad, maxX)
+  tooltip.y = Math.min(ev.clientY + pad, maxY)
+}
+
+function onDotEnter(ev, cliente, fase) {
+  const dado = getFaseDado(cliente, fase)
+  const cor = dado?.status_cor
+  const isAtual = isFaseAtual(cliente, fase)
+  const auditavel = isAuditavel(cliente, fase)
+  const slug = typeof fase === 'object' ? fase.slug : null
+
+  tooltip.faseNome = typeof fase === 'object' ? fase.nome : fase
+  tooltip.dotClass = dotClass(dado)
+  tooltip.score = dado?.score != null ? dado.score : null
+  tooltip.scoreClass = scoreClassFrom(cor)
+  tooltip.statusLabel = statusLabelFrom(cor)
+
+  // Contexto textual (sem score): atual, bloqueada, incompleta ou sem analise
+  if (isAtual && slug === 'projeto-concluido') {
+    tooltip.semScoreLabel = 'Projeto concluido'
+    tooltip.hint = 'Clique para abrir a Analise Consolidada'
+  } else if (isAtual) {
+    tooltip.semScoreLabel = 'Fase atual do lead'
+    tooltip.hint = 'Aguardando avanco para auditar'
+  } else if (!auditavel) {
+    tooltip.semScoreLabel = 'Fase futura'
+    tooltip.hint = 'Ainda nao ocorreu'
+  } else if (cor === 'incompleta') {
+    tooltip.semScoreLabel = 'Materiais insuficientes'
+    tooltip.hint = 'Colete dados antes de auditar'
+    tooltip.score = null
+  } else if (!dado || !cor) {
+    tooltip.semScoreLabel = 'Sem analise'
+    tooltip.hint = 'Clique para auditar esta fase'
+  } else {
+    tooltip.semScoreLabel = ''
+    tooltip.hint = auditavel ? 'Clique para ver a analise' : ''
+  }
+
+  positionTooltip(ev)
+  tooltip.visible = true
+}
+function onDotMove(ev) {
+  if (tooltip.visible) positionTooltip(ev)
+}
+function onDotLeave() {
+  tooltip.visible = false
+}
 
 function getFaseDado(cliente, fase) {
   const faseId = typeof fase === 'object' ? fase.id : null
@@ -114,18 +216,49 @@ function dotLabel(cliente, fase, dado) {
 </script>
 
 <style scoped>
+/* Wrapper externo — card com bordas arredondadas.
+   overflow:hidden garante que o corner radius funcione mesmo com scrollbar interna.
+   max-width:100% + min-width:0 previnem que a tabela estoure o viewport (causava scroll lateral na página inteira). */
 .matriz-wrap {
-  overflow-x: auto;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-card);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+/* Wrapper interno — este é quem rola horizontalmente.
+   Mesmo padrão de GtmFunnelTable (CONSOLIDADO — TODOS OS CANAIS). */
+.matriz-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  max-width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-input) transparent;
+}
+.matriz-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+.matriz-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.matriz-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-input);
+  border-radius: 4px;
+}
+.matriz-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--text-lowest);
 }
 
 .matriz-table {
   width: 100%;
+  min-width: max-content;
   border-collapse: collapse;
   font-size: var(--font-size-base);
   white-space: nowrap;
+  table-layout: auto;
 }
 
 .matriz-table thead tr {
@@ -161,7 +294,7 @@ function dotLabel(cliente, fase, dado) {
 }
 
 .matriz-table tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: var(--bg-hover);
 }
 
 .matriz-table td {
@@ -170,8 +303,8 @@ function dotLabel(cliente, fase, dado) {
 }
 
 .cell-nome {
-  font-weight: 600;
-  color: #fff;
+  font-weight: var(--font-weight-semibold);
+  color: var(--text-high);
   min-width: 200px;
   max-width: 280px;
   overflow: hidden;
@@ -181,11 +314,11 @@ function dotLabel(cliente, fase, dado) {
 }
 
 .cell-meta {
-  color: #aaa;
+  color: var(--text-low);
   min-width: 140px;
-  font-size: 12.5px;
+  font-size: var(--font-size-base);
 }
-.cell-meta:empty::before, .cell-meta:has(+ :empty)::before { content: '—'; color: #555; }
+.cell-meta:empty::before, .cell-meta:has(+ :empty)::before { content: '—'; color: var(--text-lowest); margin-right: 2px; }
 
 .cell-fase {
   text-align: center;
@@ -196,24 +329,24 @@ function dotLabel(cliente, fase, dado) {
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  transition: transform 0.15s, opacity 0.15s, filter 0.15s;
+  transition: transform var(--transition-fast), opacity var(--transition-fast), filter var(--transition-fast);
 }
 
-.dot--cinza    { background-color: #333; border: 1px dashed #555; }
-.dot--verde    { background-color: #22c55e; box-shadow: 0 0 6px rgba(34, 197, 94, 0.4); }
-.dot--amarelo  { background-color: #f59e0b; box-shadow: 0 0 6px rgba(245, 158, 11, 0.4); }
-.dot--vermelho { background-color: #ef4444; box-shadow: 0 0 6px rgba(239, 68, 68, 0.4); }
+.dot--cinza    { background-color: var(--border-input); border: 1px dashed var(--text-lowest); }
+.dot--verde    { background-color: var(--color-safe); box-shadow: 0 0 6px rgba(var(--color-safe-rgb), 0.4); }
+.dot--amarelo  { background-color: var(--color-care); box-shadow: 0 0 6px rgba(var(--color-care-rgb), 0.4); }
+.dot--vermelho { background-color: var(--color-danger); box-shadow: 0 0 6px rgba(var(--color-danger-rgb), 0.4); }
 /* Analise feita mas materiais insuficientes — nao polui KPIs */
 .dot--incompleta {
-  background-color: #1f2937;
-  border: 1px solid #6b7280;
+  background-color: var(--bg-inner);
+  border: 1px solid var(--chart-color-neutral);
   position: relative;
 }
 .dot--incompleta::after {
   content: '?';
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  color: #9ca3af; font-size: 9px; font-weight: 700;
+  color: var(--text-low); font-size: 9px; font-weight: var(--font-weight-bold);
   line-height: 1;
 }
 
@@ -237,7 +370,7 @@ function dotLabel(cliente, fase, dado) {
 /* Destaque da FASE ATUAL do lead (independente de ter analise ou nao) */
 .dot--atual {
   position: relative;
-  outline: 2px solid #ffffff;
+  outline: 2px solid var(--text-high);
   outline-offset: 3px;
   box-shadow: 0 0 8px rgba(255, 255, 255, 0.6);
 }
@@ -257,8 +390,93 @@ function dotLabel(cliente, fase, dado) {
 
 .empty-row {
   text-align: center;
-  color: #555;
+  color: var(--text-lowest);
   padding: 32px !important;
+  font-size: var(--font-size-md);
+}
+
+/* KPI tooltip teleportado ao body — nao escondido pelo overflow da tabela */
+</style>
+
+<style>
+.matriz-tooltip {
+  position: fixed;
+  z-index: 9999;
+  min-width: 220px;
+  max-width: 260px;
+  padding: 12px 14px;
+  background: #141414;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  font-family: inherit;
   font-size: 13px;
+  line-height: 1.4;
+  pointer-events: none;
+  animation: matriz-tt-in 120ms ease-out;
+}
+@keyframes matriz-tt-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.matriz-tooltip .tt-head {
+  display: flex; align-items: center; gap: 8px;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.matriz-tooltip .tt-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.matriz-tooltip .tt-dot.dot--verde    { background: #10b981; box-shadow: 0 0 6px rgba(16,185,129,0.5); }
+.matriz-tooltip .tt-dot.dot--amarelo  { background: #f59e0b; box-shadow: 0 0 6px rgba(245,158,11,0.5); }
+.matriz-tooltip .tt-dot.dot--vermelho { background: #ef4444; box-shadow: 0 0 6px rgba(239,68,68,0.5); }
+.matriz-tooltip .tt-dot.dot--incompleta { background: #333; border: 1px solid #666; }
+.matriz-tooltip .tt-dot.dot--cinza { background: #333; border: 1px dashed #666; }
+.matriz-tooltip .tt-fase {
+  font-size: 11px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+.matriz-tooltip .tt-kpi {
+  display: flex; align-items: baseline; gap: 4px;
+  flex-wrap: wrap;
+}
+.matriz-tooltip .tt-score {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.matriz-tooltip .tt-score-max {
+  font-size: 13px;
+  color: #888;
+}
+.matriz-tooltip .tt-status {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.matriz-tooltip .is-safe   { color: #10b981; }
+.matriz-tooltip .is-care   { color: #f59e0b; }
+.matriz-tooltip .is-danger { color: #ef4444; }
+.matriz-tooltip .is-muted  { color: #888; }
+
+.matriz-tooltip .tt-sem-score {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e5e5e5;
+}
+.matriz-tooltip .tt-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #888;
+  font-style: italic;
 }
 </style>

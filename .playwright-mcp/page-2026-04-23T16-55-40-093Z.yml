@@ -1,0 +1,98 @@
+- generic [ref=e3]:
+  - complementary [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - img [ref=e4365]
+        - generic: Dashboards V4
+      - button "Toggle sidebar" [ref=e9] [cursor=pointer]:
+        - img [ref=e4367]
+    - navigation [ref=e13]:
+      - list [ref=e14]:
+        - listitem [ref=e15]:
+          - link "Início" [ref=e16] [cursor=pointer]:
+            - /url: /
+            - img [ref=e4370]
+            - generic: Início
+      - list [ref=e35]:
+        - listitem [ref=e36]:
+          - link "Conversão Saber → Ter/Executar" [ref=e37] [cursor=pointer]:
+            - /url: /tx-conv-saber-monetizacao
+            - img [ref=e4373]
+            - generic: Conversão Saber → Ter/Executar
+        - listitem [ref=e41]:
+          - link "GTM Motion" [ref=e42] [cursor=pointer]:
+            - /url: /gtm-motion
+            - img [ref=e4376]
+            - generic: GTM Motion
+      - list [ref=e48]:
+        - listitem [ref=e49]:
+          - link "Raio-X Financeiro" [ref=e50] [cursor=pointer]:
+            - /url: /raio-x-financeiro
+            - img [ref=e4378]
+            - generic: Raio-X Financeiro
+        - listitem [ref=e55]:
+          - link "Fechamento Financeiro — Squads" [ref=e56] [cursor=pointer]:
+            - /url: /fechamento-financeiro-squads
+            - img [ref=e4382]
+            - generic: Fechamento Financeiro — Squads
+      - list [ref=e63]:
+        - listitem [ref=e64]:
+          - link "NPS Satisfação" [ref=e65] [cursor=pointer]:
+            - /url: /nps-satisfacao
+            - img [ref=e4385]
+            - generic: NPS Satisfação
+        - listitem [ref=e69]:
+          - link "Torre de Controle" [ref=e70] [cursor=pointer]:
+            - /url: /torre-de-controle
+            - img [ref=e4388]
+            - generic: Torre de Controle
+        - listitem [ref=e75]:
+          - link "Comparativo Squads" [ref=e76] [cursor=pointer]:
+            - /url: /comparativo-squads
+            - img [ref=e4392]
+            - generic: Comparativo Squads
+    - generic "adm" [ref=e21]:
+      - generic [ref=e22]: A
+  - main [ref=e23]:
+    - generic [ref=e82]:
+      - generic [ref=e84]:
+        - generic [ref=e85]:
+          - heading "Torre de Controle" [level=1] [ref=e86]
+          - generic [ref=e87]: "|"
+          - heading "Pipeline Saber — Kommo" [level=2] [ref=e88]
+        - generic [ref=e89]:
+          - button "Voltar a Matriz" [ref=e4397] [cursor=pointer]:
+            - img [ref=e4398]
+            - generic [ref=e96]: Voltar a Matriz
+          - generic [ref=e97]: Atualizado 23/04 às 13:11
+          - button "Atualizar Dados" [ref=e98] [cursor=pointer]:
+            - img [ref=e4403]
+            - generic [ref=e104]: Atualizar Dados
+      - generic [ref=e4408]:
+        - generic [ref=e4409]:
+          - generic [ref=e4410]:
+            - img [ref=e4411]
+            - generic [ref=e4416]: Clientes Ativos
+            - generic [ref=e4417]: "35"
+          - generic [ref=e4418]:
+            - img [ref=e4419]
+            - generic [ref=e4422]: Score Medio
+            - generic [ref=e4423]: "8.0"
+          - generic [ref=e4424]:
+            - img [ref=e4425]
+            - generic [ref=e4427]: Em Risco
+            - generic [ref=e4428]: "2"
+          - generic [ref=e4429]:
+            - img [ref=e4430]
+            - generic [ref=e4432]: Taxa de Analise
+            - generic [ref=e4433]: 6.2%
+        - tablist [ref=e4434]:
+          - tab "Visao Geral" [selected] [ref=e4435] [cursor=pointer]
+          - tab "Distribuicao" [ref=e4436] [cursor=pointer]
+          - tab "Churn" [ref=e4437] [cursor=pointer]
+          - tab "Oportunidades" [ref=e4438] [cursor=pointer]
+          - tab "Accounts" [ref=e4439] [cursor=pointer]
+        - generic [ref=e4442]:
+          - img [ref=e4443]
+          - paragraph [ref=e4445]: Ainda nao ha analises registradas
+          - generic [ref=e4446]: Execute uma analise em qualquer lead da matriz para comecar a popular esta visao.

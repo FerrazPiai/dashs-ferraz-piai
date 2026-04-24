@@ -70,9 +70,14 @@ const elapsedStr = computed(() => {
 })
 
 onMounted(() => {
+  // Guard contra remount rapido — zera o timer anterior antes de criar um novo
+  // para evitar varios intervals rodando em paralelo (cada um escrevendo em `now`).
+  if (tickTimer) clearInterval(tickTimer)
   tickTimer = setInterval(() => { now.value = Date.now() }, 1000)
 })
-onBeforeUnmount(() => { if (tickTimer) clearInterval(tickTimer) })
+onBeforeUnmount(() => {
+  if (tickTimer) { clearInterval(tickTimer); tickTimer = null }
+})
 
 const headline = computed(() => {
   if (props.job?.status === 'failed') return 'Analise falhou'

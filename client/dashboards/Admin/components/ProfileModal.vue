@@ -21,6 +21,26 @@
             </label>
           </div>
         </div>
+
+        <div class="fg" v-if="features.length">
+          <label class="fl">Funcionalidades Especiais</label>
+          <p class="fl-hint">Libera recursos alem do acesso basico aos dashboards.</p>
+          <div class="dash-grid">
+            <label
+              v-for="f in features"
+              :key="f.id"
+              class="dash-check"
+              :class="{ checked: form.features.includes(f.id) }"
+              :title="f.description || ''"
+            >
+              <input type="checkbox" :value="f.id" v-model="form.features" class="dash-input" />
+              <span class="dash-label">
+                {{ f.label }}
+                <small v-if="f.description" class="dash-desc">{{ f.description }}</small>
+              </span>
+            </label>
+          </div>
+        </div>
         <p v-if="error" class="fe">{{ error }}</p>
         <div class="modal-actions">
           <button type="button" class="btn-sec" @click="$emit('close')">Cancelar</button>
@@ -39,14 +59,27 @@ const props = defineProps({
 })
 const emit = defineEmits(['close', 'saved'])
 
-const form = reactive({ name: '', label: '', allowed: [] })
+const form = reactive({ name: '', label: '', allowed: [], features: [] })
 const dashboards = ref([])
+const features = ref([])
 const saving = ref(false)
 const error = ref('')
 
 watch(() => props.profile, (p) => {
-  if (p) { form.name = p.name; form.label = p.label; form.allowed = [...(p.allowed_dashboards || [])] }
-  else { form.name = ''; form.label = ''; form.allowed = [] }
+  if (p) {
+    form.name = p.name
+    form.label = p.label
+    form.allowed = [...(p.allowed_dashboards || [])]
+    // allowed_features pode vir como array JSON ou string JSON — normalizar
+    const raw = p.allowed_features
+    const parsed = Array.isArray(raw) ? raw : (raw ? (() => { try { return JSON.parse(raw) } catch { return [] } })() : [])
+    form.features = [...parsed]
+  } else {
+    form.name = ''
+    form.label = ''
+    form.allowed = []
+    form.features = []
+  }
 }, { immediate: true })
 
 onMounted(async () => {
@@ -55,12 +88,21 @@ onMounted(async () => {
     const data = await res.json()
     dashboards.value = data.dashboards || []
   } catch { dashboards.value = [] }
+  try {
+    const res = await fetch('/api/admin/features-list')
+    const data = await res.json()
+    features.value = data.features || []
+  } catch { features.value = [] }
 })
 
 async function save() {
   error.value = ''; saving.value = true
   try {
-    const body = { label: form.label, allowed_dashboards: form.allowed }
+    const body = {
+      label: form.label,
+      allowed_dashboards: form.allowed,
+      allowed_features: form.features
+    }
     if (props.profile) {
       const res = await fetch(`/api/admin/profiles/${props.profile.name}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
       const data = await res.json(); if (!res.ok) throw new Error(data.error)
@@ -94,8 +136,9 @@ async function save() {
 }
 .dash-check:hover { border-color: rgba(255,255,255,0.12); color: #ccc; }
 .dash-check.checked { border-color: rgba(255,0,0,0.25); color: #fff; background: rgba(255,0,0,0.04); }
-.dash-input { accent-color: #ff0000; width: 15px; height: 15px; cursor: pointer; }
-.dash-label { flex: 1; }
+.dash-input { accent-color: #ff0000; width: 15px; height: 15px; cursor: pointer; flex-shrink: 0; }
+.dash-label { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.dash-desc { font-size: 11px; color: #666; font-weight: normal; }
 
 .fe { font-size: 13px; color: #ff4444; margin: 0; padding: 8px 10px; background: rgba(255,0,0,0.06); border: 1px solid rgba(255,0,0,0.15); border-radius: 4px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }

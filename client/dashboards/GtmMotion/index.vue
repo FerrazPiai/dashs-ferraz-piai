@@ -212,6 +212,16 @@
       <span>{{ error }}</span>
     </div>
 
+    <!-- Staleness banner: workflow n8n parado ha 3+ dias -->
+    <div v-if="isDataStale" class="staleness-banner">
+      <i data-lucide="alert-triangle" class="staleness-icon"></i>
+      <div class="staleness-content">
+        <strong>Dados desatualizados.</strong>
+        Ultima execucao do workflow n8n: {{ sourceLastUpdatedLabel }} ({{ dataStalenessDays }} dia{{ dataStalenessDays === 1 ? '' : 's' }} atras).
+        Clique em <em>Atualizar</em> ou verifique o workflow GTM Motion no n8n.
+      </div>
+    </div>
+
     <!-- BowTie Model (oculto em produção) -->
     <GtmBowTieChart v-if="showBowtie" :data="bowtieData" :loading="loading" />
 
@@ -1612,6 +1622,25 @@ const resolvedData = computed(() => {
   return null
 })
 
+// Data freshness — le last_updated do payload e calcula quantos dias atras foi a ultima atualizacao do workflow n8n.
+const sourceLastUpdated = computed(() => {
+  const raw = Array.isArray(data.value) ? data.value[0]?.data?.last_updated : null
+  return raw ? new Date(raw) : null
+})
+
+const dataStalenessDays = computed(() => {
+  if (!sourceLastUpdated.value) return null
+  const ms = Date.now() - sourceLastUpdated.value.getTime()
+  return Math.floor(ms / (1000 * 60 * 60 * 24))
+})
+
+const isDataStale = computed(() => dataStalenessDays.value !== null && dataStalenessDays.value >= 3)
+
+const sourceLastUpdatedLabel = computed(() => {
+  if (!sourceLastUpdated.value) return ''
+  return formatDateTime(sourceLastUpdated.value.toISOString())
+})
+
 // Comparison period data
 const comparisonData = computed(() => {
   if (!data.value) return null
@@ -2331,6 +2360,40 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Staleness banner — workflow n8n parado ha 3+ dias */
+.staleness-banner {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 12px 16px;
+  margin: 12px 0;
+  background: rgba(250, 204, 21, 0.08);
+  border: 1px solid rgba(250, 204, 21, 0.4);
+  border-left: 3px solid #facc15;
+  border-radius: 6px;
+  color: #facc15;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.staleness-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+}
+.staleness-content {
+  color: #e5c100;
+}
+.staleness-content strong {
+  color: #facc15;
+  margin-right: 4px;
+}
+.staleness-content em {
+  font-style: normal;
+  font-weight: 500;
+  color: #fff;
+}
+
 .header-title {
   display: flex;
   align-items: center;

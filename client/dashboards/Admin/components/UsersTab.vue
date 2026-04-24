@@ -35,9 +35,10 @@
             <th>Nome</th>
             <th>Email</th>
             <th>Perfil</th>
-            <th v-if="advanced">Login</th>
+            <th>Método</th>
+            <th>Último Acesso</th>
             <th>Status</th>
-            <th v-if="advanced">Criado</th>
+            <th>Criado</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -47,12 +48,15 @@
             <td class="td-name">{{ u.name }}</td>
             <td class="td-email">{{ u.email }}</td>
             <td><span class="badge" :class="'b-' + u.role">{{ profileLabel(u.role) }}</span></td>
-            <td v-if="advanced">{{ u.oauth_provider || 'senha' }}</td>
+            <td>{{ u.oauth_provider || 'senha' }}</td>
+            <td :class="{ muted: !u.last_activity }" :title="u.last_activity ? fmtDateTime(u.last_activity) : 'Usuario nunca acessou'">
+              {{ fmtRelative(u.last_activity) }}
+            </td>
             <td>
               <span class="dot" :class="u.active ? 'dot-on' : 'dot-off'"></span>
               {{ u.active ? 'Ativo' : 'Inativo' }}
             </td>
-            <td v-if="advanced">{{ fmtDate(u.created_at) }}</td>
+            <td>{{ fmtDate(u.created_at) }}</td>
             <td class="td-act">
               <button class="btn-ico" title="Editar" @click="editUser = u; showModal = true"><i data-lucide="pencil"></i></button>
               <button v-if="u.active" class="btn-ico btn-ico-red" title="Desativar" @click="deactivate(u)"><i data-lucide="user-x"></i></button>
@@ -142,6 +146,27 @@ async function reactivate(u) {
 
 function fmtDate(iso) { return iso ? new Date(iso).toLocaleDateString('pt-BR') : '-' }
 
+function fmtDateTime(iso) {
+  if (!iso) return '-'
+  return new Date(iso).toLocaleString('pt-BR', {
+    day: '2-digit', month: '2-digit', year: '2-digit',
+    hour: '2-digit', minute: '2-digit'
+  })
+}
+
+function fmtRelative(iso) {
+  if (!iso) return 'Nunca'
+  const diff = Date.now() - new Date(iso).getTime()
+  const m = Math.floor(diff / 60000)
+  if (m < 1) return 'Agora'
+  if (m < 60) return `${m}min atras`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h atras`
+  const d = Math.floor(h / 24)
+  if (d < 30) return `${d}d atras`
+  return fmtDate(iso)
+}
+
 onMounted(fetchUsers)
 </script>
 
@@ -161,6 +186,7 @@ onMounted(fetchUsers)
 .td-check input, .th-check input { accent-color: #ff0000; cursor: pointer; }
 .td-name { font-weight: 500; color: #eee; }
 .td-email { color: #888; font-size: 12px; }
+.tbl td.muted { color: #666; font-style: italic; }
 .inactive td { opacity: 0.4; }
 
 .badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }

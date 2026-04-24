@@ -15,6 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Polish Visual** - Padronizar visual, responsividade e feedback em todos os dashboards ativos
 - [ ] **Phase 2: Torre de Controle** - Finalizar e lancar dashboard Torre de Controle em producao
 - [ ] **Phase 3: Componentes e Infraestrutura** - Padronizar componentes compartilhados e tratamento de erros
+- [ ] **Phase 4: Internalizacao do Extrator Torre de Controle** - Substituir workflow n8n `uiUUXegcBHe3z2fg` por implementacao 100% no backend com OAuth Google per-user
 
 ## Phase Details
 
@@ -55,13 +56,33 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. Quando API retorna dados nulos ou vazios, todos os dashboards mostram estado de fallback ao inves de crashar
 **Plans**: TBD
 
+### Phase 4: Internalizacao do Extrator Torre de Controle
+**Goal**: Extracao de dados da Torre de Controle roda 100% no backend do hub, sem dependencia do workflow n8n `uiUUXegcBHe3z2fg`, usando OAuth Google per-user para Docs/Slides e tokens centralizados para Figma/Miro
+**Depends on**: Phase 2
+**Requirements**: TBD (derivar durante planning — candidatos: EXT-01 OAuth Google per-user, EXT-02 Slides API nativa, EXT-03 Docs API nativa, EXT-04 Figma interno, EXT-05 Miro interno com paginacao, EXT-06 cutover n8n)
+**Success Criteria** (what must be TRUE):
+  1. Gestor conecta conta Google no hub uma unica vez (consentimento com escopos `drive.readonly` + `documents.readonly` + `presentations.readonly`) e refresh_token fica armazenado criptografado no Postgres
+  2. Todas as extracoes de Google Docs (transcricao) usam `docs.documents.get` direto — sem Mistral OCR, sem download de PDF
+  3. Todas as extracoes de Google Slides (apresentacao) usam `slides.presentations.get` para estrutura + GPT-4o vision para imagens embutidas — sem Mistral OCR, sem download de PDF
+  4. Branches Figma e Miro rodam 100% no backend com `FIGMA_TOKEN` e `MIRO_TOKEN` no `.env`; Miro corrige paginacao de `/items` e deixa de truncar boards grandes
+  5. Analises que antes davam `status_avaliacao = incompleta` por 403 de acesso passam a completar com sucesso apos o gestor conectar sua conta Google
+  6. Banner de reautorizacao aparece quando refresh_token Google expira/e revogado, e as extracoes pendentes entram em fila ate a reconexao
+  7. `extractViaN8n` e `N8N_EXTRACT_WEBHOOK_URL` removidos do codigo; workflow n8n arquivado (nao deletado) como referencia historica
+**Plans**: TBD
+**References**:
+  - Decisao: `.planning/notes/decisao-internalizacao-extracao-tc.md`
+  - Research tecnico: `.planning/research/n8n-workflow-auditoria-saber-interno.md`
+  - Pergunta em aberto: `.planning/research/questions.md` (ownership do token OAuth)
+  - Seed relacionado: `.planning/seeds/upload-pdf-arbitrario-tc.md`
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3
+Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Polish Visual | 0/? | Not started | - |
 | 2. Torre de Controle | 0/? | Not started | - |
 | 3. Componentes e Infraestrutura | 0/? | Not started | - |
+| 4. Internalizacao do Extrator Torre de Controle | 0/? | Not started | - |

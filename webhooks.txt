@@ -1,0 +1,31 @@
+https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/figma-extract
+{ data: {
+  "type": "object",
+  "properties": {
+    "auditoria_narrativa_integral": {
+      "type": "string",
+      "description": "Texto narrativo único, contínuo e ultra-detalhado contendo a auditoria completa, análise visual, extração de métricas, status do projeto, gatilhos de persuasão e análise de riscos da apresentação."
+    },
+    "error": {
+      "type": "string",
+      "description": "Mensagem de erro retornada apenas caso o input seja inválido ou vazio."
+    }
+  },
+  "required": [
+    "auditoria_narrativa_integral",
+    "error"
+  ],
+  "additionalProperties": false
+}}
+
+
+https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/google-extract
+{data:{markdown:"DESCRIÇÃO ULTRA DETALHADA"}}
+
+https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/miro-extract
+retorna o "descrição miro" dentro do array data
+
+https://ferrazpiai-n8n-editor.uyk8ty.easypanel.host/webhook/trancricao-extract
+Retorna DocumentId e content dentro do array data
+
+Todos esperam receber body com url e plataforma

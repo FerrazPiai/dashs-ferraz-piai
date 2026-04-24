@@ -137,9 +137,17 @@ router.get('/data/:dashboardId', async (req, res, next) => {
       })
     }
 
-    // Check if API endpoint is configured
-    const apiEndpoint = process.env[dashboard.apiEndpoint]
+    // Dashboard pode não usar a rota genérica /api/data/:id (ex: Torre de Controle usa /api/tc/*)
+    if (!dashboard.apiEndpoint) {
+      return res.status(404).json({
+        error: {
+          message: `Dashboard '${dashboardId}' não usa a rota de dados genérica`,
+          status: 404
+        }
+      })
+    }
 
+    const apiEndpoint = process.env[dashboard.apiEndpoint]
     if (!apiEndpoint) {
       return res.status(500).json({
         error: {

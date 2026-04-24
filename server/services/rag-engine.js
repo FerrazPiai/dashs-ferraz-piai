@@ -25,7 +25,9 @@ const L4_FIELDS = {
   'Participantes': 1989914,
   'DISC': 1989922,
   'Cenario do Marketing': 1989890,
-  'Consciencia das Metricas': 1989892
+  'Consciencia das Metricas': 1989892,
+  'Squad': 1989938,
+  'Coordenador': 1990267
 }
 
 function truncateToTokens(text, maxTokens) {
@@ -149,19 +151,29 @@ export async function buildRagContext({ projetoFaseId, fase, queryText, leadId }
     buildLayer5(leadId)
   ])
 
+  // Budget adaptativo — quando L1 (historico do cliente) ja e rico,
+  // reduzimos L3 (conhecimento generico) pela metade para evitar duplicacao de contexto
+  // e economizar ~500-1000 tokens por chamada. Ver review D9.
+  let l3Text = l3.text
+  if (countTokens(l1.text) > 1500) {
+    l3Text = truncateToTokens(l3.text, Math.floor(L3_BUDGET / 2))
+  }
+
   const context = {
     historico_cliente:   l1.text,
     casos_similares:     l2.text,
-    base_conhecimento:   l3.text,
+    base_conhecimento:   l3Text,
     contexto_kommo:      l4.text,
     anotacoes_internas:  l5.text
   }
 
-  // Anti-overflow
-  if (countTokens(JSON.stringify(context)) > MAX_CONTEXT) {
+  // Anti-overflow — reduz progressivamente ate caber em MAX_CONTEXT
+  let guard = 3
+  while (countTokens(JSON.stringify(context)) > MAX_CONTEXT && guard-- > 0) {
     context.casos_similares = truncateToTokens(context.casos_similares, Math.floor(L2_BUDGET / 2))
     context.base_conhecimento = truncateToTokens(context.base_conhecimento, Math.floor(L3_BUDGET / 2))
     context.contexto_kommo = truncateToTokens(context.contexto_kommo, Math.floor(L4_BUDGET / 2))
+    context.anotacoes_internas = truncateToTokens(context.anotacoes_internas, Math.floor(L5_BUDGET / 2))
   }
 
   return {

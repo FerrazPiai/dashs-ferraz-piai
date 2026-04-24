@@ -8,15 +8,17 @@
           <h2 class="main-subtitle">Pipeline Saber — Kommo</h2>
         </div>
         <div class="main-actions">
-          <button
-            v-if="isAdmin"
+          <!-- Painel Geral: rota separada /torre-de-controle/painel,
+               gated por feature flag 'tc_painel_geral' (admin tem acesso implicito).
+               Usuarios sem acesso nao veem o botao e seguem vendo so a matriz. -->
+          <RouterLink
+            v-if="podeVerPainelGeral"
+            to="/torre-de-controle/painel"
             class="btn btn-painel-geral"
-            :class="{ active: modo === 'painel-geral' }"
-            @click="modo = modo === 'painel-geral' ? 'matriz' : 'painel-geral'"
           >
             <i data-lucide="layout-dashboard" class="btn-icon"></i>
-            <span>{{ modo === 'painel-geral' ? 'Voltar a Matriz' : 'Painel Geral' }}</span>
-          </button>
+            <span>Painel Geral</span>
+          </RouterLink>
           <span v-if="syncInfoLabel" class="last-update">{{ syncInfoLabel }}</span>
           <button
             class="btn btn-atualizar"
@@ -53,15 +55,8 @@
       </div>
     </div>
 
-    <!-- Painel Geral (admin) -->
-    <TcPainelGeral
-      v-if="modo === 'painel-geral' && isAdmin"
-      @abrir-cliente="abrirPorId"
-    />
-
-    <!-- Matriz (default) -->
-    <template v-else>
-      <div class="filters-bar">
+    <!-- Matriz -->
+    <div class="filters-bar">
         <div class="filter-group filter-group--search">
           <i data-lucide="search" class="filter-icon"></i>
           <input
@@ -108,9 +103,9 @@
           </button>
           <div v-if="legendaAberta" class="legenda-popover" @mouseenter="legendaAberta = true" @mouseleave="legendaAberta = false">
             <div class="legenda-title">Legenda da matriz</div>
-            <div class="legenda-row"><span class="dot dot--verde"></span><span>Bom — score ≥ 7</span></div>
-            <div class="legenda-row"><span class="dot dot--amarelo"></span><span>Mediano — score 5 a 7</span></div>
-            <div class="legenda-row"><span class="dot dot--vermelho"></span><span>Ruim — score &lt; 5</span></div>
+            <div class="legenda-row"><span class="dot dot--verde"></span><span>Bom — score 9 ou 10</span></div>
+            <div class="legenda-row"><span class="dot dot--amarelo"></span><span>Mediano — score 7 ou 8</span></div>
+            <div class="legenda-row"><span class="dot dot--vermelho"></span><span>Ruim — score 6 ou abaixo</span></div>
             <div class="legenda-row"><span class="dot dot--cinza"></span><span>Auditavel, sem analise ainda</span></div>
             <div class="legenda-row"><span class="dot dot--incompleta-mini">?</span><span>Materiais insuficientes — coletar dados</span></div>
             <div class="legenda-row"><span class="dot dot--bloqueado-mini"></span><span>Bloqueada — fase atual ou futura</span></div>
@@ -136,13 +131,17 @@
       </div>
 
       <template v-else>
+        <!-- KPIs: indicadores das notas das analises (nota media, bom/mediano/ruim, cobertura) -->
+        <TcMatrizKpis
+          :clientes="clientesFiltrados"
+          :fases="fasesMatriz"
+        />
         <TcMatrizTable
           :fases="fasesMatriz"
           :clientes="clientesFiltrados"
           @click-dot="abrirDetalhe"
         />
       </template>
-    </template>
   </div>
 
   <TcSuperPainel
@@ -156,20 +155,25 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useAuthStore } from '../../stores/auth.js'
 import TcMatrizTable from './components/TcMatrizTable.vue'
+import TcMatrizKpis from './components/TcMatrizKpis.vue'
 import TcSuperPainel from './components/TcSuperPainel.vue'
-import TcPainelGeral from './components/TcPainelGeral.vue'
 import VMultiSelect from '../../components/ui/VMultiSelect.vue'
 import { useTorreControle } from './composables/useTorreControle.js'
 
 const auth = useAuthStore()
 const tc = useTorreControle()
 
-const isAdmin = computed(() => ['admin', 'board'].includes(auth.user?.role || ''))
+// Painel Geral — feature flag no perfil do usuario. Admin sempre tem acesso implicito
+// (enforce tambem no backend via /api/auth/check que injeta 'tc_painel_geral' em admin).
+const podeVerPainelGeral = computed(() => {
+  const features = auth.user?.features || []
+  return auth.user?.role === 'admin' || features.includes('tc_painel_geral')
+})
 
-const modo = ref('matriz') // default: matriz
 const legendaAberta = ref(false)
 const loading = computed(() => tc.loading.value)
 const error = computed(() => tc.error.value)
@@ -208,19 +212,14 @@ function fecharSuperPainel() {
   superPainelCliente.value = null
 }
 
-// Clique na celula de fase da matriz (faseId vem direto do evento agora)
+// Clique na celula de fase da matriz (faseId vem direto do evento agora).
+// `??` preserva faseId === 0 (valido no Kommo); `||` convertia em null silenciosamente.
 function abrirDetalhe({ cliente, fase, faseId }) {
-  if (!cliente?.id) return
+  if (cliente?.id == null) return
   const resolvedFaseId = faseId != null
     ? faseId
-    : (tc.matriz.value.fases || []).find(f => f.nome === fase)?.id || null
+    : (tc.matriz.value.fases || []).find(f => f.nome === fase)?.id ?? null
   abrirSuperPainel(cliente, resolvedFaseId)
-}
-
-// Abrir por id (do Painel Geral)
-function abrirPorId(clienteId) {
-  const cliente = clientes.value.find(c => c.id === clienteId)
-  if (cliente) abrirSuperPainel(cliente)
 }
 
 // Filtros (multi-select — arrays vazios = "mostrar todos")
@@ -333,36 +332,31 @@ onMounted(async () => {
 onBeforeUnmount(() => {
   tc.pararPollingSync()
 })
-
-watch(modo, async () => {
-  await nextTick()
-  if (window.lucide) window.lucide.createIcons()
-})
 </script>
 
 <style scoped>
 .sticky-header-wrap {
   position: sticky; top: -1px; z-index: 20;
-  background: #0d0d0d; padding: 14px 0 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: var(--bg-body); padding: 14px 0 12px;
+  border-bottom: 1px solid var(--border-row);
 }
 .sticky-header-wrap .main-header {
   margin-bottom: 0; padding-bottom: 0; border-bottom: none;
   gap: 8px;
 }
 .header-title { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-.title-sep { font-size: 20px; color: #333; font-weight: 300; }
-.main-subtitle { font-size: 18px; font-weight: 400; color: #888; margin: 0; }
-.last-update { font-size: 13px; color: #666; white-space: nowrap; }
+.title-sep { font-size: 20px; color: var(--border-input); font-weight: 300; }
+.main-subtitle { font-size: 18px; font-weight: var(--font-weight-normal); color: var(--text-muted); margin: 0; }
+.last-update { font-size: var(--font-size-md); color: var(--text-lowest); white-space: nowrap; }
 
 .btn-atualizar {
   display: flex; align-items: center; gap: 6px;
   background: var(--color-primary);
   border: 1px solid var(--color-primary);
-  color: #fff;
+  color: var(--text-high);
   padding: 8px 14px;
-  border-radius: 6px;
-  font-family: inherit; font-size: 13px;
+  border-radius: var(--radius-md);
+  font-family: inherit; font-size: var(--font-size-md);
   font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: background-color var(--transition-fast);
@@ -383,14 +377,14 @@ watch(modo, async () => {
 
 .btn-painel-geral {
   display: flex; align-items: center; gap: 6px;
-  background: #1a1a1a; border: 1px solid #2a2a2a;
-  color: #ccc; padding: 8px 14px;
-  border-radius: 6px; font-family: inherit; font-size: 13px;
-  cursor: pointer; transition: all 150ms;
+  background: var(--bg-inner); border: 1px solid var(--border-card);
+  color: var(--text-medium); padding: 8px 14px;
+  border-radius: var(--radius-md); font-family: inherit; font-size: var(--font-size-md);
+  cursor: pointer; transition: all var(--transition-fast);
 }
-.btn-painel-geral:hover { background: #222; color: #fff; }
+.btn-painel-geral:hover { background: var(--bg-toggle-active); color: var(--text-high); }
 .btn-painel-geral.active {
-  background: #ff0000; border-color: #ff0000; color: #fff;
+  background: var(--color-primary); border-color: var(--color-primary); color: var(--text-high);
 }
 .btn-icon { width: 14px; height: 14px; }
 
@@ -400,30 +394,30 @@ watch(modo, async () => {
 }
 .filter-group {
   display: flex; align-items: center; gap: 8px;
-  background: #1a1a1a; border: 1px solid #222;
-  border-radius: 6px; padding: 8px 14px;
+  background: var(--bg-inner); border: 1px solid var(--border-row);
+  border-radius: var(--radius-md); padding: 8px 14px;
 }
 .filter-group--search { min-width: 220px; }
-.filter-icon { width: 14px; height: 14px; color: #555; flex-shrink: 0; }
+.filter-icon { width: 14px; height: 14px; color: var(--text-lowest); flex-shrink: 0; }
 .filter-input {
   flex: 1; background: transparent; border: none; outline: none;
-  color: #ccc; font-size: 13px; font-family: inherit;
+  color: var(--text-medium); font-size: var(--font-size-md); font-family: inherit;
 }
-.filter-input::placeholder { color: #555; }
+.filter-input::placeholder { color: var(--text-lowest); }
 .filter-label {
-  font-size: 12px; color: #666; font-weight: 500;
+  font-size: var(--font-size-base); color: var(--text-lowest); font-weight: var(--font-weight-medium);
   text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
 }
 .filter-select {
-  background: transparent; border: none; color: #ccc; font-size: 13px;
-  font-weight: 500; font-family: inherit; cursor: pointer; outline: none;
+  background: transparent; border: none; color: var(--text-medium); font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium); font-family: inherit; cursor: pointer; outline: none;
   padding: 0 18px 0 4px; appearance: none; -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23666' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 0 center;
 }
-.filter-select option { background: #1a1a1a; color: #ccc; }
+.filter-select option { background: var(--bg-inner); color: var(--text-medium); }
 .filter-count {
-  font-size: 12px; color: #555; margin-left: auto; white-space: nowrap;
+  font-size: var(--font-size-base); color: var(--text-lowest); margin-left: auto; white-space: nowrap;
 }
 
 .legenda {
@@ -432,30 +426,30 @@ watch(modo, async () => {
 }
 .legenda-item {
   display: flex; align-items: center; gap: 6px;
-  font-size: 12px; color: #666;
+  font-size: var(--font-size-base); color: var(--text-lowest);
 }
 .dot {
   display: inline-block; width: 10px; height: 10px; border-radius: 50%;
 }
-.dot--verde    { background-color: #22c55e; }
-.dot--amarelo  { background-color: #f59e0b; }
-.dot--vermelho { background-color: #ef4444; }
-.dot--cinza    { background-color: #444; }
+.dot--verde    { background-color: var(--color-safe); }
+.dot--amarelo  { background-color: var(--color-care); }
+.dot--vermelho { background-color: var(--color-danger); }
+.dot--cinza    { background-color: var(--border-input); }
 .dot--atual-mini {
-  background-color: #444;
-  outline: 2px solid #ffffff;
+  background-color: var(--border-input);
+  outline: 2px solid var(--text-high);
   outline-offset: 2px;
 }
 .dot--bloqueado-mini {
-  background-color: #2a2a2a;
+  background-color: var(--border-card);
   opacity: 0.4;
 }
 .dot--incompleta-mini {
-  background-color: #1f2937;
-  border: 1px solid #6b7280;
-  color: #9ca3af;
+  background-color: var(--bg-inner);
+  border: 1px solid var(--chart-color-neutral);
+  color: var(--text-low);
   font-size: 8px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
@@ -468,20 +462,20 @@ watch(modo, async () => {
   align-items: center;
 }
 .count-inline {
-  font-size: 12px;
-  color: #888;
+  font-size: var(--font-size-base);
+  color: var(--text-muted);
   white-space: nowrap;
 }
 .legenda-btn {
   display: flex; align-items: center; gap: 6px;
-  background: #1a1a1a; border: 1px solid #2a2a2a;
-  color: #aaa; padding: 7px 12px;
-  border-radius: 6px; font-family: inherit; font-size: 12px;
-  cursor: pointer; transition: all 150ms;
+  background: var(--bg-inner); border: 1px solid var(--border-card);
+  color: var(--text-low); padding: 7px 12px;
+  border-radius: var(--radius-md); font-family: inherit; font-size: var(--font-size-base);
+  cursor: pointer; transition: all var(--transition-fast);
 }
 .legenda-btn:hover {
-  background: #222; color: #fff;
-  border-color: #3a3a3a;
+  background: var(--bg-toggle-active); color: var(--text-high);
+  border-color: var(--border-input);
 }
 .legenda-btn .btn-icon { width: 14px; height: 14px; }
 .legenda-popover {
@@ -489,9 +483,9 @@ watch(modo, async () => {
   top: calc(100% + 8px);
   right: 0;
   min-width: 280px;
-  background: #141414;
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-md);
   padding: 12px 14px;
   box-shadow: 0 8px 24px rgba(0,0,0,0.5);
   z-index: 30;
@@ -501,45 +495,44 @@ watch(modo, async () => {
   position: absolute;
   top: -6px; right: 24px;
   width: 10px; height: 10px;
-  background: #141414;
-  border-left: 1px solid rgba(255,255,255,0.1);
-  border-top: 1px solid rgba(255,255,255,0.1);
+  background: var(--bg-card);
+  border-left: 1px solid var(--border-card);
+  border-top: 1px solid var(--border-card);
   transform: rotate(45deg);
 }
 .legenda-title {
-  font-size: 11px; color: #666;
+  font-size: var(--font-size-sm); color: var(--text-lowest);
   text-transform: uppercase; letter-spacing: 0.5px;
-  font-weight: 700; margin-bottom: 10px;
-  padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-weight: var(--font-weight-bold); margin-bottom: 10px;
+  padding-bottom: 8px; border-bottom: 1px solid var(--border-row);
 }
 .legenda-row {
   display: flex; align-items: center; gap: 10px;
-  padding: 4px 0; font-size: 12.5px; color: #ccc;
+  padding: 4px 0; font-size: var(--font-size-md); color: var(--text-medium);
 }
 .legenda-row .dot { flex-shrink: 0; }
 
 .loading-state {
   display: flex; align-items: center; gap: 10px;
-  color: #666; font-size: 14px; padding: 48px 0;
+  color: var(--text-lowest); font-size: var(--font-size-lg); padding: 48px 0;
   justify-content: center;
 }
 .spin { animation: spin 1s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 .error-message {
   display: flex; align-items: center; gap: 10px;
   color: var(--color-danger); padding: var(--spacing-md);
-  background: rgba(239, 68, 68, 0.1);
+  background: rgba(var(--color-danger-rgb), 0.1);
   border-radius: var(--radius-sm); margin: var(--spacing-md) 0;
 }
 
 .empty {
   display: flex; flex-direction: column; align-items: center;
-  gap: 8px; padding: 48px 0; color: #666;
+  gap: 8px; padding: 48px 0; color: var(--text-lowest);
 }
-.empty i { width: 32px; height: 32px; color: #444; }
+.empty i { width: 32px; height: 32px; color: var(--border-card); }
 .empty p { margin: 0; }
-.empty small { color: #555; }
+.empty small { color: var(--text-lowest); }
 
 /* ---- Modal de confirmacao (Atualizar Dados) ---- */
 .confirm-overlay {
@@ -553,8 +546,8 @@ watch(modo, async () => {
 @keyframes cf-fade { from { opacity: 0; } to { opacity: 1; } }
 
 .confirm-box {
-  background: #141414;
-  border: 1px solid rgba(255,255,255,0.1);
+  background: var(--bg-card);
+  border: 1px solid var(--border-card);
   border-radius: 10px;
   padding: 24px 24px 18px;
   max-width: 440px;
@@ -570,24 +563,24 @@ watch(modo, async () => {
 .confirm-icon {
   width: 44px; height: 44px;
   border-radius: 50%;
-  background: rgba(255, 0, 0, 0.12);
-  color: #ff4444;
+  background: rgba(var(--color-primary-rgb), 0.12);
+  color: var(--color-primary);
   display: flex; align-items: center; justify-content: center;
   margin-bottom: 12px;
 }
 .confirm-icon i { width: 22px; height: 22px; }
 
 .confirm-box h3 {
-  font-size: 16px; color: #fff;
-  font-weight: 600; margin: 0 0 8px;
+  font-size: 16px; color: var(--text-high);
+  font-weight: var(--font-weight-semibold); margin: 0 0 8px;
 }
 .confirm-box p {
-  color: #bbb; font-size: 13.5px;
+  color: var(--text-medium); font-size: var(--font-size-md);
   line-height: 1.55; margin: 0 0 8px;
 }
 .confirm-hint {
-  color: #888 !important;
-  font-size: 12px !important;
+  color: var(--text-muted) !important;
+  font-size: var(--font-size-base) !important;
   font-style: italic;
 }
 .confirm-actions {
@@ -596,19 +589,19 @@ watch(modo, async () => {
 }
 .confirm-actions .btn {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 8px 14px; border-radius: 6px;
-  font-family: inherit; font-size: 13px; font-weight: 500;
-  cursor: pointer; transition: all 150ms;
+  padding: 8px 14px; border-radius: var(--radius-md);
+  font-family: inherit; font-size: var(--font-size-md); font-weight: var(--font-weight-medium);
+  cursor: pointer; transition: all var(--transition-fast);
 }
 .confirm-actions .btn-ghost {
-  background: transparent; border: 1px solid #2a2a2a; color: #ccc;
+  background: transparent; border: 1px solid var(--border-card); color: var(--text-medium);
 }
-.confirm-actions .btn-ghost:hover { background: #2a2a2a; color: #fff; }
+.confirm-actions .btn-ghost:hover { background: var(--bg-toggle-active); color: var(--text-high); }
 .confirm-actions .btn-primary {
-  background: #ff0000; border: 1px solid #ff0000; color: #fff;
+  background: var(--color-primary); border: 1px solid var(--color-primary); color: var(--text-high);
 }
 .confirm-actions .btn-primary:hover:not(:disabled) {
-  background: #cc0000; border-color: #cc0000;
+  background: var(--color-primary-dark); border-color: var(--color-primary-dark);
 }
 .confirm-actions .btn-primary:disabled {
   opacity: 0.5; cursor: not-allowed;

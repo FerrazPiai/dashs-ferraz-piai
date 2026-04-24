@@ -46,6 +46,15 @@ const router = createRouter({
     // Dashboard routes (auto-generated)
     ...dashboardRoutes,
 
+    // Painel Geral da Torre de Controle — rota separada,
+    // gated por feature tc_painel_geral (admin sempre passa)
+    {
+      path: '/torre-de-controle/painel',
+      name: 'torre-de-controle-painel',
+      component: () => import('../dashboards/TorreDeControle/PainelGeralPage.vue'),
+      meta: { title: 'Painel Geral - Torre de Controle', requireTcPainelGeral: true }
+    },
+
     // Admin panel (only admin role)
     {
       path: '/admin',
@@ -103,6 +112,14 @@ router.beforeEach(async (to) => {
   // Bloquear rotas admin-only
   if (to.meta.requireAdmin) {
     return { name: 'home' }
+  }
+
+  // Rotas com feature tc_painel_geral: so perfis com a flag passam
+  if (to.meta.requireTcPainelGeral) {
+    const features = auth.user?.features || []
+    if (!features.includes('tc_painel_geral')) {
+      return { name: 'torre-de-controle' }
+    }
   }
 
   // Checagem de acesso para dashboards especificos (home e sempre acessivel)

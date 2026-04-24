@@ -10,6 +10,27 @@ const score = computed(() => qt.value.score != null ? Number(qt.value.score).toF
 const fortes = computed(() => Array.isArray(qt.value.pontos_fortes) ? qt.value.pontos_fortes : [])
 const atencao = computed(() => Array.isArray(qt.value.pontos_atencao) ? qt.value.pontos_atencao : [])
 
+const DIMS_LABEL = {
+  exploracao_dor: 'Exploracao da dor',
+  empatia_atencao: 'Empatia e atencao',
+  clareza_comunicacao: 'Clareza na comunicacao',
+  aderencia_metodologia: 'Aderencia metodologica',
+  proatividade: 'Proatividade',
+  qualidade_entregaveis: 'Qualidade dos entregaveis'
+}
+const dimensoes = computed(() => {
+  const obj = qt.value.dimensoes || {}
+  return Object.keys(DIMS_LABEL)
+    .filter(k => obj[k] != null)
+    .map(k => ({ key: k, label: DIMS_LABEL[k], score: Number(obj[k]) }))
+})
+// Escala unica: 9-10 = verde, 7-8 = amarelo, <=6 = vermelho
+function barColor(s) {
+  if (s >= 9) return 'bar--verde'
+  if (s >= 7) return 'bar--amarelo'
+  return 'bar--vermelho'
+}
+
 onMounted(() => nextTick(() => window.lucide && window.lucide.createIcons()))
 watch(qt, () => nextTick(() => window.lucide && window.lucide.createIcons()))
 </script>
@@ -26,6 +47,22 @@ watch(qt, () => nextTick(() => window.lucide && window.lucide.createIcons()))
         <span v-if="score != null" class="qt-score">{{ score }}/10</span>
       </div>
     </header>
+
+    <!-- Dimensoes de avaliacao do time (scores 0-10) -->
+    <div v-if="dimensoes.length" class="qt-dims">
+      <div class="qt-dims-head">Avaliacao por dimensao</div>
+      <div class="qt-dims-grid">
+        <div v-for="d in dimensoes" :key="d.key" class="qt-dim">
+          <div class="qt-dim-row">
+            <span class="qt-dim-label">{{ d.label }}</span>
+            <span class="qt-dim-score">{{ d.score.toFixed(1) }}</span>
+          </div>
+          <div class="qt-dim-bar-wrap">
+            <div class="qt-dim-bar" :class="barColor(d.score)" :style="{ width: Math.max(4, Math.min(100, d.score * 10)) + '%' }"></div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <div class="qt-cols">
       <div class="qt-col qt-col--fortes">
@@ -140,6 +177,43 @@ watch(qt, () => nextTick(() => window.lucide && window.lucide.createIcons()))
   margin: 0; padding-top: 10px;
   border-top: 1px solid rgba(255,255,255,0.04);
   font-style: italic;
+}
+
+/* Dimensoes (barras horizontais) */
+.qt-dims {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+.qt-dims-head {
+  font-size: 11px; color: #888; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.qt-dims-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px;
+}
+.qt-dim { display: flex; flex-direction: column; gap: 3px; }
+.qt-dim-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+.qt-dim-label { font-size: 12px; color: #ccc; }
+.qt-dim-score { font-size: 12.5px; color: #fff; font-weight: 600; }
+.qt-dim-bar-wrap {
+  width: 100%; height: 6px; border-radius: 3px;
+  background: rgba(255,255,255,0.05);
+  overflow: hidden;
+}
+.qt-dim-bar {
+  height: 100%; border-radius: 3px;
+  transition: width 240ms ease-out;
+}
+.bar--verde    { background: linear-gradient(90deg, #16a34a, #22c55e); }
+.bar--amarelo  { background: linear-gradient(90deg, #d97706, #f59e0b); }
+.bar--vermelho { background: linear-gradient(90deg, #b91c1c, #ef4444); }
+
+@media (max-width: 640px) {
+  .qt-dims-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {

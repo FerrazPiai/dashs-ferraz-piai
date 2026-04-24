@@ -11,6 +11,11 @@ import TcConsolidadoPontos from './TcConsolidadoPontos.vue'
 import TcConsolidadoOportunidades from './TcConsolidadoOportunidades.vue'
 import TcChecklistAuditoria from './TcChecklistAuditoria.vue'
 import TcRevisaoPortugues from './TcRevisaoPortugues.vue'
+import TcResumoEstruturado from './TcResumoEstruturado.vue'
+import TcAnaliseMateriaisEstruturada from './TcAnaliseMateriaisEstruturada.vue'
+import TcPercepcaoCliente from './TcPercepcaoCliente.vue'
+import TcAvaliacaoEquipe from './TcAvaliacaoEquipe.vue'
+import TcFontesExtraidasBotao from './TcFontesExtraidasBotao.vue'
 import VLoadingState from '../../../components/ui/VLoadingState.vue'
 import VEmptyState from '../../../components/ui/VEmptyState.vue'
 import VSharingRequiredBanner from '../../../components/ui/VSharingRequiredBanner.vue'
@@ -403,6 +408,24 @@ const checklistAuditoria = computed(() => consolidado.value?.checklist_auditoria
 // Shape: { veredicto, mensagem, erros: [] }
 const revisaoPortugues = computed(() => consolidado.value?.revisao_portugues || null)
 
+// Novo schema estruturado (lido de consolidado em analises novas) com fallback ao legado.
+const resumoEstruturado = computed(() => consolidado.value?.resumo_estruturado || null)
+const analiseMateriaisEstruturada = computed(() => consolidado.value?.analise_materiais_estruturada || null)
+
+// Insatisfacoes do cliente (novo) e recomendacoes de como lidar (novo) — com fallback aos aliases legados
+const insatisfacoesCliente = computed(() => {
+  const c = consolidado.value?.insatisfacoes_cliente
+  if (Array.isArray(c) && c.length) return c
+  return analiseAtual.value?.dores || []
+})
+const recomendacoesLidarCliente = computed(() => {
+  const c = consolidado.value?.recomendacoes_lidar_cliente
+  if (Array.isArray(c) && c.length) return c.map(r => ({
+    descricao: r.descricao, tipo: r.categoria || r.tipo || 'comunicacao', prioridade: r.prioridade || 'media'
+  }))
+  return analiseAtual.value?.recomendacoes || []
+})
+
 const mostraKommoModal = ref(false)
 const oportunidadesParaModal = ref([])
 
@@ -437,19 +460,16 @@ function handleKeydown(e) {
   if (e.key === 'Escape') emit('close')
 }
 
-// Bloqueia scroll do body enquanto o painel esta aberto — evita conflito com
-// scroll da TcMatrizTable por baixo do overlay.
-let _prevBodyOverflow = ''
-let _prevHtmlOverflow = ''
+// Bloqueia scroll do body enquanto o painel esta aberto.
+// Sempre limpa para string vazia no unlock — mais robusto do que restaurar valor anterior,
+// que poderia ficar preso em 'hidden' se duas instancias montassem em sequencia rapida.
 function lockBodyScroll() {
-  _prevBodyOverflow = document.body.style.overflow
-  _prevHtmlOverflow = document.documentElement.style.overflow
   document.body.style.overflow = 'hidden'
   document.documentElement.style.overflow = 'hidden'
 }
 function unlockBodyScroll() {
-  document.body.style.overflow = _prevBodyOverflow
-  document.documentElement.style.overflow = _prevHtmlOverflow
+  document.body.style.overflow = ''
+  document.documentElement.style.overflow = ''
 }
 
 onMounted(() => {
@@ -500,7 +520,14 @@ watch(jobAtivo, (novo, antigo) => {
           <span v-if="contextoKommo.squad" class="badge badge--squad">Squad: {{ contextoKommo.squad }}</span>
         </div>
       </div>
-      <button class="btn close-btn" @click="emit('close')" aria-label="Fechar">&times;</button>
+      <div class="sp-header-actions">
+        <!-- Botão de Fontes: mostra as plataformas esperadas da fase atual (Slides / Transcrição / Figma / Miro) -->
+        <TcFontesExtraidasBotao
+          :fase-slug="detalhe?.fase?.fase_slug || ''"
+          :extraction-report="extractionReportParsed"
+        />
+        <button class="btn close-btn" @click="emit('close')" aria-label="Fechar">&times;</button>
+      </div>
     </header>
 
     <!-- Linha de navegacao: timeline de fases + banner de status alinhados horizontalmente -->
@@ -671,110 +698,59 @@ watch(jobAtivo, (novo, antigo) => {
         <TcRevisaoPortugues v-if="revisaoPortugues" :revisao="revisaoPortugues" />
       </div>
 
-      <section class="sp-coluna sp-coluna--relatorio" v-if="analiseAtual.status_avaliacao !== 'incompleta'">
-        <div class="sp-card sp-card--collapsible" v-if="analiseAtual.resumo || analiseAtual.veredicto" :class="{ 'is-collapsed': !isCardAberto('resumo') }">
-          <div class="sp-card-header sp-card-header--clickable" @click="toggleCard('resumo')" role="button" :aria-expanded="isCardAberto('resumo')">
-            <h2>Resumo Executivo</h2>
-            <div class="sp-card-head-right">
-              <span v-if="analiseAtual.veredicto" class="sp-veredicto">{{ analiseAtual.veredicto }}</span>
-              <button type="button" class="sp-card-toggle" @click.stop="toggleCard('resumo')" :aria-label="isCardAberto('resumo') ? 'Recolher' : 'Expandir'">
-                <svg class="sp-card-toggle-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline v-if="isCardAberto('resumo')" points="6 9 12 15 18 9"/>
-                  <polyline v-else points="18 15 12 9 6 15"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-          <Transition name="slide-fade">
-            <div v-show="isCardAberto('resumo')" v-if="analiseAtual.resumo" class="ia-rich" v-html="renderIaText(analiseAtual.resumo)"></div>
-          </Transition>
-        </div>
+      <!-- TOPO DESTAQUE: Percepção + Avaliação da Equipe lado a lado (maior peso na nota — 75% + 20%) -->
+      <div
+        class="sp-topo-destaque"
+        v-if="analiseAtual.status_avaliacao !== 'incompleta' && (analiseAtual.percepcao_cliente || avaliacaoEquipe)"
+      >
+        <TcPercepcaoCliente
+          v-if="analiseAtual.percepcao_cliente"
+          :percepcao="analiseAtual.percepcao_cliente"
+        />
+        <TcAvaliacaoEquipe
+          v-if="avaliacaoEquipe"
+          :avaliacao="avaliacaoEquipe"
+        />
+      </div>
 
-        <div class="sp-card sp-card--collapsible" v-if="analiseAtual.analise_materiais" :class="{ 'is-collapsed': !isCardAberto('materiais') }">
-          <div class="sp-card-header sp-card-header--clickable" @click="toggleCard('materiais')" role="button" :aria-expanded="isCardAberto('materiais')">
-            <h2>Análise dos Materiais</h2>
-            <button type="button" class="sp-card-toggle" @click.stop="toggleCard('materiais')" :aria-label="isCardAberto('materiais') ? 'Recolher' : 'Expandir'">
-              <svg class="sp-card-toggle-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline v-if="isCardAberto('materiais')" points="6 9 12 15 18 9"/>
-                <polyline v-else points="18 15 12 9 6 15"/>
-              </svg>
-            </button>
-          </div>
-          <Transition name="slide-fade">
-            <div v-show="isCardAberto('materiais')" class="ia-rich" v-html="renderIaText(analiseAtual.analise_materiais)"></div>
-          </Transition>
-        </div>
+      <section class="sp-coluna sp-coluna--relatorio" v-if="analiseAtual.status_avaliacao !== 'incompleta'">
+        <!-- Resumo Executivo — subcards com sentiment/flash, expansíveis individualmente -->
+        <TcResumoEstruturado
+          v-if="resumoEstruturado || analiseAtual.resumo"
+          :resumo-estruturado="resumoEstruturado"
+          :resumo-fallback="analiseAtual.resumo || ''"
+          :veredicto="analiseAtual.veredicto || ''"
+        />
+
+        <!-- Analise dos Materiais — subcards com sentiment/flash, expansíveis individualmente -->
+        <TcAnaliseMateriaisEstruturada
+          v-if="analiseMateriaisEstruturada || analiseAtual.analise_materiais"
+          :analise-estruturada="analiseMateriaisEstruturada"
+          :analise-fallback="analiseAtual.analise_materiais || ''"
+        />
 
         <!-- Checklist de Auditoria (lista esperada da fase × conteudo entregue) -->
-        <!-- Para projeto-concluido o checklist ja aparece no bloco consolidado acima -->
         <TcChecklistAuditoria
           v-if="!isFaseProjetoConcluido && checklistAuditoria"
           :checklist="checklistAuditoria"
         />
 
         <!-- Revisao de Portugues (ortografia/gramatica dos materiais) -->
-        <!-- Para projeto-concluido a revisao ja aparece no bloco consolidado acima -->
         <TcRevisaoPortugues
           v-if="!isFaseProjetoConcluido && revisaoPortugues"
           :revisao="revisaoPortugues"
         />
 
-        <div class="sp-card" v-if="analiseAtual.percepcao_cliente">
-          <h2>Percepção do Cliente</h2>
-          <div class="sp-percepcao">
-            <div v-for="(valor, chave) in analiseAtual.percepcao_cliente" :key="chave">
-              <span class="label">{{ percepcaoLabel(chave) }}</span>
-              <strong>{{ valor }}/10</strong>
-            </div>
-          </div>
-        </div>
-
-        <!-- Avaliacao da Equipe V4 — IA cruza participantes Kommo com transcricao -->
-        <div class="sp-card sp-card--equipe" v-if="avaliacaoEquipe">
-          <div class="sp-card-header">
-            <h2>Avaliação da Equipe</h2>
-            <span v-if="avaliacaoEquipe.v4_identificado" class="equipe-tag" :title="`V4: ${avaliacaoEquipe.v4_identificado}${metodoLabel ? ' (' + metodoLabel + ')' : ''}${avaliacaoEquipe.cliente_identificado ? '\nCliente: ' + avaliacaoEquipe.cliente_identificado : ''}`">
-              <i data-lucide="user-check" class="inline-icon"></i>
-              {{ avaliacaoEquipe.v4_identificado }}
-            </span>
-            <!-- Alerta sutil quando a IA nao conseguiu identificar o V4 (tooltip explica o motivo) -->
-            <span
-              v-else
-              class="equipe-alert"
-              title="Não foi possível identificar com segurança o funcionário da V4 nesta reunião. Preencha o campo 'Participantes' no Kommo (com nomes e/ou emails) para habilitar a avaliação."
-            >
-              <i data-lucide="alert-triangle" class="inline-icon"></i>
-              sem identificação
-            </span>
-          </div>
-          <div v-if="equipeScores.length" class="sp-percepcao">
-            <div
-              v-for="dim in equipeScores"
-              :key="dim.chave"
-              :title="`V4 avaliado: ${avaliacaoEquipe.v4_identificado || '—'}${metodoLabel ? ' (' + metodoLabel + ')' : ''}${avaliacaoEquipe.cliente_identificado ? '\nCliente reconhecido: ' + avaliacaoEquipe.cliente_identificado : ''}`"
-            >
-              <span class="label">{{ dim.label }}</span>
-              <strong>{{ dim.valor }}/10</strong>
-            </div>
-          </div>
-          <p
-            v-else
-            class="equipe-vazio"
-            title="A IA não localizou o funcionário da V4 nos materiais fornecidos. Verifique se os nomes/emails dos participantes estão preenchidos no Kommo e tente re-analisar."
-          >
-            <i data-lucide="alert-triangle" class="inline-icon"></i>
-            Avaliação da equipe indisponível — passe o cursor para ver o motivo.
-          </p>
-        </div>
-
-        <div class="sp-card" v-if="analiseAtual.dores?.length">
-          <h2>Dores / Insatisfações</h2>
+        <!-- Insatisfacoes do Cliente (renomeado de "Dores") — foco: o que o cliente esta descontente sobre a V4 -->
+        <div class="sp-card" v-if="insatisfacoesCliente.length">
+          <h2>Insatisfações do Cliente</h2>
           <ul>
-            <li v-for="(d, i) in analiseAtual.dores" :key="i">
+            <li v-for="(d, i) in insatisfacoesCliente" :key="i">
               <span class="gravidade" :class="`gravidade--${gravidadeSlug(d.gravidade)}`">
                 {{ gravidadeLabel(d.gravidade) }}
               </span>
               {{ d.descricao }}
+              <small v-if="d.evidencia" class="insat-evidencia">“{{ d.evidencia }}”</small>
             </li>
           </ul>
         </div>
@@ -783,16 +759,18 @@ watch(jobAtivo, (novo, antigo) => {
       <section
         class="sp-coluna sp-coluna--acoes"
         v-if="analiseAtual.status_avaliacao !== 'incompleta' &&
-              (analiseAtual.oportunidades?.length || analiseAtual.riscos?.length || analiseAtual.recomendacoes?.length)"
+              (analiseAtual.oportunidades?.length || recomendacoesLidarCliente.length)"
       >
-        <!-- Novo card de Oportunidades (probabilidade + justificativa expansivel) -->
+        <!-- Novo card de Oportunidades (probabilidade + breakdown de urgencia + justificativa expansivel) -->
         <TcConsolidadoOportunidades
           v-if="analiseAtual.oportunidades?.length"
           :oportunidades="analiseAtual.oportunidades"
           @criar-kommo="abrirKommoModal"
         />
 
-        <div class="sp-card" v-if="analiseAtual.riscos?.length">
+        <!-- Bloco oculto de Riscos — removido por preferencia do usuario (foco no relacionamento, nao em riscos internos).
+             Mantido apenas no backend se o prompt ainda retornar (retrocompat com dados legados). -->
+        <div v-if="false" class="sp-card">
           <h2>Riscos</h2>
           <ul>
             <li v-for="(r, i) in analiseAtual.riscos" :key="i">
@@ -802,11 +780,15 @@ watch(jobAtivo, (novo, antigo) => {
           </ul>
         </div>
 
-        <div class="sp-card" v-if="analiseAtual.recomendacoes?.length">
-          <h2>Recomendações</h2>
+        <div class="sp-card" v-if="recomendacoesLidarCliente.length">
+          <h2>Recomendações de como lidar com o Cliente</h2>
+          <p class="sp-card-sub">
+            Foco em comunicação, engajamento e pontos que o cliente valoriza — não em ações estratégicas do negócio.
+          </p>
           <ol>
-            <li v-for="(rec, i) in analiseAtual.recomendacoes" :key="i">
+            <li v-for="(rec, i) in recomendacoesLidarCliente" :key="i">
               <span class="prioridade" :class="`prioridade--${rec.prioridade}`">{{ rec.prioridade }}</span>
+              <span v-if="rec.tipo" class="recom-tipo">{{ formatTipo(rec.tipo) }}</span>
               {{ rec.descricao }}
             </li>
           </ol>
@@ -900,11 +882,12 @@ watch(jobAtivo, (novo, antigo) => {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
-/* Barras de acento laterais por categoria — cria hierarquia visual imediata */
+/* Barras de acento laterais por categoria — cria hierarquia visual imediata.
+   Sem azul primario (proibido no design system V4) — paleta: branco / lime / roxo / vermelho */
 .super-painel :deep(.av-card)       { border-left: 3px solid rgba(255, 255, 255, 0.6); }
-.super-painel :deep(.qt-card)       { border-left: 3px solid #3b82f6; }
-.super-painel :deep(.pp-section)    { border-left: 3px solid #8b5cf6; }
-.super-painel :deep(.opp-card)      { border-left: 3px solid #ff0000; }
+.super-painel :deep(.qt-card)       { border-left: 3px solid var(--chart-color-6, #84cc16); }
+.super-painel :deep(.pp-section)    { border-left: 3px solid var(--chart-color-5, #a855f7); }
+.super-painel :deep(.opp-card)      { border-left: 3px solid var(--color-primary, #ff0000); }
 
 /* Titulos de secao com mais peso para guiar leitura */
 .super-painel :deep(.sp-card h2),
@@ -1022,6 +1005,17 @@ watch(jobAtivo, (novo, antigo) => {
   flex: 0 1 auto;                 /* sp-body cresce so ate o conteudo */
 }
 .sp-coluna { display: flex; flex-direction: column; gap: var(--spacing-md); }
+
+/* Topo destaque: Percepção + Avaliação da Equipe lado a lado (ocupa toda a largura do grid .sp-body) */
+.sp-topo-destaque {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+}
+@media (max-width: 900px) {
+  .sp-topo-destaque { grid-template-columns: 1fr; }
+}
 
 /* Bloco 1: header + timeline + banner formam uma unidade visual coesa */
 .sp-head-bloco {
@@ -1459,6 +1453,40 @@ watch(jobAtivo, (novo, antigo) => {
 .gravidade--media, .prioridade--media { background: var(--color-care); color: #000; }
 .gravidade--baixa, .prioridade--baixa { background: var(--color-safe); color: #fff; }
 
+/* Evidencia citada pela IA na insatisfacao (trecho da conversa) */
+.insat-evidencia {
+  display: block;
+  margin-top: 4px;
+  font-style: italic;
+  color: var(--text-lowest);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+
+/* Sub-titulo explicativo abaixo do h2 em alguns cards */
+.sp-card-sub {
+  margin: 0 0 var(--spacing-md);
+  color: var(--text-lowest);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  font-style: italic;
+}
+
+/* Tag de categoria da recomendacao (comunicacao, engajamento, tom, processo, ponto forte a reforcar) */
+.recom-tipo {
+  display: inline-block;
+  padding: 1px 6px;
+  background: var(--bg-inner);
+  border: 1px solid var(--border-row);
+  border-radius: var(--radius-sm);
+  color: var(--text-low);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  margin-right: var(--spacing-xs);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
 .sp-oportunidades { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: var(--spacing-md); }
 .sp-oportunidades .linha { display: flex; justify-content: space-between; align-items: center; margin-top: var(--spacing-sm); }
 
@@ -1475,6 +1503,14 @@ watch(jobAtivo, (novo, antigo) => {
 .inline-icon {
   width: 14px;
   height: 14px;
+  flex-shrink: 0;
+}
+
+/* Group de ações do header: Fontes (popover) + close */
+.sp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-shrink: 0;
 }
 

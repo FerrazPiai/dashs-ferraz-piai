@@ -130,19 +130,20 @@ const status = computed(() => {
   return props.cliente.fases?.[props.fase] ?? null
 })
 
+// Escala unica de cor por score: 9-10 = verde, 7-8 = amarelo, <=6 = vermelho
 const scoreClass = computed(() => {
   const s = detalhe.value?.score
   if (s == null) return ''
-  if (s >= 8) return 'score--verde'
-  if (s >= 6) return 'score--amarelo'
+  if (s >= 9) return 'score--verde'
+  if (s >= 7) return 'score--amarelo'
   return 'score--vermelho'
 })
 
 const scoreTexto = computed(() => {
   const s = detalhe.value?.score
   if (s == null) return ''
-  if (s >= 8) return 'Bom'
-  if (s >= 6) return 'Mediano'
+  if (s >= 9) return 'Bom'
+  if (s >= 7) return 'Mediano'
   return 'Ruim'
 })
 

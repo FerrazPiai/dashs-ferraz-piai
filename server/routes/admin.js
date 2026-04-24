@@ -45,7 +45,28 @@ function isProtectedTarget(user) {
 router.get('/users', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT id, email, name, role, oauth_provider, active, created_at, updated_at FROM users ORDER BY created_at DESC'
+      `SELECT u.id,
+              u.email,
+              u.name,
+              u.role,
+              u.oauth_provider,
+              u.active,
+              u.created_at,
+              u.updated_at,
+              (
+                SELECT MAX(l.created_at)
+                  FROM dashboards_hub.user_activity_log l
+                 WHERE l.user_id = u.id
+                   AND l.event_type = 'login'
+              ) AS last_login,
+              (
+                SELECT MAX(l.created_at)
+                  FROM dashboards_hub.user_activity_log l
+                 WHERE l.user_id = u.id
+                   AND l.event_type IN ('login', 'page_view')
+              ) AS last_activity
+         FROM users u
+        ORDER BY u.created_at DESC`
     )
     res.json({ users: result.rows })
   } catch (err) {
@@ -213,7 +234,7 @@ router.get('/profiles', async (req, res) => {
 
 // POST /api/admin/profiles — Criar perfil
 router.post('/profiles', async (req, res) => {
-  const { name, label, allowed_dashboards } = req.body
+  const { name, label, allowed_dashboards, allowed_features } = req.body
   if (!name || !label) {
     return res.status(400).json({ error: 'Nome e label obrigatorios' })
   }
@@ -222,9 +243,13 @@ router.post('/profiles', async (req, res) => {
   }
   try {
     const result = await pool.query(
-      'INSERT INTO profiles (name, label, allowed_dashboards) VALUES ($1, $2, $3) RETURNING *',
-      [name, label, allowed_dashboards || []]
+      'INSERT INTO profiles (name, label, allowed_dashboards, allowed_features) VALUES ($1, $2, $3, $4::jsonb) RETURNING *',
+      [name, label, allowed_dashboards || [], JSON.stringify(allowed_features || [])]
     )
+    try {
+      const { invalidateFeaturesCache } = await import('./torre-controle.js')
+      if (typeof invalidateFeaturesCache === 'function') invalidateFeaturesCache()
+    } catch { /* opcional */ }
     res.status(201).json({ profile: result.rows[0] })
   } catch (err) {
     if (err.code === '23505') return res.status(409).json({ error: 'Perfil ja existe' })
@@ -236,13 +261,25 @@ router.post('/profiles', async (req, res) => {
 // PUT /api/admin/profiles/:name — Editar perfil
 router.put('/profiles/:name', async (req, res) => {
   const { name } = req.params
-  const { label, allowed_dashboards } = req.body
+  const { label, allowed_dashboards, allowed_features } = req.body
+  // Perfis padrao (admin/board/operacao) nao podem ter name/label/permissoes alteradas
+  // via PUT — so por migration. DELETE ja tem a mesma protecao (linha ~303).
+  if (['admin', 'board', 'operacao'].includes(name)) {
+    return res.status(403).json({ error: 'Perfis padrao nao podem ser editados' })
+  }
+  if (label !== undefined && !String(label).trim()) {
+    return res.status(400).json({ error: 'Label nao pode ser vazio' })
+  }
   try {
     const sets = []
     const values = []
     let idx = 1
     if (label !== undefined) { sets.push(`label = $${idx++}`); values.push(label) }
     if (allowed_dashboards !== undefined) { sets.push(`allowed_dashboards = $${idx++}`); values.push(allowed_dashboards) }
+    if (allowed_features !== undefined) {
+      sets.push(`allowed_features = $${idx++}::jsonb`)
+      values.push(JSON.stringify(allowed_features))
+    }
     if (sets.length === 0) return res.status(400).json({ error: 'Nenhum campo para atualizar' })
     sets.push('updated_at = NOW()')
     values.push(name)
@@ -251,11 +288,33 @@ router.put('/profiles/:name', async (req, res) => {
       values
     )
     if (result.rows.length === 0) return res.status(404).json({ error: 'Perfil nao encontrado' })
+    // Invalida cache de features em torre-controle.js para refletir mudanca imediatamente
+    try {
+      const { invalidateFeaturesCache } = await import('./torre-controle.js')
+      if (typeof invalidateFeaturesCache === 'function') invalidateFeaturesCache()
+    } catch { /* opcional: se nao existir, segue */ }
     res.json({ profile: result.rows[0] })
   } catch (err) {
     console.error(`[${new Date().toISOString()}] Admin update profile error:`, err.message)
-    res.status(500).json({ error: 'Erro ao atualizar perfil' })
+    // Expoe detalhe do DB quando e erro de constraint/coluna — ajuda a diagnosticar
+    // migrations faltantes (ex: 019_profiles_allowed_features) sem precisar de logs.
+    const detail = err.code ? ` (${err.code}: ${err.message})` : ''
+    res.status(500).json({ error: 'Erro ao atualizar perfil' + detail })
   }
+})
+
+// GET /api/admin/features-list — Catalogo de feature flags que podem ser liberadas por perfil.
+// Fonte unica da verdade: adicionar nova feature aqui e referenciar pelo id no frontend.
+router.get('/features-list', (req, res) => {
+  res.json({
+    features: [
+      {
+        id: 'tc_painel_geral',
+        label: 'Painel Geral — Torre de Controle',
+        description: 'Libera a visao agregada (KPIs, tabs Distribuicao/Churn/Oportunidades/Accounts) no dashboard Torre de Controle.'
+      }
+    ]
+  })
 })
 
 // DELETE /api/admin/profiles/:name — Deletar perfil
@@ -272,6 +331,10 @@ router.delete('/profiles/:name', async (req, res) => {
     }
     const result = await pool.query('DELETE FROM profiles WHERE name = $1 RETURNING name', [name])
     if (result.rows.length === 0) return res.status(404).json({ error: 'Perfil nao encontrado' })
+    try {
+      const { invalidateFeaturesCache } = await import('./torre-controle.js')
+      if (typeof invalidateFeaturesCache === 'function') invalidateFeaturesCache()
+    } catch { /* opcional */ }
     res.json({ message: 'Perfil deletado', name })
   } catch (err) {
     console.error(`[${new Date().toISOString()}] Admin delete profile error:`, err.message)
